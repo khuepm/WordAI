@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#191c1d",
+              "on-tertiary-fixed": "#321300",
+              "secondary": "#575995",
+              "inverse-surface": "#2e3132",
+              "inverse-primary": "#c1c1ff",
+              "inverse-on-surface": "#f0f1f2",
+              "secondary-fixed-dim": "#c1c1ff",
+              "surface-tint": "#4849da",
+              "on-tertiary-container": "#fff6f3",
+              "primary-fixed": "#e1e0ff",
+              "outline": "#767586",
+              "tertiary": "#904400",
+              "secondary-fixed": "#e1e0ff",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a",
+              "surface-container-highest": "#e1e3e4",
+              "background": "#f8f9fa",
+              "primary": "#4343d5",
+              "on-secondary": "#ffffff",
+              "tertiary-container": "#b65700",
+              "primary-fixed-dim": "#c1c1ff",
+              "on-primary": "#ffffff",
+              "primary-container": "#5d5fef",
+              "on-secondary-container": "#474984",
+              "on-secondary-fixed-variant": "#3f417b",
+              "tertiary-fixed": "#ffdbc8",
+              "secondary-container": "#babbfe",
+              "on-primary-container": "#faf7ff",
+              "on-surface": "#191c1d",
+              "on-secondary-fixed": "#12134d",
+              "on-surface-variant": "#464555",
+              "surface-variant": "#e1e3e4",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "surface-container-low": "#f3f4f5",
+              "on-error-container": "#93000a",
+              "surface-container": "#edeeef",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-primary-fixed": "#07006c",
+              "surface-dim": "#d9dadb",
+              "surface": "#f8f9fa",
+              "outline-variant": "#c7c4d7",
+              "on-tertiary": "#ffffff",
+              "surface-container-high": "#e7e8e9",
+              "tertiary-fixed-dim": "#ffb689",
+              "surface-bright": "#f8f9fa"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-headline antialiased overflow-hidden">
+<!-- Top Navigation Bar -->
+<nav class="bg-[#f8f9fa] dark:bg-[#191c1d] flex justify-between items-center px-8 h-16 w-full fixed top-0 z-40 font-['Manrope'] tracking-tight antialiased">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#191c1d] dark:text-[#f8f9fa]">WordAI</span>
+<div class="flex gap-6">
+<a class="text-[#4343d5] dark:text-[#5d5fef] font-semibold border-b-2 border-[#4343d5]" href="#">Drafts</a>
+<a class="text-[#5a5a5a] dark:text-[#edeeef] hover:text-[#4343d5] transition-colors duration-200" href="#">Archive</a>
+<a class="text-[#5a5a5a] dark:text-[#edeeef] hover:text-[#4343d5] transition-colors duration-200" href="#">Library</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-semibold hover:bg-primary-container transition-all active:scale-95">Render</button>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-[#edeeef] p-2 rounded-full transition-colors" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-[#edeeef] p-2 rounded-full transition-colors" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<!-- Sidebar Navigation -->
+<aside class="fixed right-0 top-16 bottom-0 flex flex-col p-6 space-y-8 bg-[#edeeef]/80 dark:bg-[#2e3132]/80 backdrop-blur-xl w-80 shadow-[0_40px_60px_-5px_rgba(67,67,213,0.08)] z-30 font-['Manrope'] text-sm tracking-wide uppercase">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-[#4343d5] normal-case tracking-normal">AuraSphere</h3>
+<p class="text-[10px] opacity-60 tracking-widest uppercase">AI Writing Partner</p>
+</div>
+</div>
+<button class="mt-4 w-full bg-primary text-on-primary py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-container transition-all shadow-lg shadow-primary/20 normal-case font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Chat
+            </button>
+</div>
+<nav class="flex flex-col space-y-2">
+<div class="flex items-center gap-4 p-3 bg-white/50 dark:bg-[#191c1d]/50 text-[#4343d5] dark:text-[#5d5fef] font-bold rounded-l-xl cursor-pointer hover:translate-x-[-2px] transition-all">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span>Assistant</span>
+</div>
+<div class="flex items-center gap-4 p-3 text-[#5a5a5a] dark:text-[#edeeef] opacity-70 cursor-pointer hover:opacity-100 hover:translate-x-[-2px] transition-all">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Analysis</span>
+</div>
+<div class="flex items-center gap-4 p-3 text-[#5a5a5a] dark:text-[#edeeef] opacity-70 cursor-pointer hover:opacity-100 hover:translate-x-[-2px] transition-all">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>History</span>
+</div>
+<div class="flex items-center gap-4 p-3 text-[#5a5a5a] dark:text-[#edeeef] opacity-70 cursor-pointer hover:opacity-100 hover:translate-x-[-2px] transition-all">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+<span>Settings</span>
+</div>
+</nav>
+</aside>
+<!-- Main Content Canvas (Background) -->
+<main class="pt-32 px-12 md:mr-80 min-h-screen">
+<div class="max-w-3xl mx-auto">
+<h1 class="font-body text-[2.5rem] text-on-background leading-tight mb-8">Nghệ thuật của sự tinh giản trong thiết kế hiện đại</h1>
+<div class="font-body text-lg leading-[1.8] text-on-surface-variant space-y-6">
+<p>Thiết kế không chỉ là về những gì chúng ta thêm vào, mà còn là về những gì chúng ta dám lược bỏ. Trong kỷ nguyên của sự quá tải thông tin, sự đơn giản trở thành một loại quyền lực mới. Một giao diện sạch sẽ không chỉ giúp người dùng dễ dàng điều hướng mà còn tạo ra một không gian tinh thần yên tĩnh để họ có thể tập trung vào những điều thực sự quan trọng.</p>
+<p>Khi chúng ta nói về "The Ethereal Editor", chúng ta đang nói về một tầm nhìn nơi công cụ biến mất, để lại chỉ còn lại ý tưởng và người sáng tạo. AI trong bối cảnh này không phải là một thực thể xâm lấn, mà là một người bạn đồng hành thầm lặng, chỉ xuất hiện khi cần thiết để nâng tầm trải nghiệm mà không làm gián đoạn dòng chảy tư duy.</p>
+<p>Mỗi khoảng trắng đều có mục đích. Mỗi lựa chọn font chữ đều mang một sắc thái cảm xúc. Sự kết hợp giữa Manrope hiện đại và Newsreader cổ điển tạo ra một cuộc đối thoại giữa quá khứ và tương lai, giữa cấu trúc hệ thống và sự tự do sáng tạo.</p>
+</div>
+</div>
+</main>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 bg-on-background/10 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<!-- Negotiation Panel (The Modal) -->
+<div class="glass-panel w-full max-w-[700px] h-[400px] rounded-2xl shadow-[0_40px_60px_-5px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden ring-1 ring-outline-variant/20">
+<!-- Modal Header -->
+<div class="px-6 py-4 flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="compare_arrows">compare_arrows</span>
+<h2 class="font-bold text-on-background">So sánh đề xuất AI</h2>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors" data-icon="close">close</button>
+</div>
+<!-- Side-by-Side Comparison Area -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Original Version -->
+<div class="flex-1 bg-surface-container p-6 overflow-y-auto">
+<div class="flex items-center gap-2 mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Bản gốc</span>
+</div>
+<div class="font-body text-sm leading-relaxed text-on-surface-variant">
+                        Sự đơn giản là một loại quyền lực mới. Một giao diện sạch sẽ không chỉ giúp người dùng dễ dàng điều hướng mà còn tạo ra một <span class="bg-primary/5 border-b border-primary/20">không gian tinh thần yên tĩnh</span> để họ có thể tập trung vào những điều thực sự quan trọng.
+                    </div>
+</div>
+<!-- AI Proposed Version -->
+<div class="flex-1 bg-[#f1f8f1] p-6 overflow-y-auto border-l border-outline-variant/10">
+<div class="flex items-center gap-2 mb-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-[#2d5a27]/60">Bản AI đề xuất</span>
+<span class="material-symbols-outlined text-xs text-[#2d5a27]" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="font-body text-sm leading-relaxed text-[#1e3a1a]">
+                        Sự tinh giản đã trở thành một loại quyền lực mới. Một giao diện tối giản không chỉ giúp người dùng điều hướng mượt mà mà còn kiến tạo một <span class="bg-[#c8e6c9] px-1 rounded-sm font-medium">ốc đảo tĩnh lặng trong tâm hồn</span> giúp tối ưu hóa khả năng tư duy sâu vào những giá trị cốt lõi.
+                    </div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="px-6 py-4 bg-surface-container-lowest flex items-center justify-between border-t border-outline-variant/10">
+<div class="flex items-center gap-2 text-on-surface-variant/60 text-xs italic">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+                    Thay đổi giúp câu văn truyền cảm hứng hơn
+                </div>
+<div class="flex gap-3">
+<button class="px-4 py-2 text-on-surface-variant font-semibold hover:bg-surface-container rounded-xl transition-all active:scale-95 text-sm">Hủy bỏ</button>
+<button class="px-4 py-2 text-primary font-semibold hover:bg-primary-fixed rounded-xl transition-all active:scale-95 text-sm">Yêu cầu lại</button>
+<button class="px-6 py-2 bg-primary text-on-primary font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95 text-sm">Chấp nhận</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

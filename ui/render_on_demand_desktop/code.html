@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#191c1d",
+              "on-tertiary-fixed": "#321300",
+              "secondary": "#575995",
+              "inverse-surface": "#2e3132",
+              "inverse-primary": "#c1c1ff",
+              "inverse-on-surface": "#f0f1f2",
+              "secondary-fixed-dim": "#c1c1ff",
+              "surface-tint": "#4849da",
+              "on-tertiary-container": "#fff6f3",
+              "primary-fixed": "#e1e0ff",
+              "outline": "#767586",
+              "tertiary": "#904400",
+              "secondary-fixed": "#e1e0ff",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a",
+              "surface-container-highest": "#e1e3e4",
+              "background": "#f8f9fa",
+              "primary": "#4343d5",
+              "on-secondary": "#ffffff",
+              "tertiary-container": "#b65700",
+              "primary-fixed-dim": "#c1c1ff",
+              "on-primary": "#ffffff",
+              "primary-container": "#5d5fef",
+              "on-secondary-container": "#474984",
+              "on-secondary-fixed-variant": "#3f417b",
+              "tertiary-fixed": "#ffdbc8",
+              "secondary-container": "#babbfe",
+              "on-primary-container": "#faf7ff",
+              "on-surface": "#191c1d",
+              "on-secondary-fixed": "#12134d",
+              "on-surface-variant": "#464555",
+              "surface-variant": "#e1e3e4",
+              "on-error": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "surface-container-low": "#f3f4f5",
+              "on-error-container": "#93000a",
+              "surface-container": "#edeeef",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-primary-fixed": "#07006c",
+              "surface-dim": "#d9dadb",
+              "surface": "#f8f9fa",
+              "outline-variant": "#c7c4d7",
+              "on-tertiary": "#ffffff",
+              "surface-container-high": "#e7e8e9",
+              "tertiary-fixed-dim": "#ffb689",
+              "surface-bright": "#f8f9fa"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #edeeef;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background font-headline text-on-surface overflow-hidden">
+<!-- TopNavBar -->
+<nav class="bg-[#f8f9fa] dark:bg-[#191c1d] font-['Manrope'] tracking-tight antialiased fixed full-width top-0 z-50 flex justify-between items-center px-8 h-16 w-full">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#191c1d] dark:text-[#f8f9fa]">WordAI</span>
+<div class="hidden md:flex space-x-6 text-sm">
+<a class="text-[#5a5a5a] dark:text-[#edeeef] hover:text-[#4343d5] transition-colors duration-200" href="#">Drafts</a>
+<a class="text-[#5a5a5a] dark:text-[#edeeef] hover:text-[#4343d5] transition-colors duration-200" href="#">Archive</a>
+<a class="text-[#5a5a5a] dark:text-[#edeeef] hover:text-[#4343d5] transition-colors duration-200" href="#">Library</a>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<button class="material-symbols-outlined text-[#5a5a5a] hover:bg-[#edeeef] p-2 rounded-full transition-all">settings</button>
+<button class="material-symbols-outlined text-[#5a5a5a] hover:bg-[#edeeef] p-2 rounded-full transition-all">account_circle</button>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-semibold scale-95 active:opacity-80 transition-all hover:shadow-[0_0_15px_rgba(67,67,213,0.3)]">Render</button>
+</div>
+</nav>
+<div class="bg-[#edeeef] dark:bg-[#2e3132] h-[1px] w-full fixed top-16 z-50"></div>
+<!-- Main Content Canvas (Zero-UI Editor) -->
+<main class="pt-32 px-12 md:px-24 lg:pr-[450px] min-h-screen transition-all duration-500">
+<div class="max-w-3xl mx-auto">
+<header class="mb-12">
+<h1 class="font-body text-4xl text-on-surface leading-tight mb-4 selection:bg-primary-fixed">Tương lai của Trí tuệ Nhân tạo trong Biên tập Nội dung</h1>
+<div class="flex items-center gap-4 text-outline text-sm font-label uppercase tracking-widest">
+<span>Oct 24, 2023</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span>5 min read</span>
+</div>
+</header>
+<article class="font-body text-lg leading-relaxed text-on-surface-variant space-y-8">
+<p>Trong kỷ nguyên số, việc viết lách không còn chỉ là sự kết hợp giữa bàn phím và suy nghĩ. Đó là một vũ điệu giữa ý tưởng con người và sự hỗ trợ của các thuật toán ngôn ngữ lớn. AuraSphere không chỉ là một công cụ; nó là một người bạn đồng hành thầm lặng, hiểu được ngữ cảnh và cảm xúc đằng sau mỗi từ ngữ.</p>
+<p>Khi chúng ta bắt đầu một bản thảo mới, khoảng trống của trang giấy trắng thường gây áp lực. Tuy nhiên, với "Zero-UI", chúng ta loại bỏ mọi sự xao nhãng. Không có thanh công cụ phức tạp, không có các nút bấm rườm rà. Chỉ có bạn và những con chữ.</p>
+<p class="border-l-4 border-primary-container pl-6 py-2 italic text-on-surface bg-surface-container-low/50">"Trí tuệ nhân tạo tốt nhất là thứ mà bạn không cảm thấy sự hiện diện của nó cho đến khi bạn thực sự cần sự giúp đỡ."</p>
+<p>Quy trình "Render-on-Demand" cho phép người viết tập trung hoàn toàn vào nội dung trước khi lo lắng về hình thức. Khi cấu trúc đã vững vàng, đó là lúc phép màu của sự định dạng bắt đầu...</p>
+</article>
+</div>
+</main>
+<!-- SideNavBar (Background Context) -->
+<aside class="fixed right-0 top-16 bottom-0 w-20 flex flex-col items-center py-8 space-y-8 bg-surface-container-low border-l border-outline-variant/10 z-40">
+<div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="space-y-6 flex flex-col items-center">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">analytics</button>
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">history</button>
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">tune</button>
+</div>
+</aside>
+<!-- Render-on-Demand Drawer -->
+<div class="fixed top-16 right-0 bottom-0 w-[400px] glass-panel z-50 shadow-[0_40px_60px_-15px_rgba(0,0,0,0.1)] border-l border-outline-variant/20 flex flex-col">
+<!-- Header & Thumbnail -->
+<div class="p-6 border-b border-outline-variant/10">
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-headline font-bold text-lg">Render Preview</h2>
+<button class="material-symbols-outlined text-outline hover:text-on-background">close</button>
+</div>
+<div class="relative group">
+<div class="w-full aspect-[1/1.414] bg-white rounded-lg shadow-sm border border-outline-variant/30 overflow-hidden transform group-hover:scale-[1.02] transition-transform duration-500">
+<img class="w-full h-full object-cover opacity-90" data-alt="minimalist A4 document layout with elegant serif typography and wide margins on a clean white paper texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH28roX6whg_d-6AqlKb_mf7086FiScugNGzQGLfwv6Rbo15FjEmoLXxaR_G2y8ForHGMAe2AP3F2CvOOCZLDmWbAB7ar0MF59voF3E4O5ynt2oCJIRPDt-0qTwmP66B3ZKxXeJ1trNvlcEwFJ1cJCH2qZVblFcOtQrOgo3CXApaLDXsSkBNOjSI1RMWZ5BbMp2YRjmyygOqLwr8uh8RWn7brnhcxSnWZqHGUHNLl_CNkUmou9Hyu5e_sIKFsHqwN4cmTupRWtOYk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg flex items-center justify-between shadow-lg">
+<span class="text-[10px] font-bold uppercase tracking-tighter opacity-60">Live Preview: Current Draft</span>
+<span class="material-symbols-outlined text-primary text-sm">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Area - Scrollable -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+<!-- Template Grid -->
+<section>
+<h3 class="font-label text-[10px] uppercase tracking-[0.2em] text-outline mb-4">Mẫu tài liệu</h3>
+<div class="grid grid-cols-2 gap-3">
+<button class="group p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary transition-all text-left">
+<span class="material-symbols-outlined text-primary mb-2">description</span>
+<p class="text-sm font-semibold">Báo cáo</p>
+<p class="text-[10px] text-outline">Professional</p>
+</button>
+<button class="group p-4 rounded-xl bg-primary-container text-on-primary-container shadow-lg shadow-primary/10 transition-all text-left">
+<span class="material-symbols-outlined mb-2">article</span>
+<p class="text-sm font-semibold">Blog Post</p>
+<p class="text-[10px] opacity-70">Editorial</p>
+</button>
+<button class="group p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary transition-all text-left">
+<span class="material-symbols-outlined text-primary mb-2">school</span>
+<p class="text-sm font-semibold">APA Style</p>
+<p class="text-[10px] text-outline">Academic</p>
+</button>
+<button class="group p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary transition-all text-left">
+<span class="material-symbols-outlined text-primary mb-2">gavel</span>
+<p class="text-sm font-semibold">Hợp đồng</p>
+<p class="text-[10px] text-outline">Legal</p>
+</button>
+</div>
+</section>
+<!-- Fine-tuning UI (Accordion) -->
+<section>
+<div class="flex items-center justify-between mb-4 group cursor-pointer">
+<h3 class="font-label text-[10px] uppercase tracking-[0.2em] text-outline">Fine-tuning UI</h3>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">expand_more</span>
+</div>
+<div class="bg-surface-container-low rounded-2xl p-4 space-y-6">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Kiểu chữ &amp; Định dạng</span>
+<div class="flex bg-surface-container-highest rounded-lg p-1">
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_bold</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_italic</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_underlined</span></button>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Căn lề văn bản</span>
+<div class="flex bg-surface-container-highest rounded-lg p-1">
+<button class="w-8 h-8 flex items-center justify-center bg-white shadow-sm rounded transition-all"><span class="material-symbols-outlined text-sm">format_align_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_align_center</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_align_right</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-white rounded transition-all"><span class="material-symbols-outlined text-sm">format_align_justify</span></button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs mb-1">
+<span class="font-medium">Độ giãn dòng</span>
+<span class="text-primary font-bold">1.6x</span>
+</div>
+<div class="relative w-full h-1.5 bg-surface-container-highest rounded-full">
+<div class="absolute top-0 left-0 h-full w-[60%] bg-primary rounded-full"></div>
+<div class="absolute top-1/2 left-[60%] -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Actions -->
+<div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/95 to-transparent pt-12">
+<div class="flex flex-col gap-3">
+<button class="w-full h-14 bg-on-background text-white rounded-2xl flex items-center justify-center gap-3 font-bold hover:bg-on-background/90 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                    Tạo PDF
+                </button>
+<button class="w-full h-12 bg-primary-container/10 text-primary rounded-2xl flex items-center justify-center gap-3 font-semibold hover:bg-primary-container/20 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+                    Lưu file AuraSphere
+                </button>
+</div>
+</div>
+</div>
+<!-- AuraSphere Floating Glow (Visual Element) -->
+<div class="fixed bottom-12 left-12 w-32 h-32 bg-primary/10 rounded-full blur-[60px] pointer-events-none z-0"></div>
+</body></html>
