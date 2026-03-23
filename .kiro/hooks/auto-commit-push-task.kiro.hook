@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Auto Commit & Push After Task",
+  "description": "Automatically creates a git commit and pushes changes after completing a spec task",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "git add . && git commit -m \"Complete task: $(date '+%Y-%m-%d %H:%M:%S')\" && git push"
+  },
+  "workspaceFolderName": "WordAI",
+  "shortName": "auto-commit-push-task"
+}
