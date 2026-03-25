@@ -80,9 +80,9 @@ describe('NegotiationPanel - text comparison', () => {
     const removedSpans = originalContainer.querySelectorAll('span[style*="line-through"]');
     expect(removedSpans.length).toBeGreaterThan(0);
 
-    // "fast" should be in suggested with green background (color: #155724)
+    // "fast" should be in suggested marked as added
     const suggestedContainer = screen.getByTestId('suggested-text');
-    const addedSpans = suggestedContainer.querySelectorAll('span[style*="155724"]');
+    const addedSpans = suggestedContainer.querySelectorAll('span[data-diff="added"]');
     expect(addedSpans.length).toBeGreaterThan(0);
   });
 });

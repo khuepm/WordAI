@@ -98,6 +98,7 @@ function SuggestedDiff({ tokens }: { tokens: DiffToken[] }) {
             return (
               <span
                 key={i}
+                data-diff="added"
                 style={{
                   background: '#d4edda',
                   color: '#155724',
