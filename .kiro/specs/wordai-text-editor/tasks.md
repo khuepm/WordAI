@@ -272,7 +272,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Trigger auto-save operation
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [-] 10.4 Implement Reject and Edit actions
+  - [x] 10.4 Implement Reject and Edit actions
     - Add Reject button to close panel without changes
     - Add Edit button to enable inline editing
     - Implement real-time preview for edited text
