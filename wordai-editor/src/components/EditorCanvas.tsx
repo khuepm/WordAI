@@ -1,9 +1,9 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 19.1, 19.3, 19.4
+ * Requirements: 1.3, 1.4, 3.5, 19.1, 19.3, 19.4
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Document, TextSelection } from '../types/document';
 
 export interface EditorCanvasProps {
@@ -20,10 +20,29 @@ export function EditorCanvas({
   isAIPanelOpen,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Track cursor position so React re-renders don't cause cursor jumps (Req 3.5)
+  const cursorRef = useRef<{ start: number; end: number } | null>(null);
+
+  // Restore cursor position after state-driven re-renders (Req 3.5)
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea && cursorRef.current !== null) {
+      textarea.selectionStart = cursorRef.current.start;
+      textarea.selectionEnd = cursorRef.current.end;
+      cursorRef.current = null;
+    }
+  });
 
   const handleContentChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newContent = e.target.value;
+      const textarea = e.target;
+      const newContent = textarea.value;
+      // Capture cursor before React batches the state update (Req 3.5)
+      cursorRef.current = {
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd,
+      };
       setLocalContent(newContent);
       onDocumentChange({
         ...document,
@@ -55,6 +74,7 @@ export function EditorCanvas({
       style={styles.wrapper}
     >
       <textarea
+        ref={textareaRef}
         className="editor-canvas"
         value={localContent}
         onChange={handleContentChange}
