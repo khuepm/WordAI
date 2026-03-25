@@ -208,7 +208,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Adjust EditorCanvas width when panel opens
     - _Requirements: 5.1, 5.2, 5.3, 5.5, 21.1_
 
-  - [~] 8.3 Implement AI request submission
+  - [x] 8.3 Implement AI request submission
     - Add loading indicator during AI request
     - Call Tauri command to request AI suggestions
     - Handle request errors and display error messages
