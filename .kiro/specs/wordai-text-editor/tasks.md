@@ -364,7 +364,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Close RenderDrawer on Escape
     - _Requirements: 21.4_
 
-  - [~] 12.7 Write unit tests for RenderDrawer
+  - [x] 12.7 Write unit tests for RenderDrawer
     - Test format selection updates options
     - Test PDF options configuration
     - Test export command invocation
