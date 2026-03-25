@@ -94,7 +94,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Display tags if present
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [~] 3.5 Write unit tests for EditorCanvas
+  - [x] 3.5 Write unit tests for EditorCanvas
     - Test text input updates document state
     - Test cursor positioning on click
     - Test text selection creation
