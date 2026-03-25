@@ -238,7 +238,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Maintain chat history for current session
     - _Requirements: 23.1, 23.2, 23.3, 23.4, 23.5_
 
-  - [~] 8.7 Write unit tests for AuraSpherePanel
+  - [x] 8.7 Write unit tests for AuraSpherePanel
     - Test panel opens/closes with correct animations
     - Test AI request submission and error handling
     - Test suggestion card rendering and sorting

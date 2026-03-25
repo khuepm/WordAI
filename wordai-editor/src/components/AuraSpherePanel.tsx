@@ -132,9 +132,9 @@ export function AuraSpherePanel({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll chat to bottom on new messages
+  // Auto-scroll chat to bottom on new messages (scrollIntoView may be absent in test env)
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [chatHistory]);
 
   // Focus chat input when panel opens
@@ -263,13 +263,20 @@ export function AuraSpherePanel({
     [handleSendChat]
   );
 
-  // Keyboard navigation between suggestion cards (Req 24.4, 24.5)
+  // Escape key closes the panel (Req 21.4) — attached to document so it fires
+  // regardless of which element has focus inside the panel
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
+  // Arrow-key navigation between suggestion cards (Req 24.4, 24.5)
   const handlePanelKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
       if (suggestions.length === 0) return;
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -280,7 +287,7 @@ export function AuraSpherePanel({
         setFocusedCardIndex((i) => Math.max(i - 1, 0));
       }
     },
-    [suggestions.length, onClose]
+    [suggestions.length]
   );
 
   return (
