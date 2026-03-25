@@ -223,7 +223,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Apply hover glow effect on card hover
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 24.1_
 
-  - [~] 8.5 Implement suggestion card interactions
+  - [x] 8.5 Implement suggestion card interactions
     - Handle click to open Negotiation Panel
     - Implement dismiss action with fade-out animation
     - Add keyboard navigation (arrow keys) between cards
