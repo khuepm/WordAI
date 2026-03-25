@@ -180,7 +180,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Return error objects with error codes
     - _Requirements: 16.1, 16.2, 16.3_
 
-  - [~] 7.4 Register AI Tauri commands
+  - [x] 7.4 Register AI Tauri commands
     - Add Tauri command: request_ai_suggestion
     - Add Tauri command: send_chat_message
     - Implement command routing to AI service
