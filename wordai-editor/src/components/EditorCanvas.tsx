@@ -28,6 +28,8 @@ export interface EditorCanvasProps {
   isAIPanelOpen: boolean;
   saveError?: IPCError | null;
   hasUnsavedChanges?: boolean;
+  /** Called when user presses Cmd+S — parent should trigger immediate save (Req 21.2) */
+  onManualSave?: () => void;
 }
 
 export function EditorCanvas({
@@ -37,6 +39,7 @@ export function EditorCanvas({
   isAIPanelOpen,
   saveError = null,
   hasUnsavedChanges = false,
+  onManualSave,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
   // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
@@ -87,6 +90,11 @@ export function EditorCanvas({
         selectionRef.current = sel;
         onAITrigger(sel);
       }
+      // Cmd+S / Ctrl+S — manual save (Req 21.2)
+      if (isMod && e.key === 's') {
+        e.preventDefault();
+        onManualSave?.();
+      }
       // Cmd+A / Ctrl+A — select all content (Req 3.4, 21.5)
       if (isMod && e.key === 'a') {
         e.preventDefault();
@@ -95,7 +103,7 @@ export function EditorCanvas({
         selectionRef.current = { start: 0, end: localContent.length, text: localContent };
       }
     },
-    [localContent, onAITrigger]
+    [localContent, onAITrigger, onManualSave]
   );
 
   // Capture selection after mouse drag or click (Req 3.1, 3.2, 3.3)

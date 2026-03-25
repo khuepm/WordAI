@@ -101,7 +101,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test metadata calculations (word count, reading time)
     - _Requirements: 1.4, 3.1, 3.2, 3.3, 4.1, 4.2_
 
-- [~] 4. Implement auto-save functionality
+- [-] 4. Implement auto-save functionality
   - [x] 4.1 Create auto-save hook
     - Create hooks/useAutoSave.ts with debounce logic (2 seconds)
     - Trigger save on document content change
@@ -116,13 +116,13 @@ The implementation follows an incremental approach: project setup → core edito
     - Clear unsaved changes flag on successful save
     - _Requirements: 2.5, 17.2, 17.3_
 
-  - [~] 4.3 Implement manual save with keyboard shortcut
+  - [x] 4.3 Implement manual save with keyboard shortcut
     - Add Cmd+S (Ctrl+S) keyboard shortcut handler
     - Trigger immediate save operation
     - Provide visual feedback on save completion
     - _Requirements: 21.2_
 
-  - [~] 4.4 Write integration tests for auto-save
+  - [-] 4.4 Write integration tests for auto-save
     - Test auto-save triggers after 2 seconds of inactivity
     - Test save retry on failure
     - Test manual save with keyboard shortcut

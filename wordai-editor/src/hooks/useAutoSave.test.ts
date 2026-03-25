@@ -355,3 +355,124 @@ describe('useAutoSave - error handling and retry (Req 2.5, 17.2, 17.3)', () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });
+
+describe('useAutoSave - triggerSave (manual save, Req 21.2)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockInvoke.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('triggerSave immediately invokes save_document without waiting for debounce', async () => {
+    const doc = makeDocument('manual save content');
+    const onSuccess = vi.fn();
+    const { result } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', onSuccess, vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    // Call triggerSave without advancing timers
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith('save_document', {
+      path: '/tmp/doc.json',
+      document: doc,
+    });
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('triggerSave clears hasUnsavedChanges on success', async () => {
+    const doc = makeDocument();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('changed') });
+    expect(result.current.hasUnsavedChanges).toBe(true);
+
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(false);
+  });
+
+  it('triggerSave updates lastSaved on success', async () => {
+    const doc = makeDocument();
+    const { result } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    expect(result.current.lastSaved).toBeNull();
+
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(result.current.lastSaved).toBeInstanceOf(Date);
+  });
+
+  it('triggerSave sets saveError on IPC failure', async () => {
+    const ipcError: IPCError = { code: 'IO_ERROR', message: 'Permission denied' };
+    mockInvoke.mockRejectedValueOnce(ipcError);
+
+    const doc = makeDocument();
+    const onError = vi.fn();
+    const { result } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), onError),
+      { initialProps: { d: doc } }
+    );
+
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(result.current.saveError).toEqual(ipcError);
+    expect(onError).toHaveBeenCalledWith(ipcError);
+  });
+
+  it('triggerSave does nothing when filePath is empty', async () => {
+    const doc = makeDocument();
+    const onSuccess = vi.fn();
+    const { result } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '', onSuccess, vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(mockInvoke).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it('triggerSave uses the latest document even after content changes', async () => {
+    const doc = makeDocument('original');
+    const onSuccess = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', onSuccess, vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    const updatedDoc = makeDocument('updated content');
+    rerender({ d: updatedDoc });
+
+    await act(async () => {
+      await result.current.triggerSave();
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith('save_document', {
+      path: '/tmp/doc.json',
+      document: updatedDoc,
+    });
+  });
+});

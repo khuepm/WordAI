@@ -3,11 +3,11 @@
  * Requirements: 1.4, 3.1, 3.2, 3.3, 4.1, 4.2
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditorCanvas } from './EditorCanvas';
-import type { Document } from '../types/document';
+import type { Document, TextSelection } from '../types/document';
 
 // Mock @tauri-apps/api to avoid native module errors in jsdom
 vi.mock('@tauri-apps/api', () => ({}));
@@ -31,8 +31,8 @@ function makeDoc(overrides: Partial<Document> = {}): Document {
 }
 
 describe('EditorCanvas', () => {
-  let onDocumentChange: ReturnType<typeof vi.fn>;
-  let onAITrigger: ReturnType<typeof vi.fn>;
+  let onDocumentChange: Mock<(doc: Document) => void>;
+  let onAITrigger: Mock<(selection: TextSelection) => void>;
 
   beforeEach(() => {
     onDocumentChange = vi.fn();
@@ -208,33 +208,54 @@ describe('EditorCanvas', () => {
     expect(screen.queryByLabelText(/tags/i)).not.toBeInTheDocument();
   });
 
-  // Req 3.2 — text selection: Cmd+A selects all and triggers AI on Cmd+K
-  it('triggers onAITrigger with selected text on Cmd+K', async () => {
+  // Req 21.2 — Cmd+S triggers onManualSave
+  it('calls onManualSave when Cmd+S is pressed', async () => {
     const user = userEvent.setup();
-    const doc = makeDoc({ content: 'select me' });
+    const onManualSave = vi.fn();
+    const doc = makeDoc({ content: 'some text' });
     render(
       <EditorCanvas
         document={doc}
         onDocumentChange={onDocumentChange}
         onAITrigger={onAITrigger}
         isAIPanelOpen={false}
+        onManualSave={onManualSave}
       />
     );
 
     const textarea = screen.getByRole('textbox', { name: /document editor/i });
     await user.click(textarea);
-    await user.keyboard('{Meta>}a{/Meta}');
-    await user.keyboard('{Meta>}k{/Meta}');
+    await user.keyboard('{Meta>}s{/Meta}');
 
-    expect(onAITrigger).toHaveBeenCalledOnce();
-    const sel = onAITrigger.mock.calls[0][0];
-    expect(sel).toMatchObject({ start: 0, end: 9, text: 'select me' });
+    expect(onManualSave).toHaveBeenCalledOnce();
+  });
+
+  // Req 21.2 — Ctrl+S also triggers onManualSave (Windows/Linux)
+  it('calls onManualSave when Ctrl+S is pressed', async () => {
+    const user = userEvent.setup();
+    const onManualSave = vi.fn();
+    const doc = makeDoc({ content: 'some text' });
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        onManualSave={onManualSave}
+      />
+    );
+
+    const textarea = screen.getByRole('textbox', { name: /document editor/i });
+    await user.click(textarea);
+    await user.keyboard('{Control>}s{/Control}');
+
+    expect(onManualSave).toHaveBeenCalledOnce();
   });
 });
 
 describe('EditorCanvas - save error and unsaved changes (Req 2.5, 17.2, 17.3)', () => {
-  let onDocumentChange: ReturnType<typeof vi.fn>;
-  let onAITrigger: ReturnType<typeof vi.fn>;
+  let onDocumentChange: Mock<(doc: Document) => void>;
+  let onAITrigger: Mock<(selection: TextSelection) => void>;
 
   beforeEach(() => {
     onDocumentChange = vi.fn();

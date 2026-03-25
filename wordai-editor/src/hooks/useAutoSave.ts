@@ -1,9 +1,9 @@
 /**
- * useAutoSave - Auto-save hook with debounce logic
- * Requirements: 2.1, 2.2, 2.4, 2.5, 17.2, 17.3
+ * useAutoSave - Auto-save hook with debounce logic and manual save support
+ * Requirements: 2.1, 2.2, 2.4, 2.5, 17.2, 17.3, 21.2
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { Document } from '../types/document';
 import type { IPCError } from '../types/ipc';
@@ -16,6 +16,8 @@ export interface AutoSaveState {
   lastSaved: Date | null;
   saveError: IPCError | null;
   hasUnsavedChanges: boolean;
+  /** Trigger an immediate save (e.g. from Cmd+S). Req 21.2 */
+  triggerSave: () => Promise<void>;
 }
 
 /**
@@ -38,70 +40,62 @@ export function useAutoSave(
   const [saveError, setSaveError] = useState<IPCError | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Keep stable refs to callbacks so the effect doesn't re-run when they change
+  // Keep stable refs to callbacks and latest document/path so triggerSave is always fresh
   const onSaveSuccessRef = useRef(onSaveSuccess);
   const onSaveErrorRef = useRef(onSaveError);
+  const documentRef = useRef(document);
+  const filePathRef = useRef(filePath);
   useEffect(() => { onSaveSuccessRef.current = onSaveSuccess; }, [onSaveSuccess]);
   useEffect(() => { onSaveErrorRef.current = onSaveError; }, [onSaveError]);
+  useEffect(() => { documentRef.current = document; }, [document]);
+  useEffect(() => { filePathRef.current = filePath; }, [filePath]);
+
+  /** Shared save logic used by both auto-save and manual save (Req 21.2) */
+  const performSave = useCallback(async (doc: Document, path: string) => {
+    if (!path) return;
+    setIsSaving(true);
+    try {
+      await invoke('save_document', { path, document: doc });
+      const savedAt = new Date();
+      const updatedDoc: Document = { ...doc, lastModified: savedAt };
+      setLastSaved(savedAt);
+      setSaveError(null);
+      setHasUnsavedChanges(false);
+      onSaveSuccessRef.current(updatedDoc);
+    } catch (err) {
+      const ipcErr = err as IPCError;
+      setSaveError(ipcErr);
+      onSaveErrorRef.current(ipcErr);
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
+
+  /** Immediately save the current document — for Cmd+S (Req 21.2) */
+  const triggerSave = useCallback(async () => {
+    await performSave(documentRef.current, filePathRef.current);
+  }, [performSave]);
 
   // Mark unsaved changes whenever content changes (Req 17.2)
   useEffect(() => {
     setHasUnsavedChanges(true);
   }, [document.content]);
 
+  // Debounced auto-save (Req 2.1, 2.2, 2.4)
   useEffect(() => {
     if (!filePath) return;
-
-    const timerId = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        await invoke('save_document', { path: filePath, document });
-        const savedAt = new Date();
-        const updatedDoc: Document = { ...document, lastModified: savedAt };
-        setLastSaved(savedAt);
-        setSaveError(null);
-        setHasUnsavedChanges(false); // Req 17.3
-        onSaveSuccessRef.current(updatedDoc);
-      } catch (err) {
-        const ipcErr = err as IPCError;
-        setSaveError(ipcErr); // Req 2.5
-        onSaveErrorRef.current(ipcErr);
-      } finally {
-        setIsSaving(false);
-      }
-    }, DEBOUNCE_DELAY_MS);
-
+    const timerId = setTimeout(() => performSave(document, filePath), DEBOUNCE_DELAY_MS);
     return () => clearTimeout(timerId);
-    // Re-run only when document content or filePath changes (Req 2.1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [document.content, filePath]);
+  }, [document.content, filePath, performSave]);
 
   // Retry after 5 seconds on error (Req 2.5)
   useEffect(() => {
     if (!saveError || !filePath) return;
-
-    const retryId = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        await invoke('save_document', { path: filePath, document });
-        const savedAt = new Date();
-        const updatedDoc: Document = { ...document, lastModified: savedAt };
-        setLastSaved(savedAt);
-        setSaveError(null);
-        setHasUnsavedChanges(false);
-        onSaveSuccessRef.current(updatedDoc);
-      } catch (err) {
-        const ipcErr = err as IPCError;
-        setSaveError(ipcErr);
-        onSaveErrorRef.current(ipcErr);
-      } finally {
-        setIsSaving(false);
-      }
-    }, RETRY_DELAY_MS);
-
+    const retryId = setTimeout(() => performSave(document, filePath), RETRY_DELAY_MS);
     return () => clearTimeout(retryId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveError, filePath]);
+  }, [saveError, filePath, performSave]);
 
-  return { isSaving, lastSaved, saveError, hasUnsavedChanges };
+  return { isSaving, lastSaved, saveError, hasUnsavedChanges, triggerSave };
 }
