@@ -186,7 +186,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement command routing to AI service
     - _Requirements: 6.2, 15.2_
 
-  - [~] 7.5 Write unit tests for AI service
+  - [x] 7.5 Write unit tests for AI service
     - Test request formatting for LLM API
     - Test response parsing into AISuggestion objects
     - Test error handling for various failure scenarios
