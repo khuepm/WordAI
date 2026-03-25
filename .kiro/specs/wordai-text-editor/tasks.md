@@ -51,7 +51,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement version number management (increment on save)
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 22.1, 22.2, 22.3_
 
-  - [ ] 2.3 Implement IPC Bridge commands
+  - [x] 2.3 Implement IPC Bridge commands
     - Register Tauri commands: save_document, load_document, create_document
     - Implement command parameter serialization/deserialization
     - Add error handling with error codes and messages
