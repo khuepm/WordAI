@@ -215,7 +215,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Provide retry button on error
     - _Requirements: 6.1, 6.2, 16.4, 16.5_
 
-  - [~] 8.4 Implement suggestion card display
+  - [x] 8.4 Implement suggestion card display
     - Create SuggestionCard sub-component
     - Display suggested text and explanation
     - Show confidence score visually (progress bar or badge)
