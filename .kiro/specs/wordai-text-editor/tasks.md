@@ -326,7 +326,7 @@ The implementation follows an incremental approach: project setup → core edito
     - _Requirements: 12.2, 12.3, 12.4, 12.5_
 
 - [-] 12. Implement Render-on-Demand Drawer (Frontend - React/TypeScript)
-  - [ ] 12.1 Create RenderDrawer base component
+  - [x] 12.1 Create RenderDrawer base component
     - Create components/RenderDrawer.tsx with RenderDrawerProps interface
     - Implement slide-up animation from bottom (250ms)
     - Apply glassmorphism styling
@@ -371,10 +371,10 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error handling display
     - _Requirements: 11.2, 11.3, 11.4, 11.5, 12.5_
 
-- [ ] 13. Checkpoint - Export functionality complete
+- [~] 13. Checkpoint - Export functionality complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement state management and UI coordination
+- [~] 14. Implement state management and UI coordination
   - [ ] 14.1 Create global state manager
     - Create services/stateManager.ts with React Context
     - Define application state interface (document, UI flags, AI state)
@@ -402,7 +402,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test unsaved changes flag behavior
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
 
-- [ ] 15. Implement document version control
+- [~] 15. Implement document version control
   - [ ] 15.1 Extend Document Store with version history
     - Add version history storage (last 10 versions)
     - Store document snapshot on each save
