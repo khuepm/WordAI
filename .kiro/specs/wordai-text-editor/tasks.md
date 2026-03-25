@@ -201,7 +201,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Use Manrope font for all UI text
     - _Requirements: 5.4, 7.5, 20.1, 20.2, 18.1, 19.2_
 
-  - [~] 8.2 Implement AI trigger from EditorCanvas
+  - [x] 8.2 Implement AI trigger from EditorCanvas
     - Add Cmd+K keyboard shortcut handler in EditorCanvas
     - Pass TextSelection or cursor context to AuraSpherePanel
     - Open AuraSpherePanel with smooth animation

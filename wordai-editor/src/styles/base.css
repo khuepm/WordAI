@@ -126,3 +126,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--md-sys-color-outline);
 }
+
+/* Spinner animation for AuraSpherePanel loading indicator */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* EditorCanvas width adjustment when AI panel is open (Req 5.5) */
+.editor-canvas-wrapper {
+  transition: padding-right var(--transition-normal);
+}
+.editor-canvas-wrapper.ai-panel-open {
+  padding-right: 376px; /* panel width (360) + 16px gap */
+}

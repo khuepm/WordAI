@@ -1,19 +1,23 @@
 /**
- * App - Application root with document initialization
- * Requirements: 1.1, 1.2, 13.2, 13.3, 14.1, 14.2
+ * App - Application root with document initialization and AI panel coordination
+ * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 14.1, 14.2, 17.4, 17.5, 21.1
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import EditorCanvas from './components/EditorCanvas';
+import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import type { Document, TextSelection } from './types/document';
+import type { AISuggestion } from './types/ai';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
 
 function App() {
   const [document, setDocument] = useState<Document | null>(null);
   const [filePath, setFilePath] = useState('');
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  const [aiSelection, setAiSelection] = useState<TextSelection | null>(null);
 
   // Initialize: restore last document or create a fresh one
   useEffect(() => {
@@ -58,8 +62,20 @@ function App() {
     // error surfaced via saveError from useAutoSave
   }, []);
 
+  // Cmd+K in EditorCanvas triggers this (Req 5.1, 5.2, 5.3, 21.1)
   const handleAITrigger = useCallback((selection: TextSelection) => {
-    console.log('AI trigger', selection);
+    setAiSelection(selection);
+    setIsAIPanelOpen(true);
+  }, []);
+
+  const handleAIPanelClose = useCallback(() => {
+    setIsAIPanelOpen(false);
+    setAiSelection(null);
+  }, []);
+
+  // Placeholder: parent will open NegotiationPanel in a later task (Req 8.1)
+  const handleSuggestionSelect = useCallback((_suggestion: AISuggestion) => {
+    // TODO: open NegotiationPanel (task 10)
   }, []);
 
   const { saveError, hasUnsavedChanges, triggerSave } = useAutoSave(
@@ -70,19 +86,35 @@ function App() {
   );
 
   if (!document) {
-    return <div>Loading...</div>;
+    return <div style={{ fontFamily: 'var(--font-family-ui)', padding: '2rem' }}>Loading…</div>;
   }
 
+  // Derive context string for AI: selected text or first 500 chars of doc (Req 5.3)
+  const aiContext = aiSelection?.text
+    ? aiSelection.text
+    : document.content.slice(0, 500);
+
   return (
-    <EditorCanvas
-      document={document}
-      onDocumentChange={handleDocumentChange}
-      onAITrigger={handleAITrigger}
-      isAIPanelOpen={false}
-      saveError={saveError}
-      hasUnsavedChanges={hasUnsavedChanges}
-      onManualSave={triggerSave}
-    />
+    // Outer flex container so EditorCanvas shrinks when panel opens (Req 5.5)
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <EditorCanvas
+        document={document}
+        onDocumentChange={handleDocumentChange}
+        onAITrigger={handleAITrigger}
+        isAIPanelOpen={isAIPanelOpen}
+        saveError={saveError}
+        hasUnsavedChanges={hasUnsavedChanges}
+        onManualSave={triggerSave}
+      />
+      <AuraSpherePanel
+        isOpen={isAIPanelOpen}
+        onClose={handleAIPanelClose}
+        selection={aiSelection}
+        documentId={document.id}
+        documentContext={aiContext}
+        onSuggestionSelect={handleSuggestionSelect}
+      />
+    </div>
   );
 }
 
