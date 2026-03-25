@@ -256,7 +256,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Use glassmorphism styling
     - _Requirements: 8.1, 20.3, 18.1_
 
-  - [ ] 10.2 Implement text comparison display
+  - [x] 10.2 Implement text comparison display
     - Display original text on left side
     - Display suggested text on right side
     - Highlight differences between original and suggested text (diff algorithm)
