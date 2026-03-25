@@ -339,7 +339,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Display format-specific options based on selection
     - _Requirements: 11.2, 11.3_
 
-  - [~] 12.3 Implement PDF export options
+  - [x] 12.3 Implement PDF export options
     - Add page size selector (A4, Letter, Legal)
     - Add margin controls (top, bottom, left, right)
     - Add typography settings selector
