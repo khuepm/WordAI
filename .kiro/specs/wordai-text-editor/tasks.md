@@ -263,7 +263,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Apply appropriate styling for additions/deletions
     - _Requirements: 8.2, 8.3, 8.4_
 
-  - [ ] 10.3 Implement Accept action
+  - [x] 10.3 Implement Accept action
     - Add Accept button with click handler
     - Close Negotiation Panel on accept
     - Replace original text in EditorCanvas with suggested text
