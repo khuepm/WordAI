@@ -30,7 +30,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Create types/export.ts with ExportFormat, ExportOptions interfaces
     - _Requirements: 1.1, 14.3_
 
-  - [ ] 1.4 Set up Rust backend project structure
+  - [x] 1.4 Set up Rust backend project structure
     - Create modules in src-tauri/src: file_manager.rs, document_store.rs, ai_service.rs, pdf_export.rs
     - Define Rust structs for Document, DocumentMetadata, AISuggestion
     - Implement serialization/deserialization with serde
