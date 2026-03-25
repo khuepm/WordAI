@@ -23,7 +23,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Define typography scale and spacing system
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 19.1, 19.2_
 
-  - [ ] 1.3 Define core TypeScript interfaces and types
+  - [x] 1.3 Define core TypeScript interfaces and types
     - Create types/document.ts with Document, DocumentMetadata, TextSelection interfaces
     - Create types/ai.ts with AISuggestion, ChatMessage, AIRequest interfaces
     - Create types/ipc.ts with IPC command and response types
