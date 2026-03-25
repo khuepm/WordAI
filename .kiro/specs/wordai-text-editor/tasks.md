@@ -299,7 +299,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement generate_pdf function with document content and options
     - _Requirements: 12.1_
 
-  - [ ] 11.2 Implement PDF formatting
+  - [x] 11.2 Implement PDF formatting
     - Apply Newsreader font for document content
     - Apply page size settings (A4, Letter, etc.)
     - Apply margin settings
