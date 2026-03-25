@@ -5,6 +5,7 @@ pub mod models;
 pub mod pdf_export;
 
 use models::{AISuggestion, Document, IPCError};
+use pdf_export::PDFExportOptions;
 
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
@@ -73,6 +74,19 @@ async fn check_ai_health(api_key: String, endpoint: Option<String>) -> bool {
     connector.check_health().await
 }
 
+// ── PDF Export Command ────────────────────────────────────────────────────────
+
+/// Export document content to a PDF file at the given path.
+/// Requirements: 12.1, 12.2, 12.3, 12.4, 12.5
+#[tauri::command]
+fn export_to_pdf(
+    content: String,
+    output_path: String,
+    options: PDFExportOptions,
+) -> Result<(), IPCError> {
+    pdf_export::PDFExportEngine::generate_pdf(&content, &output_path, &options)
+}
+
 // ── App Entry Point ───────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -86,6 +100,7 @@ pub fn run() {
             request_ai_suggestion,
             send_chat_message,
             check_ai_health,
+            export_to_pdf,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

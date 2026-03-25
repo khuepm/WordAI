@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
+import { NegotiationPanel } from './components/NegotiationPanel';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import type { Document, TextSelection } from './types/document';
@@ -18,6 +19,8 @@ function App() {
   const [filePath, setFilePath] = useState('');
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
   const [aiSelection, setAiSelection] = useState<TextSelection | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<AISuggestion | null>(null);
+  const [isNegotiationOpen, setIsNegotiationOpen] = useState(false);
 
   // Initialize: restore last document or create a fresh one
   useEffect(() => {
@@ -74,8 +77,28 @@ function App() {
   }, []);
 
   // Placeholder: parent will open NegotiationPanel in a later task (Req 8.1)
-  const handleSuggestionSelect = useCallback((_suggestion: AISuggestion) => {
-    // TODO: open NegotiationPanel (task 10)
+  const handleSuggestionSelect = useCallback((suggestion: AISuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setIsNegotiationOpen(true);
+  }, []);
+
+  const handleNegotiationAccept = useCallback((acceptedText: string) => {
+    if (!selectedSuggestion || !document) return;
+    const newContent = document.content.replace(selectedSuggestion.originalText, acceptedText);
+    const updatedDoc = {
+      ...document,
+      content: newContent,
+      version: document.version + 1,
+      lastModified: new Date(),
+    };
+    setDocument(updatedDoc);
+    setIsNegotiationOpen(false);
+    setSelectedSuggestion(null);
+  }, [selectedSuggestion, document]);
+
+  const handleNegotiationReject = useCallback(() => {
+    setIsNegotiationOpen(false);
+    setSelectedSuggestion(null);
   }, []);
 
   const { saveError, hasUnsavedChanges, triggerSave } = useAutoSave(
@@ -113,6 +136,13 @@ function App() {
         documentId={document.id}
         documentContext={aiContext}
         onSuggestionSelect={handleSuggestionSelect}
+      />
+      <NegotiationPanel
+        isOpen={isNegotiationOpen}
+        suggestion={selectedSuggestion}
+        onAccept={handleNegotiationAccept}
+        onReject={handleNegotiationReject}
+        onClose={handleNegotiationReject}
       />
     </div>
   );
