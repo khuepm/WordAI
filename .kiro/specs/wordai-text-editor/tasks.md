@@ -285,7 +285,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Close Negotiation Panel on Escape
     - _Requirements: 21.4_
 
-  - [ ] 10.6 Write unit tests for NegotiationPanel
+  - [x] 10.6 Write unit tests for NegotiationPanel
     - Test text comparison rendering
     - Test Accept action applies changes correctly
     - Test Reject action closes without changes
