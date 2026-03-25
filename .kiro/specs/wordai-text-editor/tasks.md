@@ -158,8 +158,8 @@ The implementation follows an incremental approach: project setup → core edito
     - Test initialization with and without previous document
     - _Requirements: 1.1, 1.2, 25.2, 25.3_
 
-- [~] 7. Implement AI Service Connector (Backend - Rust)
-  - [~] 7.1 Create AI service connector module
+- [-] 7. Implement AI Service Connector (Backend - Rust)
+  - [x] 7.1 Create AI service connector module
     - Create ai_service.rs with AIServiceConnector struct
     - Implement HTTP client for LLM API calls (OpenAI/Anthropic)
     - Add configuration for API keys and endpoints
