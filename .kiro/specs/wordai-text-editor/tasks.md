@@ -346,7 +346,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Preview selected options
     - _Requirements: 11.4_
 
-  - [~] 12.4 Implement export confirmation
+  - [x] 12.4 Implement export confirmation
     - Add Export button to trigger export
     - Call appropriate Tauri command based on format
     - Display loading indicator during export
