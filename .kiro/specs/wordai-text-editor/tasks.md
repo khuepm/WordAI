@@ -318,7 +318,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Call PDFExportEngine to generate PDF
     - _Requirements: 11.5_
 
-  - [ ] 11.5 Write unit tests for PDF export
+  - [x] 11.5 Write unit tests for PDF export
     - Test PDF generation with various page sizes
     - Test font application
     - Test margin settings
