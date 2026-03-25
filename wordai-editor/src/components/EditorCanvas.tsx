@@ -1,10 +1,24 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 19.1, 19.3, 19.4, 21.5
+ * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Document, TextSelection } from '../types/document';
+
+/** Returns a human-readable relative time string (Req 4.4) */
+function formatRelativeTime(date: Date): string {
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hour${diffHr === 1 ? '' : 's'} ago`;
+  // Fall back to a readable date for older timestamps
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export interface EditorCanvasProps {
   document: Document;
@@ -88,24 +102,66 @@ export function EditorCanvas({
     selectionRef.current = { start, end, text: localContent.slice(start, end) };
   }, [localContent]);
 
+  // Real-time word count (Req 4.1) and reading time (Req 4.2)
+  const wordCount = useMemo(
+    () => localContent.trim().split(/\s+/).filter(Boolean).length,
+    [localContent]
+  );
+  const readingTime = useMemo(() => Math.ceil(wordCount / 200), [wordCount]);
+
+  // Relative timestamp that refreshes every 30 s (Req 4.3, 4.4)
+  const [relativeTime, setRelativeTime] = useState(() =>
+    formatRelativeTime(document.lastModified)
+  );
+  useEffect(() => {
+    setRelativeTime(formatRelativeTime(document.lastModified));
+    const id = setInterval(
+      () => setRelativeTime(formatRelativeTime(document.lastModified)),
+      30_000
+    );
+    return () => clearInterval(id);
+  }, [document.lastModified]);
+
+  const tags = document.metadata.tags ?? [];
+
   return (
     <div
       className={`editor-canvas-wrapper${isAIPanelOpen ? ' ai-panel-open' : ''}`}
       style={styles.wrapper}
     >
-      <textarea
-        ref={textareaRef}
-        className="editor-canvas"
-        value={localContent}
-        onChange={handleContentChange}
-        onKeyDown={handleKeyDown}
-        onMouseUp={handleSelectionChange}
-        onSelect={handleSelectionChange}
-        placeholder="Start writing..."
-        spellCheck
-        style={styles.textarea}
-        aria-label="Document editor"
-      />
+      <div style={styles.contentColumn}>
+        <textarea
+          ref={textareaRef}
+          className="editor-canvas"
+          value={localContent}
+          onChange={handleContentChange}
+          onKeyDown={handleKeyDown}
+          onMouseUp={handleSelectionChange}
+          onSelect={handleSelectionChange}
+          placeholder="Start writing..."
+          spellCheck
+          style={styles.textarea}
+          aria-label="Document editor"
+        />
+        {/* Document metadata bar (Req 4.1–4.5) */}
+        <div style={styles.metaBar} aria-label="Document metadata">
+          <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+          <span style={styles.metaSep}>·</span>
+          <span>{readingTime} min read</span>
+          <span style={styles.metaSep}>·</span>
+          <span>Edited {relativeTime}</span>
+          {tags.length > 0 && (
+            <>
+              <span style={styles.metaSep}>·</span>
+              <span style={styles.tagList} aria-label="Tags">
+                {tags.map((tag) => (
+                  <span key={tag} style={styles.tag}>{tag}</span>
+                ))}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -119,19 +175,52 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all var(--transition-normal)',
     overflow: 'hidden',
   },
-  textarea: {
+  contentColumn: {
     width: '100%',
     maxWidth: '720px',
+    display: 'flex',
+    flexDirection: 'column',
     height: '100%',
+  },
+  textarea: {
+    flex: 1,
+    width: '100%',
     resize: 'none',
     border: 'none',
     outline: 'none',
     background: 'transparent',
     fontFamily: 'var(--font-family-content)',
-    fontSize: 'var(--font-size-lg)',   /* 18px */
-    lineHeight: 'var(--line-height-relaxed)', /* 1.6 */
+    fontSize: 'var(--font-size-lg)',
+    lineHeight: 'var(--line-height-relaxed)',
     color: 'var(--md-sys-color-on-background)',
     caretColor: 'var(--md-sys-color-primary)',
+  },
+  metaBar: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '0.25rem',
+    padding: '0.5rem 0',
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--md-sys-color-on-surface-variant)',
+    opacity: 0.6,
+    userSelect: 'none',
+  },
+  metaSep: {
+    opacity: 0.5,
+  },
+  tagList: {
+    display: 'flex',
+    gap: '0.25rem',
+    flexWrap: 'wrap',
+  },
+  tag: {
+    background: 'var(--md-sys-color-surface-variant)',
+    color: 'var(--md-sys-color-on-surface-variant)',
+    borderRadius: 'var(--radius-sm)',
+    padding: '0.1rem 0.4rem',
+    fontSize: 'var(--font-size-xs)',
   },
 };
 

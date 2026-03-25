@@ -86,7 +86,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement Cmd+A keyboard shortcut for select all
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 21.5_
 
-  - [~] 3.4 Implement document metadata display
+  - [x] 3.4 Implement document metadata display
     - Calculate word count in real-time on content change
     - Calculate reading time (200 words per minute)
     - Display word count, reading time, and last modified timestamp
