@@ -85,6 +85,9 @@
   --shadow-ambient-strong: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-glow: 0 0 20px rgba(103, 80, 164, 0.3);
 
+  /* Selection Highlight (Req 3.3) */
+  --selection-bg: rgba(234, 221, 255, 0.6); /* primary-container at 60% opacity */
+
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 300ms ease-in-out;

@@ -1,6 +1,6 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 1.4, 3.5, 19.1, 19.3, 19.4
+ * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 19.1, 19.3, 19.4, 21.5
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -20,6 +20,8 @@ export function EditorCanvas({
   isAIPanelOpen,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
+  // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
+  const selectionRef = useRef<TextSelection>({ start: 0, end: 0, text: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Track cursor position so React re-renders don't cause cursor jumps (Req 3.5)
   const cursorRef = useRef<{ start: number; end: number } | null>(null);
@@ -62,11 +64,29 @@ export function EditorCanvas({
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const selectedText = localContent.slice(start, end);
-        onAITrigger({ start, end, text: selectedText });
+        const sel: TextSelection = { start, end, text: selectedText };
+        selectionRef.current = sel;
+        onAITrigger(sel);
+      }
+      // Cmd+A / Ctrl+A — select all content (Req 3.4, 21.5)
+      if (isMod && e.key === 'a') {
+        e.preventDefault();
+        const textarea = e.currentTarget;
+        textarea.setSelectionRange(0, localContent.length);
+        selectionRef.current = { start: 0, end: localContent.length, text: localContent };
       }
     },
     [localContent, onAITrigger]
   );
+
+  // Capture selection after mouse drag or click (Req 3.1, 3.2, 3.3)
+  const handleSelectionChange = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    selectionRef.current = { start, end, text: localContent.slice(start, end) };
+  }, [localContent]);
 
   return (
     <div
@@ -79,6 +99,8 @@ export function EditorCanvas({
         value={localContent}
         onChange={handleContentChange}
         onKeyDown={handleKeyDown}
+        onMouseUp={handleSelectionChange}
+        onSelect={handleSelectionChange}
         placeholder="Start writing..."
         spellCheck
         style={styles.textarea}

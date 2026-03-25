@@ -79,7 +79,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Maintain cursor position during updates
     - _Requirements: 1.4, 3.5_
 
-  - [~] 3.3 Implement cursor and text selection management
+  - [x] 3.3 Implement cursor and text selection management
     - Handle click events to position cursor
     - Implement drag selection to create TextSelection objects
     - Highlight selected text with subtle background color

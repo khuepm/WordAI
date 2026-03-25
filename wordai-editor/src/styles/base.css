@@ -97,9 +97,14 @@ body {
   outline-offset: 2px;
 }
 
-/* Selection Styles */
+/* Selection Styles (Req 3.3) */
 ::selection {
-  background-color: var(--md-sys-color-primary-container);
+  background-color: var(--selection-bg, rgba(234, 221, 255, 0.6));
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.editor-canvas::selection {
+  background-color: var(--selection-bg, rgba(234, 221, 255, 0.6));
   color: var(--md-sys-color-on-primary-container);
 }
 
