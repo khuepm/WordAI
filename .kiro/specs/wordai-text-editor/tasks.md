@@ -146,7 +146,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Update EditorCanvas state with loaded document
     - _Requirements: 1.2, 13.2, 13.3_
 
-  - [~] 6.3 Implement application initialization
+  - [x] 6.3 Implement application initialization
     - Load last opened document on app start
     - Create default empty document if no previous document exists
     - Initialize EditorCanvas within 1 second
