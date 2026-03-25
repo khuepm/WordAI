@@ -122,7 +122,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Provide visual feedback on save completion
     - _Requirements: 21.2_
 
-  - [-] 4.4 Write integration tests for auto-save
+  - [x] 4.4 Write integration tests for auto-save
     - Test auto-save triggers after 2 seconds of inactivity
     - Test save retry on failure
     - Test manual save with keyboard shortcut
