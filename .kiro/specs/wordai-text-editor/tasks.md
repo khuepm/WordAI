@@ -66,7 +66,7 @@ The implementation follows an incremental approach: project setup → core edito
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
 - [ ] 3. Implement EditorCanvas component (Frontend - React/TypeScript)
-  - [~] 3.1 Create EditorCanvas base component
+  - [x] 3.1 Create EditorCanvas base component
     - Create components/EditorCanvas.tsx with EditorCanvasProps interface
     - Implement textarea/contenteditable with Newsreader font
     - Set up document state management with useState
