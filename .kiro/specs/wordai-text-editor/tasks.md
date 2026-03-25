@@ -152,7 +152,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Initialize EditorCanvas within 1 second
     - _Requirements: 25.1, 25.2, 25.3_
 
-  - [~] 6.4 Write unit tests for document service
+  - [x] 6.4 Write unit tests for document service
     - Test createDocument generates unique IDs
     - Test loadDocument parses data correctly
     - Test initialization with and without previous document
