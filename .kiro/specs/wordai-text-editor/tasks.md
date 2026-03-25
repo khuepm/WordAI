@@ -139,7 +139,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Call Tauri command to persist new document
     - _Requirements: 1.1_
 
-  - [~] 6.2 Implement load document functionality
+  - [x] 6.2 Implement load document functionality
     - Add loadDocument function to documentService.ts
     - Call Tauri command to load document from file system
     - Parse loaded data into Document object
