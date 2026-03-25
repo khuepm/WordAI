@@ -8,7 +8,7 @@ The implementation follows an incremental approach: project setup → core edito
 
 ## Tasks
 
-- [-] 1. Project setup and core infrastructure
+- [x] 1. Project setup and core infrastructure
   - [x] 1.1 Initialize Tauri + React project structure
     - Create Tauri app with React template
     - Configure TypeScript with strict mode
