@@ -1,50 +1,88 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+/**
+ * App - Application root with document initialization
+ * Requirements: 1.1, 1.2, 13.2, 13.3, 14.1, 14.2
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import EditorCanvas from './components/EditorCanvas';
+import { useAutoSave } from './hooks/useAutoSave';
+import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
+import type { Document, TextSelection } from './types/document';
+
+const LAST_PATH_KEY = 'wordai_last_document_path';
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [document, setDocument] = useState<Document | null>(null);
+  const [filePath, setFilePath] = useState('');
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+  // Initialize: restore last document or create a fresh one
+  useEffect(() => {
+    let cancelled = false;
+    async function init() {
+      const savedPath = localStorage.getItem(LAST_PATH_KEY);
+      let doc: Document;
+      let path: string;
+      if (savedPath) {
+        try {
+          doc = await loadDocument(savedPath);
+          path = savedPath;
+        } catch {
+          doc = await createDocument();
+          path = getDocumentPath(doc.id);
+        }
+      } else {
+        doc = await createDocument();
+        path = getDocumentPath(doc.id);
+      }
+      if (!cancelled) {
+        setDocument(doc);
+        setFilePath(path);
+        localStorage.setItem(LAST_PATH_KEY, path);
+      }
+    }
+    init();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleDocumentChange = useCallback((doc: Document) => {
+    setDocument(doc);
+    const path = getDocumentPath(doc.id);
+    localStorage.setItem(LAST_PATH_KEY, path);
+  }, []);
+
+  const handleSaveSuccess = useCallback((doc: Document) => {
+    setDocument(doc);
+  }, []);
+
+  const handleSaveError = useCallback(() => {
+    // error surfaced via saveError from useAutoSave
+  }, []);
+
+  const handleAITrigger = useCallback((selection: TextSelection) => {
+    console.log('AI trigger', selection);
+  }, []);
+
+  const { saveError, hasUnsavedChanges, triggerSave } = useAutoSave(
+    document ?? ({} as Document),
+    filePath,
+    handleSaveSuccess,
+    handleSaveError
+  );
+
+  if (!document) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <EditorCanvas
+      document={document}
+      onDocumentChange={handleDocumentChange}
+      onAITrigger={handleAITrigger}
+      isAIPanelOpen={false}
+      saveError={saveError}
+      hasUnsavedChanges={hasUnsavedChanges}
+      onManualSave={triggerSave}
+    />
   );
 }
 
