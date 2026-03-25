@@ -359,7 +359,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Open RenderDrawer on shortcut
     - _Requirements: 21.3_
 
-  - [~] 12.6 Implement Escape key to close drawer
+  - [x] 12.6 Implement Escape key to close drawer
     - Add keyboard event listener for Escape key
     - Close RenderDrawer on Escape
     - _Requirements: 21.4_
