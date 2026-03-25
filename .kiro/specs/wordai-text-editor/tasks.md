@@ -36,8 +36,8 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement serialization/deserialization with serde
     - _Requirements: 14.1, 14.2, 14.3, 14.4_
 
-- [ ] 2. Implement core document management (Backend - Rust)
-  - [ ] 2.1 Implement File System Manager
+- [-] 2. Implement core document management (Backend - Rust)
+  - [x] 2.1 Implement File System Manager
     - Create file_manager.rs with save_document and load_document functions
     - Implement file path validation and error handling
     - Add Tauri commands for file operations (#[tauri::command])
