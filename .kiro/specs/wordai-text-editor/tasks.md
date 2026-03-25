@@ -333,7 +333,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Use Manrope font for UI text
     - _Requirements: 11.1, 20.4, 18.1, 19.2_
 
-  - [~] 12.2 Implement export format selection
+  - [x] 12.2 Implement export format selection
     - Display available export templates (PDF, Markdown, HTML, DOCX)
     - Handle format selection with visual feedback
     - Display format-specific options based on selection
