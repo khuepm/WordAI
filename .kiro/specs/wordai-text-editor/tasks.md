@@ -131,7 +131,7 @@ The implementation follows an incremental approach: project setup → core edito
 - [~] 5. Checkpoint - Core editor functionality
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 6. Implement document creation and loading
+- [x] 6. Implement document creation and loading
   - [x] 6.1 Implement create document functionality
     - Create services/documentService.ts with createDocument function
     - Generate unique document ID (UUID)
