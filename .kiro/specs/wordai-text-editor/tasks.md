@@ -193,8 +193,8 @@ The implementation follows an incremental approach: project setup → core edito
     - Test timeout behavior
     - _Requirements: 6.3, 6.4, 16.1, 16.2, 16.3_
 
-- [ ] 8. Implement AuraSphere Panel component (Frontend - React/TypeScript)
-  - [~] 8.1 Create AuraSpherePanel base component
+- [-] 8. Implement AuraSphere Panel component (Frontend - React/TypeScript)
+  - [x] 8.1 Create AuraSpherePanel base component
     - Create components/AuraSpherePanel.tsx with AuraSpherePanel Props interface
     - Implement slide-in/slide-out animation (300ms)
     - Apply glassmorphism styling with backdrop blur
@@ -248,7 +248,7 @@ The implementation follows an incremental approach: project setup → core edito
 - [~] 9. Checkpoint - AI integration complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement Negotiation Panel component (Frontend - React/TypeScript)
+- [~] 10. Implement Negotiation Panel component (Frontend - React/TypeScript)
   - [~] 10.1 Create NegotiationPanel base component
     - Create components/NegotiationPanel.tsx with NegotiationPanelProps interface
     - Implement modal with backdrop blur
@@ -292,7 +292,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test Edit action enables inline editing
     - _Requirements: 8.2, 8.3, 9.1, 9.2, 10.1, 10.2_
 
-- [ ] 11. Implement PDF Export Engine (Backend - Rust)
+- [~] 11. Implement PDF Export Engine (Backend - Rust)
   - [~] 11.1 Create PDF export module
     - Create pdf_export.rs with PDFExportEngine struct
     - Add dependency for PDF generation library (e.g., printpdf or genpdf)
@@ -325,7 +325,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error handling for file write failures
     - _Requirements: 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 12. Implement Render-on-Demand Drawer (Frontend - React/TypeScript)
+- [~] 12. Implement Render-on-Demand Drawer (Frontend - React/TypeScript)
   - [~] 12.1 Create RenderDrawer base component
     - Create components/RenderDrawer.tsx with RenderDrawerProps interface
     - Implement slide-up animation from bottom (250ms)
