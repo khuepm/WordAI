@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
+import { RenderDrawer } from './components/RenderDrawer';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import type { Document, TextSelection } from './types/document';
@@ -21,6 +22,7 @@ function App() {
   const [aiSelection, setAiSelection] = useState<TextSelection | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<AISuggestion | null>(null);
   const [isNegotiationOpen, setIsNegotiationOpen] = useState(false);
+  const [isRenderDrawerOpen, setIsRenderDrawerOpen] = useState(false);
 
   // Initialize: restore last document or create a fresh one
   useEffect(() => {
@@ -101,6 +103,14 @@ function App() {
     setSelectedSuggestion(null);
   }, []);
 
+  const handleOpenExport = useCallback(() => {
+    setIsRenderDrawerOpen(true);
+  }, []);
+
+  const handleCloseExport = useCallback(() => {
+    setIsRenderDrawerOpen(false);
+  }, []);
+
   const { saveError, hasUnsavedChanges, triggerSave } = useAutoSave(
     document ?? ({} as Document),
     filePath,
@@ -128,6 +138,7 @@ function App() {
         saveError={saveError}
         hasUnsavedChanges={hasUnsavedChanges}
         onManualSave={triggerSave}
+        onOpenExport={handleOpenExport}
       />
       <AuraSpherePanel
         isOpen={isAIPanelOpen}
@@ -143,6 +154,12 @@ function App() {
         onAccept={handleNegotiationAccept}
         onReject={handleNegotiationReject}
         onClose={handleNegotiationReject}
+      />
+      <RenderDrawer
+        isOpen={isRenderDrawerOpen}
+        onClose={handleCloseExport}
+        documentId={document.id}
+        documentContent={document.content}
       />
     </div>
   );

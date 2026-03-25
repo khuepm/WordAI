@@ -354,7 +354,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Display error message on failure
     - _Requirements: 11.5, 12.5_
 
-  - [~] 12.5 Implement Cmd+E keyboard shortcut
+  - [x] 12.5 Implement Cmd+E keyboard shortcut
     - Add Cmd+E (Ctrl+E) keyboard shortcut handler in EditorCanvas
     - Open RenderDrawer on shortcut
     - _Requirements: 21.3_
