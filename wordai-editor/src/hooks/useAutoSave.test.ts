@@ -212,3 +212,146 @@ describe('useAutoSave', () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });
+
+describe('useAutoSave - error handling and retry (Req 2.5, 17.2, 17.3)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockInvoke.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('sets hasUnsavedChanges=true when content changes', () => {
+    const doc = makeDocument();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('changed content') });
+    expect(result.current.hasUnsavedChanges).toBe(true);
+  });
+
+  it('clears hasUnsavedChanges and saveError on successful save', async () => {
+    const doc = makeDocument();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('new content') });
+    expect(result.current.hasUnsavedChanges).toBe(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(false);
+    expect(result.current.saveError).toBeNull();
+  });
+
+  it('sets saveError on IPC failure', async () => {
+    const ipcError: IPCError = { code: 'IO_ERROR', message: 'Disk full' };
+    mockInvoke.mockRejectedValueOnce(ipcError);
+
+    const doc = makeDocument();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('failing content') });
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(result.current.saveError).toEqual(ipcError);
+    expect(result.current.hasUnsavedChanges).toBe(true);
+  });
+
+  it('retries save after 5 seconds on error', async () => {
+    const ipcError: IPCError = { code: 'IO_ERROR', message: 'Disk full' };
+    mockInvoke.mockRejectedValueOnce(ipcError);
+
+    const doc = makeDocument();
+    const onSuccess = vi.fn();
+    const { rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', onSuccess, vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('retry content') });
+
+    // Trigger initial save failure
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+
+    // Advance 5 seconds for retry
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears saveError and hasUnsavedChanges after successful retry', async () => {
+    const ipcError: IPCError = { code: 'IO_ERROR', message: 'Disk full' };
+    mockInvoke.mockRejectedValueOnce(ipcError);
+
+    const doc = makeDocument();
+    const { result, rerender } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', vi.fn(), vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('retry content') });
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(result.current.saveError).not.toBeNull();
+
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(result.current.saveError).toBeNull();
+    expect(result.current.hasUnsavedChanges).toBe(false);
+  });
+
+  it('cancels retry timer on unmount', async () => {
+    const ipcError: IPCError = { code: 'IO_ERROR', message: 'Disk full' };
+    mockInvoke.mockRejectedValueOnce(ipcError);
+
+    const doc = makeDocument();
+    const onSuccess = vi.fn();
+    const { rerender, unmount } = renderHook(
+      ({ d }: { d: Document }) => useAutoSave(d, '/tmp/doc.json', onSuccess, vi.fn()),
+      { initialProps: { d: doc } }
+    );
+
+    rerender({ d: makeDocument('content') });
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    unmount();
+
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    // Only the initial failed call, no retry after unmount
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+});

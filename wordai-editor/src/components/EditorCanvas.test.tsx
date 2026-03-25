@@ -231,3 +231,74 @@ describe('EditorCanvas', () => {
     expect(sel).toMatchObject({ start: 0, end: 9, text: 'select me' });
   });
 });
+
+describe('EditorCanvas - save error and unsaved changes (Req 2.5, 17.2, 17.3)', () => {
+  let onDocumentChange: ReturnType<typeof vi.fn>;
+  let onAITrigger: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    onDocumentChange = vi.fn();
+    onAITrigger = vi.fn();
+  });
+
+  it('shows error banner when saveError is set', () => {
+    const doc = makeDoc();
+    const saveError = { code: 'IO_ERROR', message: 'Disk full' };
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        saveError={saveError}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Save failed: Disk full. Retrying...');
+  });
+
+  it('does not show error banner when saveError is null', () => {
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        saveError={null}
+      />
+    );
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows unsaved changes indicator when hasUnsavedChanges is true', () => {
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        hasUnsavedChanges={true}
+      />
+    );
+
+    expect(screen.getByLabelText('Unsaved changes')).toBeInTheDocument();
+  });
+
+  it('does not show unsaved changes indicator when hasUnsavedChanges is false', () => {
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        hasUnsavedChanges={false}
+      />
+    );
+
+    expect(screen.queryByLabelText('Unsaved changes')).not.toBeInTheDocument();
+  });
+});

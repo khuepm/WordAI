@@ -1,10 +1,11 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5
+ * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Document, TextSelection } from '../types/document';
+import type { IPCError } from '../types/ipc';
 
 /** Returns a human-readable relative time string (Req 4.4) */
 function formatRelativeTime(date: Date): string {
@@ -25,6 +26,8 @@ export interface EditorCanvasProps {
   onDocumentChange: (doc: Document) => void;
   onAITrigger: (selection: TextSelection) => void;
   isAIPanelOpen: boolean;
+  saveError?: IPCError | null;
+  hasUnsavedChanges?: boolean;
 }
 
 export function EditorCanvas({
@@ -32,6 +35,8 @@ export function EditorCanvas({
   onDocumentChange,
   onAITrigger,
   isAIPanelOpen,
+  saveError = null,
+  hasUnsavedChanges = false,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
   // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
@@ -129,6 +134,11 @@ export function EditorCanvas({
       className={`editor-canvas-wrapper${isAIPanelOpen ? ' ai-panel-open' : ''}`}
       style={styles.wrapper}
     >
+      {saveError && (
+        <div style={styles.errorBanner} role="alert" aria-live="assertive">
+          Save failed: {saveError.message}. Retrying...
+        </div>
+      )}
       <div style={styles.contentColumn}>
         <textarea
           ref={textareaRef}
@@ -150,6 +160,12 @@ export function EditorCanvas({
           <span>{readingTime} min read</span>
           <span style={styles.metaSep}>·</span>
           <span>Edited {relativeTime}</span>
+          {hasUnsavedChanges && (
+            <>
+              <span style={styles.metaSep}>·</span>
+              <span style={styles.unsavedIndicator} aria-label="Unsaved changes">Unsaved changes</span>
+            </>
+          )}
           {tags.length > 0 && (
             <>
               <span style={styles.metaSep}>·</span>
@@ -221,6 +237,19 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 'var(--radius-sm)',
     padding: '0.1rem 0.4rem',
     fontSize: 'var(--font-size-xs)',
+  },
+  errorBanner: {
+    background: 'var(--md-sys-color-error-container, #ffdad6)',
+    color: 'var(--md-sys-color-error, #ba1a1a)',
+    padding: '0.5rem 1rem',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: 'var(--font-size-sm)',
+    marginBottom: '0.5rem',
+  },
+  unsavedIndicator: {
+    color: 'var(--md-sys-color-primary)',
+    fontStyle: 'italic',
   },
 };
 
