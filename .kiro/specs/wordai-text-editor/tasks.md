@@ -101,7 +101,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test metadata calculations (word count, reading time)
     - _Requirements: 1.4, 3.1, 3.2, 3.3, 4.1, 4.2_
 
-- [-] 4. Implement auto-save functionality
+- [x] 4. Implement auto-save functionality
   - [x] 4.1 Create auto-save hook
     - Create hooks/useAutoSave.ts with debounce logic (2 seconds)
     - Trigger save on document content change
