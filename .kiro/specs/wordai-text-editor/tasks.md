@@ -325,28 +325,28 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error handling for file write failures
     - _Requirements: 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 12. Implement Render-on-Demand Drawer (Frontend - React/TypeScript)
-  - [ ] 12.1 Create RenderDrawer base component
+- [-] 12. Implement Render-on-Demand Drawer (Frontend - React/TypeScript)
+  - [x] 12.1 Create RenderDrawer base component
     - Create components/RenderDrawer.tsx with RenderDrawerProps interface
     - Implement slide-up animation from bottom (250ms)
     - Apply glassmorphism styling
     - Use Manrope font for UI text
     - _Requirements: 11.1, 20.4, 18.1, 19.2_
 
-  - [ ] 12.2 Implement export format selection
+  - [~] 12.2 Implement export format selection
     - Display available export templates (PDF, Markdown, HTML, DOCX)
     - Handle format selection with visual feedback
     - Display format-specific options based on selection
     - _Requirements: 11.2, 11.3_
 
-  - [ ] 12.3 Implement PDF export options
+  - [~] 12.3 Implement PDF export options
     - Add page size selector (A4, Letter, Legal)
     - Add margin controls (top, bottom, left, right)
     - Add typography settings selector
     - Preview selected options
     - _Requirements: 11.4_
 
-  - [ ] 12.4 Implement export confirmation
+  - [~] 12.4 Implement export confirmation
     - Add Export button to trigger export
     - Call appropriate Tauri command based on format
     - Display loading indicator during export
@@ -354,17 +354,17 @@ The implementation follows an incremental approach: project setup → core edito
     - Display error message on failure
     - _Requirements: 11.5, 12.5_
 
-  - [ ] 12.5 Implement Cmd+E keyboard shortcut
+  - [~] 12.5 Implement Cmd+E keyboard shortcut
     - Add Cmd+E (Ctrl+E) keyboard shortcut handler in EditorCanvas
     - Open RenderDrawer on shortcut
     - _Requirements: 21.3_
 
-  - [ ] 12.6 Implement Escape key to close drawer
+  - [~] 12.6 Implement Escape key to close drawer
     - Add keyboard event listener for Escape key
     - Close RenderDrawer on Escape
     - _Requirements: 21.4_
 
-  - [ ] 12.7 Write unit tests for RenderDrawer
+  - [~] 12.7 Write unit tests for RenderDrawer
     - Test format selection updates options
     - Test PDF options configuration
     - Test export command invocation
