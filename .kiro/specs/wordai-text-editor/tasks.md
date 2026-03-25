@@ -230,7 +230,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Apply visual feedback for keyboard focus
     - _Requirements: 24.2, 24.3, 24.4, 24.5_
 
-  - [~] 8.6 Implement chat interface
+  - [x] 8.6 Implement chat interface
     - Add chat input field at bottom of panel
     - Handle Enter key to send chat message
     - Display user messages in chat history
