@@ -280,7 +280,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Keep AuraSpherePanel open after closing Negotiation Panel
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [ ] 10.5 Implement Escape key to close panel
+  - [x] 10.5 Implement Escape key to close panel
     - Add keyboard event listener for Escape key
     - Close Negotiation Panel on Escape
     - _Requirements: 21.4_
