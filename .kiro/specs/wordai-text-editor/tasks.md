@@ -248,7 +248,7 @@ The implementation follows an incremental approach: project setup → core edito
 - [x] 9. Checkpoint - AI integration complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [x] 10. Implement Negotiation Panel component (Frontend - React/TypeScript)
+- [-] 10. Implement Negotiation Panel component (Frontend - React/TypeScript)
   - [x] 10.1 Create NegotiationPanel base component
     - Create components/NegotiationPanel.tsx with NegotiationPanelProps interface
     - Implement modal with backdrop blur
@@ -256,14 +256,14 @@ The implementation follows an incremental approach: project setup → core edito
     - Use glassmorphism styling
     - _Requirements: 8.1, 20.3, 18.1_
 
-  - [x] 10.2 Implement text comparison display
+  - [-] 10.2 Implement text comparison display
     - Display original text on left side
     - Display suggested text on right side
     - Highlight differences between original and suggested text (diff algorithm)
     - Apply appropriate styling for additions/deletions
     - _Requirements: 8.2, 8.3, 8.4_
 
-  - [x] 10.3 Implement Accept action
+  - [-] 10.3 Implement Accept action
     - Add Accept button with click handler
     - Close Negotiation Panel on accept
     - Replace original text in EditorCanvas with suggested text
@@ -272,7 +272,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Trigger auto-save operation
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [x] 10.4 Implement Reject and Edit actions
+  - [-] 10.4 Implement Reject and Edit actions
     - Add Reject button to close panel without changes
     - Add Edit button to enable inline editing
     - Implement real-time preview for edited text
@@ -280,12 +280,12 @@ The implementation follows an incremental approach: project setup → core edito
     - Keep AuraSpherePanel open after closing Negotiation Panel
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [x] 10.5 Implement Escape key to close panel
+  - [-] 10.5 Implement Escape key to close panel
     - Add keyboard event listener for Escape key
     - Close Negotiation Panel on Escape
     - _Requirements: 21.4_
 
-  - [x] 10.6 Write unit tests for NegotiationPanel
+  - [-] 10.6 Write unit tests for NegotiationPanel
     - Test text comparison rendering
     - Test Accept action applies changes correctly
     - Test Reject action closes without changes
