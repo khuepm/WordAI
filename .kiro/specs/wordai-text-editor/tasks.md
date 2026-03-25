@@ -312,7 +312,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Return success/error status to frontend
     - _Requirements: 12.4, 12.5_
 
-  - [ ] 11.4 Register PDF export Tauri command
+  - [x] 11.4 Register PDF export Tauri command
     - Add Tauri command: export_to_pdf
     - Accept document content and export options as parameters
     - Call PDFExportEngine to generate PDF
