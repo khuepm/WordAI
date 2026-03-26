@@ -468,7 +468,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test typography scales properly
     - _Requirements: 18.1, 18.2, 18.3, 19.1, 19.2, 20.1, 20.2_
 
-- [-] 18. Implement TopNavBar component
+- [x] 18. Implement TopNavBar component
   - [x] 18.1 Create TopNavBar component
     - Create components/TopNavBar.tsx
     - Display application title and document title
