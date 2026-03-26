@@ -422,7 +422,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test version restore functionality
     - _Requirements: 22.4, 22.5_
 
-- [-] 16. Implement AI service connectivity check
+- [x] 16. Implement AI service connectivity check
   - [x] 16.1 Add AI service health check
     - Create check_ai_service_health function in ai_service.rs
     - Implement background health check on app startup
