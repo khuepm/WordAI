@@ -10,6 +10,7 @@ import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
+import { TopNavBar } from './components/TopNavBar';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
@@ -147,6 +148,13 @@ function App() {
     updateDocument({ ...document, content, lastModified: new Date() });
   }, [document, updateDocument]);
 
+  const handleNew = useCallback(async () => {
+    const doc = await createDocument();
+    const path = getDocumentPath(doc.id);
+    setDocument(doc, path);
+    localStorage.setItem(LAST_PATH_KEY, path);
+  }, [setDocument]);
+
   const { saveError: autoSaveError, triggerSave } = useAutoSave(
     document ?? ({} as Document),
     filePath,
@@ -166,7 +174,13 @@ function App() {
   const aiContext = aiSelection?.text ?? document.content.slice(0, 500);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <TopNavBar
+        documentTitle={document.title}
+        hasUnsavedChanges={hasUnsavedChanges}
+        onNew={handleNew}
+        onSave={triggerSave}
+      />
       {/* AI service unavailable banner (Req 25.5) */}
       {aiServiceAvailable === false && (
         <div
@@ -209,46 +223,48 @@ function App() {
           </button>
         </div>
       )}
-      <EditorCanvas
-        document={document}
-        onDocumentChange={handleDocumentChange}
-        onAITrigger={handleAITrigger}
-        isAIPanelOpen={isAIPanelOpen}
-        saveError={saveError}
-        hasUnsavedChanges={hasUnsavedChanges}
-        onManualSave={triggerSave}
-        onOpenExport={openRenderDrawer}
-        onOpenVersionHistory={openVersionHistory}
-        fontSize={fontSize}
-        onFontSizeChange={handleFontSizeChange}
-      />
-      <AuraSpherePanel
-        isOpen={isAIPanelOpen}
-        onClose={closeAIPanel}
-        selection={aiSelection}
-        documentId={document.id}
-        documentContext={aiContext}
-        onSuggestionSelect={handleSuggestionSelect}
-      />
-      <NegotiationPanel
-        isOpen={isNegotiationOpen}
-        suggestion={selectedSuggestion}
-        onAccept={handleNegotiationAccept}
-        onReject={closeNegotiation}
-        onClose={closeNegotiation}
-      />
-      <RenderDrawer
-        isOpen={isRenderDrawerOpen}
-        onClose={closeRenderDrawer}
-        documentId={document.id}
-        documentContent={document.content}
-      />
-      <VersionHistory
-        isOpen={isVersionHistoryOpen}
-        onClose={closeVersionHistory}
-        documentId={document.id}
-        onRestore={handleVersionRestore}
-      />
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', paddingTop: '48px', position: 'relative' }}>
+        <EditorCanvas
+          document={document}
+          onDocumentChange={handleDocumentChange}
+          onAITrigger={handleAITrigger}
+          isAIPanelOpen={isAIPanelOpen}
+          saveError={saveError}
+          hasUnsavedChanges={hasUnsavedChanges}
+          onManualSave={triggerSave}
+          onOpenExport={openRenderDrawer}
+          onOpenVersionHistory={openVersionHistory}
+          fontSize={fontSize}
+          onFontSizeChange={handleFontSizeChange}
+        />
+        <AuraSpherePanel
+          isOpen={isAIPanelOpen}
+          onClose={closeAIPanel}
+          selection={aiSelection}
+          documentId={document.id}
+          documentContext={aiContext}
+          onSuggestionSelect={handleSuggestionSelect}
+        />
+        <NegotiationPanel
+          isOpen={isNegotiationOpen}
+          suggestion={selectedSuggestion}
+          onAccept={handleNegotiationAccept}
+          onReject={closeNegotiation}
+          onClose={closeNegotiation}
+        />
+        <RenderDrawer
+          isOpen={isRenderDrawerOpen}
+          onClose={closeRenderDrawer}
+          documentId={document.id}
+          documentContent={document.content}
+        />
+        <VersionHistory
+          isOpen={isVersionHistoryOpen}
+          onClose={closeVersionHistory}
+          documentId={document.id}
+          onRestore={handleVersionRestore}
+        />
+      </div>
     </div>
   );
 }
