@@ -8,6 +8,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditorCanvas } from './EditorCanvas';
 import type { Document, TextSelection } from '../types/document';
+import { blockTextValueFromPlainText, extractPlainText } from '../utils/blockText';
 
 // Mock @tauri-apps/api to avoid native module errors in jsdom
 vi.mock('@tauri-apps/api', () => ({}));
@@ -17,7 +18,7 @@ function makeDoc(overrides: Partial<Document> = {}): Document {
   return {
     id: 'test-doc',
     title: 'Test',
-    content: '',
+    content: blockTextValueFromPlainText(''),
     version: 1,
     lastModified: new Date('2024-01-01T00:00:00Z'),
     metadata: {
@@ -28,6 +29,13 @@ function makeDoc(overrides: Partial<Document> = {}): Document {
     },
     ...overrides,
   };
+}
+
+function getEditable() {
+  const container = screen.getByTestId('block-text-editor');
+  const editable = container.querySelector('[contenteditable="true"]') as HTMLElement | null;
+  if (!editable) throw new Error('Editable element not found');
+  return editable;
 }
 
 describe('EditorCanvas', () => {
@@ -42,7 +50,7 @@ describe('EditorCanvas', () => {
   // Req 1.4 / 3.1 — text input fires onDocumentChange with updated content
   it('fires onDocumentChange with updated content when user types', async () => {
     const user = userEvent.setup();
-    const doc = makeDoc({ content: '' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('') });
     render(
       <EditorCanvas
         document={doc}
@@ -52,18 +60,19 @@ describe('EditorCanvas', () => {
       />
     );
 
-    const textarea = screen.getByRole('textbox', { name: /document editor/i });
-    await user.type(textarea, 'hello world');
+    const editable = getEditable();
+    await user.click(editable);
+    await user.type(editable, 'hello world');
 
     expect(onDocumentChange).toHaveBeenCalled();
     const lastCall = onDocumentChange.mock.calls[onDocumentChange.mock.calls.length - 1][0] as Document;
-    expect(lastCall.content).toBe('hello world');
+    expect(extractPlainText(lastCall.content)).toBe('hello world');
   });
 
   // Req 1.4 — onDocumentChange receives the full updated document object
   it('passes the full document object with updated content to onDocumentChange', async () => {
     const user = userEvent.setup();
-    const doc = makeDoc({ content: 'existing' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('existing') });
     render(
       <EditorCanvas
         document={doc}
@@ -73,18 +82,19 @@ describe('EditorCanvas', () => {
       />
     );
 
-    const textarea = screen.getByRole('textbox', { name: /document editor/i });
-    await user.type(textarea, '!');
+    const editable = getEditable();
+    await user.click(editable);
+    await user.type(editable, '!');
 
     const lastCall = onDocumentChange.mock.calls[onDocumentChange.mock.calls.length - 1][0] as Document;
     expect(lastCall.id).toBe('test-doc');
     expect(lastCall.title).toBe('Test');
-    expect(lastCall.content).toContain('!');
+    expect(extractPlainText(lastCall.content)).toContain('!');
   });
 
   // Req 4.1 — word count: "hello world" = 2 words
   it('displays word count of 2 for "hello world"', () => {
-    const doc = makeDoc({ content: 'hello world' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('hello world') });
     render(
       <EditorCanvas
         document={doc}
@@ -99,7 +109,7 @@ describe('EditorCanvas', () => {
 
   // Req 4.1 — word count: single word uses singular form
   it('displays "1 word" for a single word', () => {
-    const doc = makeDoc({ content: 'hello' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('hello') });
     render(
       <EditorCanvas
         document={doc}
@@ -114,7 +124,7 @@ describe('EditorCanvas', () => {
 
   // Req 4.1 — word count: empty content = 0 words
   it('displays 0 words for empty content', () => {
-    const doc = makeDoc({ content: '' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('') });
     render(
       <EditorCanvas
         document={doc}
@@ -130,7 +140,7 @@ describe('EditorCanvas', () => {
   // Req 4.2 — reading time: 200 words = 1 min read
   it('displays "1 min read" for 200 words', () => {
     const content = Array(200).fill('word').join(' ');
-    const doc = makeDoc({ content });
+    const doc = makeDoc({ content: blockTextValueFromPlainText(content) });
     render(
       <EditorCanvas
         document={doc}
@@ -146,7 +156,7 @@ describe('EditorCanvas', () => {
   // Req 4.2 — reading time: 201 words = 2 min read (ceil)
   it('displays "2 min read" for 201 words', () => {
     const content = Array(201).fill('word').join(' ');
-    const doc = makeDoc({ content });
+    const doc = makeDoc({ content: blockTextValueFromPlainText(content) });
     render(
       <EditorCanvas
         document={doc}
@@ -161,7 +171,7 @@ describe('EditorCanvas', () => {
 
   // Req 4.1 / 4.2 — metadata bar renders word count and reading time
   it('renders the metadata bar with word count and reading time', () => {
-    const doc = makeDoc({ content: 'one two three' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('one two three') });
     render(
       <EditorCanvas
         document={doc}
@@ -212,7 +222,7 @@ describe('EditorCanvas', () => {
   it('calls onManualSave when Cmd+S is pressed', async () => {
     const user = userEvent.setup();
     const onManualSave = vi.fn();
-    const doc = makeDoc({ content: 'some text' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('some text') });
     render(
       <EditorCanvas
         document={doc}
@@ -223,8 +233,8 @@ describe('EditorCanvas', () => {
       />
     );
 
-    const textarea = screen.getByRole('textbox', { name: /document editor/i });
-    await user.click(textarea);
+    const editable = getEditable();
+    await user.click(editable);
     await user.keyboard('{Meta>}s{/Meta}');
 
     expect(onManualSave).toHaveBeenCalledOnce();
@@ -234,7 +244,7 @@ describe('EditorCanvas', () => {
   it('calls onManualSave when Ctrl+S is pressed', async () => {
     const user = userEvent.setup();
     const onManualSave = vi.fn();
-    const doc = makeDoc({ content: 'some text' });
+    const doc = makeDoc({ content: blockTextValueFromPlainText('some text') });
     render(
       <EditorCanvas
         document={doc}
@@ -245,8 +255,8 @@ describe('EditorCanvas', () => {
       />
     );
 
-    const textarea = screen.getByRole('textbox', { name: /document editor/i });
-    await user.click(textarea);
+    const editable = getEditable();
+    await user.click(editable);
     await user.keyboard('{Control>}s{/Control}');
 
     expect(onManualSave).toHaveBeenCalledOnce();
@@ -440,7 +450,7 @@ describe('EditorCanvas - font size controls (Req 19.5)', () => {
         fontSize={20}
       />
     );
-    const textarea = screen.getByRole('textbox', { name: /document editor/i });
-    expect(textarea).toHaveStyle({ fontSize: '20px' });
+    const editable = screen.getByRole('textbox', { name: /document editor/i });
+    expect(editable).toHaveStyle({ fontSize: '20px' });
   });
 });
