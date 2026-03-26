@@ -462,13 +462,13 @@ The implementation follows an incremental approach: project setup → core edito
     - Persist font size preference
     - _Requirements: 19.5_
 
-  - [~] 17.4 Write visual regression tests
+  - [ ] 17.4 Write visual regression tests
     - Test glassmorphism effects render correctly
     - Test animations complete smoothly
     - Test typography scales properly
     - _Requirements: 18.1, 18.2, 18.3, 19.1, 19.2, 20.1, 20.2_
 
-- [~] 18. Implement TopNavBar component
+- [ ] 18. Implement TopNavBar component
   - [ ] 18.1 Create TopNavBar component
     - Create components/TopNavBar.tsx
     - Display application title and document title
@@ -488,7 +488,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test menu actions trigger correct functions
     - _Requirements: 17.1_
 
-- [~] 19. Final integration and wiring
+- [ ] 19. Final integration and wiring
   - [ ] 19.1 Wire all components together
     - Ensure EditorCanvas, AuraSpherePanel, NegotiationPanel, RenderDrawer, TopNavBar are properly integrated
     - Verify all IPC commands are registered and working
@@ -515,7 +515,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error recovery scenarios
     - _Requirements: All requirements_
 
-- [~] 20. Final checkpoint - Complete application
+- [ ] 20. Final checkpoint - Complete application
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
