@@ -53,7 +53,7 @@ jobs:
 
       - name: List build artifacts
         run: |
-          find wordai-editor/src-tauri/target -name "*.dmg" -o -name "*.app.tar.gz" | head -20
+          find wordai-editor/src-tauri/target \( -name "*.dmg" -o -name "*.app.tar.gz" \) | head -20
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -62,7 +62,7 @@ jobs:
           path: |
             wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
             wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
