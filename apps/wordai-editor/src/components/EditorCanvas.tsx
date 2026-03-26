@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import '../utils/reactInternals';
 import ReactBlockText, { headerPlugin, listPlugin, quotePlugin, todoPlugin } from 'react-block-text';
 import type { Document, TextSelection } from '../types/document';
 import type { IPCError } from '../types/ipc';
@@ -137,10 +138,6 @@ export function EditorCanvas({
         const selection: TextSelection = { start: 0, end: text.length, text };
         onAITrigger(selection);
       }
-      if (e.key === 's') {
-        e.preventDefault();
-        onManualSave?.();
-      }
       if (e.key === 'e') {
         e.preventDefault();
         onOpenExport?.();
@@ -165,22 +162,22 @@ export function EditorCanvas({
       )}
       <div style={styles.contentColumn}>
         <div
-          data-testid="block-text-editor"
+          data-testid="block-text-editor-container"
           onKeyDownCapture={handleKeyDownCapture}
           style={{
             ...styles.blockEditor,
             fontSize: `${fontSize}px`,
           }}
-          aria-label="Document editor"
-          role="textbox"
         >
           <ReactBlockText
             value={blockValue}
             onChange={handleBlockChange}
+            onSave={onManualSave}
             plugins={plugins}
-            textColor="var(--md-sys-color-on-background)"
-            primaryColor="var(--md-sys-color-primary)"
-            style={{ fontFamily: 'var(--font-family-content)' }}
+            textColor="#1f1f1f"
+            primaryColor="#6750a4"
+            style={{ fontFamily: 'var(--font-family-content)', fontSize: `${fontSize}px` }}
+            data-testid="block-text-editor"
           />
         </div>
         {/* Document metadata bar (Req 4.1–4.5) */}

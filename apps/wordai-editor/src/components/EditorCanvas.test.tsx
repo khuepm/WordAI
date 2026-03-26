@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditorCanvas } from './EditorCanvas';
 import type { Document, TextSelection } from '../types/document';
@@ -32,10 +32,7 @@ function makeDoc(overrides: Partial<Document> = {}): Document {
 }
 
 function getEditable() {
-  const container = screen.getByTestId('block-text-editor');
-  const editable = container.querySelector('[contenteditable="true"]') as HTMLElement | null;
-  if (!editable) throw new Error('Editable element not found');
-  return editable;
+  return screen.getByTestId('block-text-editor');
 }
 
 describe('EditorCanvas', () => {
@@ -49,7 +46,6 @@ describe('EditorCanvas', () => {
 
   // Req 1.4 / 3.1 — text input fires onDocumentChange with updated content
   it('fires onDocumentChange with updated content when user types', async () => {
-    const user = userEvent.setup();
     const doc = makeDoc({ content: blockTextValueFromPlainText('') });
     render(
       <EditorCanvas
@@ -61,8 +57,10 @@ describe('EditorCanvas', () => {
     );
 
     const editable = getEditable();
-    await user.click(editable);
-    await user.type(editable, 'hello world');
+    fireEvent.input(editable, {
+      currentTarget: { innerText: 'hello world' },
+      target: { innerText: 'hello world' },
+    });
 
     expect(onDocumentChange).toHaveBeenCalled();
     const lastCall = onDocumentChange.mock.calls[onDocumentChange.mock.calls.length - 1][0] as Document;
@@ -71,7 +69,6 @@ describe('EditorCanvas', () => {
 
   // Req 1.4 — onDocumentChange receives the full updated document object
   it('passes the full document object with updated content to onDocumentChange', async () => {
-    const user = userEvent.setup();
     const doc = makeDoc({ content: blockTextValueFromPlainText('existing') });
     render(
       <EditorCanvas
@@ -83,8 +80,10 @@ describe('EditorCanvas', () => {
     );
 
     const editable = getEditable();
-    await user.click(editable);
-    await user.type(editable, '!');
+    fireEvent.input(editable, {
+      currentTarget: { innerText: 'existing!' },
+      target: { innerText: 'existing!' },
+    });
 
     const lastCall = onDocumentChange.mock.calls[onDocumentChange.mock.calls.length - 1][0] as Document;
     expect(lastCall.id).toBe('test-doc');

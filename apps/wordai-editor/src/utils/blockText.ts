@@ -1,3 +1,4 @@
+import './reactInternals';
 import { VERSION as RBT_VERSION } from 'react-block-text';
 
 type BlockItem = {
