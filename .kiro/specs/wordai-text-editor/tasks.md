@@ -435,7 +435,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Provide retry button to check connectivity again
     - _Requirements: 25.5_
 
-  - [~] 16.3 Write unit tests for health check
+  - [x] 16.3 Write unit tests for health check
     - Test health check with available service
     - Test health check with unavailable service
     - Test retry functionality
