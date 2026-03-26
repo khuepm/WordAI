@@ -416,7 +416,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement restore version functionality
     - _Requirements: 22.5_
 
-  - [ ] 15.3 Write unit tests for version control
+  - [x] 15.3 Write unit tests for version control
     - Test version history storage
     - Test version retrieval
     - Test version restore functionality
