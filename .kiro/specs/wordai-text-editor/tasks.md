@@ -402,8 +402,8 @@ The implementation follows an incremental approach: project setup → core edito
     - Test unsaved changes flag behavior
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
 
-- [~] 15. Implement document version control
-  - [ ] 15.1 Extend Document Store with version history
+- [-] 15. Implement document version control
+  - [x] 15.1 Extend Document Store with version history
     - Add version history storage (last 10 versions)
     - Store document snapshot on each save
     - Implement get_version_history Tauri command

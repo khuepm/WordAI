@@ -8,6 +8,7 @@ import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
+import { VersionHistory } from './components/VersionHistory';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
@@ -29,6 +30,8 @@ function App() {
     closeNegotiation,
     openRenderDrawer,
     closeRenderDrawer,
+    openVersionHistory,
+    closeVersionHistory,
   } = useAppState();
 
   const {
@@ -37,6 +40,7 @@ function App() {
     isAIPanelOpen,
     isNegotiationOpen,
     isRenderDrawerOpen,
+    isVersionHistoryOpen,
     aiSelection,
     selectedSuggestion,
     saveError,
@@ -111,6 +115,11 @@ function App() {
     closeNegotiation();
   }, [selectedSuggestion, document, updateDocument, closeNegotiation]);
 
+  const handleVersionRestore = useCallback((content: string) => {
+    if (!document) return;
+    updateDocument({ ...document, content, lastModified: new Date() });
+  }, [document, updateDocument]);
+
   const { saveError: autoSaveError, triggerSave } = useAutoSave(
     document ?? ({} as Document),
     filePath,
@@ -140,6 +149,7 @@ function App() {
         hasUnsavedChanges={hasUnsavedChanges}
         onManualSave={triggerSave}
         onOpenExport={openRenderDrawer}
+        onOpenVersionHistory={openVersionHistory}
       />
       <AuraSpherePanel
         isOpen={isAIPanelOpen}
@@ -161,6 +171,12 @@ function App() {
         onClose={closeRenderDrawer}
         documentId={document.id}
         documentContent={document.content}
+      />
+      <VersionHistory
+        isOpen={isVersionHistoryOpen}
+        onClose={closeVersionHistory}
+        documentId={document.id}
+        onRestore={handleVersionRestore}
       />
     </div>
   );

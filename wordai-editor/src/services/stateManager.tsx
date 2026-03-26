@@ -26,6 +26,7 @@ export interface AppState {
   isAIPanelOpen: boolean;
   isNegotiationOpen: boolean;
   isRenderDrawerOpen: boolean;
+  isVersionHistoryOpen: boolean;
   hasUnsavedChanges: boolean;
 
   // AI state
@@ -42,6 +43,7 @@ const initialState: AppState = {
   isAIPanelOpen: false,
   isNegotiationOpen: false,
   isRenderDrawerOpen: false,
+  isVersionHistoryOpen: false,
   hasUnsavedChanges: false,
   aiSelection: null,
   selectedSuggestion: null,
@@ -59,6 +61,8 @@ type Action =
   | { type: 'CLOSE_NEGOTIATION' }
   | { type: 'OPEN_RENDER_DRAWER' }
   | { type: 'CLOSE_RENDER_DRAWER' }
+  | { type: 'OPEN_VERSION_HISTORY' }
+  | { type: 'CLOSE_VERSION_HISTORY' }
   | { type: 'MARK_UNSAVED' }
   | { type: 'MARK_SAVED'; payload: Document }
   | { type: 'SET_SAVE_ERROR'; payload: IPCError | null };
@@ -119,6 +123,12 @@ function appReducer(state: AppState, action: Action): AppState {
     case 'CLOSE_RENDER_DRAWER':
       return { ...state, isRenderDrawerOpen: false };
 
+    case 'OPEN_VERSION_HISTORY':
+      return { ...state, isVersionHistoryOpen: true };
+
+    case 'CLOSE_VERSION_HISTORY':
+      return { ...state, isVersionHistoryOpen: false };
+
     // Req 17.3 — clear unsaved flag on successful save
     case 'MARK_SAVED':
       return {
@@ -155,6 +165,8 @@ interface AppContextValue {
   closeNegotiation: () => void;
   openRenderDrawer: () => void;
   closeRenderDrawer: () => void;
+  openVersionHistory: () => void;
+  closeVersionHistory: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -204,6 +216,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLOSE_RENDER_DRAWER' });
   }, []);
 
+  const openVersionHistory = useCallback(() => {
+    dispatch({ type: 'OPEN_VERSION_HISTORY' });
+  }, []);
+
+  const closeVersionHistory = useCallback(() => {
+    dispatch({ type: 'CLOSE_VERSION_HISTORY' });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -218,6 +238,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         closeNegotiation,
         openRenderDrawer,
         closeRenderDrawer,
+        openVersionHistory,
+        closeVersionHistory,
       }}
     >
       {children}

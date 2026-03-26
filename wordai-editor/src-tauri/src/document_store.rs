@@ -1,6 +1,44 @@
 /// Document Store - manages document serialization, deserialization, and version control
-/// Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 22.1, 22.2, 22.3
-use crate::models::{Document, DocumentMetadata, DocumentStatus, IPCError};
+/// Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 22.1, 22.2, 22.3, 22.4
+use crate::models::{Document, DocumentMetadata, DocumentSnapshot, DocumentStatus, IPCError};
+use std::collections::HashMap;
+use std::sync::Mutex;
+
+// ─── In-memory version history store ─────────────────────────────────────────
+
+/// Maximum number of snapshots retained per document.
+const MAX_HISTORY: usize = 10;
+
+/// Global in-memory store: document_id → ordered list of snapshots (oldest first).
+static VERSION_STORE: Mutex<Option<HashMap<String, Vec<DocumentSnapshot>>>> = Mutex::new(None);
+
+fn with_store<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut HashMap<String, Vec<DocumentSnapshot>>) -> R,
+{
+    let mut guard = VERSION_STORE.lock().expect("version store lock poisoned");
+    let map = guard.get_or_insert_with(HashMap::new);
+    f(map)
+}
+
+/// Push a snapshot for `doc_id` before overwriting the document.
+/// Keeps only the last MAX_HISTORY entries.
+/// Req 22.4
+pub fn push_snapshot(doc_id: &str, snapshot: DocumentSnapshot) {
+    with_store(|map| {
+        let history = map.entry(doc_id.to_string()).or_default();
+        history.push(snapshot);
+        if history.len() > MAX_HISTORY {
+            history.remove(0);
+        }
+    });
+}
+
+/// Return the version history for `doc_id` (oldest → newest).
+/// Req 22.4
+pub fn get_version_history(doc_id: &str) -> Vec<DocumentSnapshot> {
+    with_store(|map| map.get(doc_id).cloned().unwrap_or_default())
+}
 
 /// Serialize a Document to a pretty-printed JSON string.
 /// Req 14.1, 14.3
@@ -298,5 +336,68 @@ mod tests {
         assert_eq!(doc.metadata.word_count, 0);
         assert_eq!(doc.metadata.reading_time, 0);
         assert!(doc.metadata.tags.is_empty());
+    }
+
+    // ── Version history storage (Req 22.4) ────────────────────────────────────
+
+    fn make_snapshot(version: u32, content: &str) -> DocumentSnapshot {
+        DocumentSnapshot {
+            version,
+            content: content.to_string(),
+            timestamp: format!("2024-01-{:02}T00:00:00Z", version),
+        }
+    }
+
+    #[test]
+    fn test_push_snapshot_stores_entry() {
+        // Use a unique doc id to avoid cross-test interference
+        let doc_id = "test-push-snapshot-stores-entry";
+        push_snapshot(doc_id, make_snapshot(1, "hello"));
+        let history = get_version_history(doc_id);
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].version, 1);
+        assert_eq!(history[0].content, "hello");
+    }
+
+    #[test]
+    fn test_push_snapshot_preserves_order() {
+        let doc_id = "test-push-snapshot-preserves-order";
+        push_snapshot(doc_id, make_snapshot(1, "v1"));
+        push_snapshot(doc_id, make_snapshot(2, "v2"));
+        push_snapshot(doc_id, make_snapshot(3, "v3"));
+        let history = get_version_history(doc_id);
+        assert_eq!(history.len(), 3);
+        assert_eq!(history[0].version, 1);
+        assert_eq!(history[1].version, 2);
+        assert_eq!(history[2].version, 3);
+    }
+
+    #[test]
+    fn test_version_history_capped_at_ten() {
+        let doc_id = "test-version-history-capped-at-ten";
+        for i in 1..=12u32 {
+            push_snapshot(doc_id, make_snapshot(i, &format!("content {}", i)));
+        }
+        let history = get_version_history(doc_id);
+        // Must not exceed MAX_HISTORY (10)
+        assert_eq!(history.len(), 10);
+        // Oldest entries (v1, v2) should have been evicted; newest 10 remain
+        assert_eq!(history[0].version, 3);
+        assert_eq!(history[9].version, 12);
+    }
+
+    #[test]
+    fn test_get_version_history_empty_for_unknown_doc() {
+        let history = get_version_history("doc-that-does-not-exist-xyz");
+        assert!(history.is_empty());
+    }
+
+    #[test]
+    fn test_snapshot_content_is_preserved() {
+        let doc_id = "test-snapshot-content-preserved";
+        let long_content = "A".repeat(5000);
+        push_snapshot(doc_id, make_snapshot(1, &long_content));
+        let history = get_version_history(doc_id);
+        assert_eq!(history[0].content, long_content);
     }
 }

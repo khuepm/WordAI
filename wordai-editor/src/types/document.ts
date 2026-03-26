@@ -31,3 +31,10 @@ export interface DocumentVersion {
   timestamp: Date;
   metadata: DocumentMetadata;
 }
+
+/** Matches the Rust DocumentSnapshot model returned by get_version_history */
+export interface DocumentSnapshot {
+  version: number;
+  content: string;
+  timestamp: string; // ISO 8601
+}

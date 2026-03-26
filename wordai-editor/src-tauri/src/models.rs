@@ -1,5 +1,5 @@
 /// Shared data models used across backend modules
-/// Requirements: 14.1, 14.2, 14.3, 14.4
+/// Requirements: 14.1, 14.2, 14.3, 14.4, 22.4
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,4 +41,13 @@ pub struct AISuggestion {
 pub struct IPCError {
     pub code: String,
     pub message: String,
+}
+
+/// A point-in-time snapshot of a document, stored in version history.
+/// Requirements: 22.4
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentSnapshot {
+    pub version: u32,
+    pub content: String,
+    pub timestamp: String, // ISO 8601
 }

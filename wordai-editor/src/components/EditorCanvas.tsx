@@ -32,6 +32,8 @@ export interface EditorCanvasProps {
   onManualSave?: () => void;
   /** Called when user presses Cmd+E — parent should open RenderDrawer (Req 21.3) */
   onOpenExport?: () => void;
+  /** Called when user presses Cmd+H — parent should open VersionHistory (Req 22.5) */
+  onOpenVersionHistory?: () => void;
 }
 
 export function EditorCanvas({
@@ -43,6 +45,7 @@ export function EditorCanvas({
   hasUnsavedChanges = false,
   onManualSave,
   onOpenExport,
+  onOpenVersionHistory,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
   // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
@@ -103,6 +106,11 @@ export function EditorCanvas({
         e.preventDefault();
         onOpenExport?.();
       }
+      // Cmd+H / Ctrl+H — open version history (Req 22.5)
+      if (isMod && e.key === 'h') {
+        e.preventDefault();
+        onOpenVersionHistory?.();
+      }
       // Cmd+A / Ctrl+A — select all content (Req 3.4, 21.5)
       if (isMod && e.key === 'a') {
         e.preventDefault();
@@ -111,7 +119,7 @@ export function EditorCanvas({
         selectionRef.current = { start: 0, end: localContent.length, text: localContent };
       }
     },
-    [localContent, onAITrigger, onManualSave, onOpenExport]
+    [localContent, onAITrigger, onManualSave, onOpenExport, onOpenVersionHistory]
   );
 
   // Capture selection after mouse drag or click (Req 3.1, 3.2, 3.3)

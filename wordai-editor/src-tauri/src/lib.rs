@@ -4,16 +4,25 @@ pub mod file_manager;
 pub mod models;
 pub mod pdf_export;
 
-use models::{AISuggestion, Document, IPCError};
+use models::{AISuggestion, Document, DocumentSnapshot, IPCError};
 use pdf_export::PDFExportOptions;
 
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
 /// Save a document to the given file path.
 /// Increments the version number before persisting.
-/// Requirements: 13.1, 14.1, 15.1, 15.2, 15.3, 22.2
+/// Stores a snapshot in version history before overwriting.
+/// Requirements: 13.1, 14.1, 15.1, 15.2, 15.3, 22.2, 22.4
 #[tauri::command]
 fn save_document(path: String, mut document: Document) -> Result<(), IPCError> {
+    use chrono::Utc;
+    // Capture snapshot of current state before incrementing
+    let snapshot = DocumentSnapshot {
+        version: document.version,
+        content: document.content.clone(),
+        timestamp: Utc::now().to_rfc3339(),
+    };
+    document_store::push_snapshot(&document.id, snapshot);
     document_store::increment_version(&mut document);
     file_manager::save_document(&path, &document)
 }
@@ -87,6 +96,13 @@ fn export_to_pdf(
     pdf_export::PDFExportEngine::generate_pdf(&content, &output_path, &options)
 }
 
+/// Return the version history (last 10 snapshots) for a document.
+/// Requirements: 22.4
+#[tauri::command]
+fn get_version_history(doc_id: String) -> Vec<DocumentSnapshot> {
+    document_store::get_version_history(&doc_id)
+}
+
 // ── App Entry Point ───────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -101,6 +117,7 @@ pub fn run() {
             send_chat_message,
             check_ai_health,
             export_to_pdf,
+            get_version_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
