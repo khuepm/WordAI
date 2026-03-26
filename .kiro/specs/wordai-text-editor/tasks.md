@@ -409,7 +409,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement get_version_history Tauri command
     - _Requirements: 22.4_
 
-  - [ ] 15.2 Create version history UI
+  - [x] 15.2 Create version history UI
     - Create components/VersionHistory.tsx
     - Display list of past versions with timestamps
     - Allow browsing and previewing past versions
