@@ -168,7 +168,34 @@ function App() {
   }, [autoSaveError, setSaveError]);
 
   if (!document) {
-    return <div style={{ fontFamily: 'var(--font-family-ui)', padding: '2rem' }}>Loading…</div>;
+    return (
+      <div
+        data-testid="app-loading"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          fontFamily: 'var(--font-family-ui)',
+          color: 'var(--md-sys-color-on-surface-variant)',
+          gap: '1rem',
+        }}
+      >
+        <div
+          style={{
+            width: '32px',
+            height: '32px',
+            border: '3px solid var(--md-sys-color-surface-variant, #e7e0ec)',
+            borderTopColor: 'var(--md-sys-color-primary, #6750a4)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }}
+          aria-hidden="true"
+        />
+        <span>Loading…</span>
+      </div>
+    );
   }
 
   const aiContext = aiSelection?.text ?? document.content.slice(0, 500);

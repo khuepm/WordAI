@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "name": "Auto Commit & Push After Task",
-  "description": "Automatically creates a git commit and pushes changes after completing a spec task",
+  "description": "Automatically creates a git commit and pushes changes after completing a spec task, commit message should show what changes in this commit, and infor about the task it's doing",
   "version": "1",
   "when": {
     "type": "postTaskExecution"
