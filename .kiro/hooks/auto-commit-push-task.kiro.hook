@@ -7,8 +7,8 @@
     "type": "postTaskExecution"
   },
   "then": {
-    "type": "runCommand",
-    "command": "git add . && git commit -m \"Complete task: $(date '+%Y-%m-%d %H:%M:%S')\" && git push"
+    "type": "askAgent",
+    "prompt": "Automatically creates a git commit and pushes changes after completing a spec task, commit message should show what changes in this commit, and infor about the task it's doing"
   },
   "workspaceFolderName": "WordAI",
   "shortName": "auto-commit-push-task"
