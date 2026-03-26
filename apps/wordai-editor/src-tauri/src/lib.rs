@@ -6,6 +6,7 @@ pub mod pdf_export;
 
 use models::{AISuggestion, Document, DocumentSnapshot, IPCError};
 use pdf_export::PDFExportOptions;
+use tauri::Manager;
 
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
@@ -14,8 +15,9 @@ use pdf_export::PDFExportOptions;
 /// Stores a snapshot in version history before overwriting.
 /// Requirements: 13.1, 14.1, 15.1, 15.2, 15.3, 22.2, 22.4
 #[tauri::command]
-fn save_document(path: String, mut document: Document) -> Result<(), IPCError> {
+fn save_document(app: tauri::AppHandle, path: String, mut document: Document) -> Result<(), IPCError> {
     use chrono::Utc;
+    let full_path = resolve_doc_path(&app, &path)?;
     // Capture snapshot of current state before incrementing
     let snapshot = DocumentSnapshot {
         version: document.version,
@@ -24,25 +26,36 @@ fn save_document(path: String, mut document: Document) -> Result<(), IPCError> {
     };
     document_store::push_snapshot(&document.id, snapshot);
     document_store::increment_version(&mut document);
-    file_manager::save_document(&path, &document)
+    file_manager::save_document(&full_path, &document)
 }
 
 /// Load a document from the given file path.
 /// Requirements: 13.2, 13.3, 14.2, 15.1, 15.2, 15.3
 #[tauri::command]
-fn load_document(path: String) -> Result<Document, IPCError> {
-    file_manager::load_document(&path)
+fn load_document(app: tauri::AppHandle, path: String) -> Result<Document, IPCError> {
+    let full_path = resolve_doc_path(&app, &path)?;
+    file_manager::load_document(&full_path)
 }
 
 /// Create a new empty document with version 1 and persist it.
 /// Requirements: 1.1, 14.1, 15.1, 22.1
 #[tauri::command]
-fn create_document(id: String, title: String, path: String) -> Result<Document, IPCError> {
+fn create_document(app: tauri::AppHandle, id: String, title: String, path: String) -> Result<Document, IPCError> {
     use chrono::Utc;
+    let full_path = resolve_doc_path(&app, &path)?;
     let now = Utc::now().to_rfc3339();
     let doc = document_store::create_document(id, title, now);
-    file_manager::save_document(&path, &doc)?;
+    file_manager::save_document(&full_path, &doc)?;
     Ok(doc)
+}
+
+/// Resolve a relative document path to an absolute path under app data dir.
+fn resolve_doc_path(app: &tauri::AppHandle, path: &str) -> Result<String, IPCError> {
+    let base = app.path().app_data_dir().map_err(|_| IPCError {
+        code: "PATH_ERROR".to_string(),
+        message: "Cannot resolve app data directory".to_string(),
+    })?;
+    Ok(base.join(path).to_string_lossy().to_string())
 }
 
 // ── AI Commands ──────────────────────────────────────────────────────────────

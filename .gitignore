@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# pnpm
+.pnpm-store/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,3 +27,6 @@ dist-ssr
 *.sw?
 
 *.DS_Store
+
+# Tauri
+apps/*/src-tauri/target/

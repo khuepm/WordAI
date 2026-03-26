@@ -1,0 +1,15 @@
+{
+  "name": "wordai-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "pnpm --filter wordai-editor dev",
+    "build": "pnpm --filter wordai-editor build",
+    "test": "pnpm --filter wordai-editor test",
+    "tauri": "pnpm --filter wordai-editor tauri"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}

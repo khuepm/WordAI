@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, waitFor, within, act } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuraSpherePanel } from './AuraSpherePanel';
 import type { AISuggestion, ChatMessage } from '../types/ai';

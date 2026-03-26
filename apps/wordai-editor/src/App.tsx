@@ -70,17 +70,23 @@ function App() {
       const savedPath = localStorage.getItem(LAST_PATH_KEY);
       let doc: Document;
       let path: string;
-      if (savedPath) {
-        try {
+      try {
+        if (savedPath) {
           doc = await loadDocument(savedPath);
           path = savedPath;
-        } catch {
+        } else {
           doc = await createDocument();
           path = getDocumentPath(doc.id);
         }
-      } else {
-        doc = await createDocument();
-        path = getDocumentPath(doc.id);
+      } catch {
+        // Always fall back to a new document — never stay stuck on loading
+        try {
+          doc = await createDocument();
+          path = getDocumentPath(doc.id);
+        } catch (e) {
+          console.error('Failed to create document:', e);
+          return;
+        }
       }
       if (!cancelled) {
         setDocument(doc, path);
@@ -97,11 +103,15 @@ function App() {
     if (filePath) localStorage.setItem(LAST_PATH_KEY, filePath);
   }, [filePath]);
 
-  // Check AI service connectivity on startup (Req 25.4)
+  // Check AI service connectivity on startup (Req 25.4) — fire and forget, never blocks loading
   const checkAIHealth = useCallback(async () => {
     setAiServiceStatus(null);
-    const available = await invoke<boolean>('check_ai_health', { apiKey: '', endpoint: null });
-    setAiServiceStatus(available);
+    try {
+      const available = await invoke<boolean>('check_ai_health', { apiKey: '', endpoint: null });
+      setAiServiceStatus(available);
+    } catch {
+      setAiServiceStatus(false);
+    }
   }, [setAiServiceStatus]);
 
   useEffect(() => {
