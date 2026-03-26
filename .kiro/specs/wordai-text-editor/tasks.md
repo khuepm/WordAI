@@ -429,7 +429,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Return connectivity status to frontend
     - _Requirements: 25.4_
 
-  - [~] 16.2 Display AI service status
+  - [x] 16.2 Display AI service status
     - Show warning banner if AI service unavailable at startup
     - Allow editing to continue even if AI unavailable
     - Provide retry button to check connectivity again
