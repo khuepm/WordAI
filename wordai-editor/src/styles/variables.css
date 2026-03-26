@@ -39,11 +39,11 @@
   --md-sys-color-outline-variant: #CAC4D0;
 
   /* Glassmorphism Effects */
-  --glass-blur: 20px;
+  --glass-blur: 24px;
   --glass-blur-strong: 40px;
-  --glass-opacity: 0.7;
+  --glass-opacity: 0.82;
   --glass-opacity-light: 0.5;
-  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.22);
 
   /* Typography Scale */
   --font-family-content: 'Newsreader', serif;
@@ -81,9 +81,9 @@
   --radius-xl: 1.5rem;     /* 24px */
 
   /* Shadows */
-  --shadow-ambient: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-ambient-strong: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(103, 80, 164, 0.3);
+  --shadow-ambient: 0 2px 12px rgba(0, 0, 0, 0.10);
+  --shadow-ambient-strong: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-glow: 0 0 24px rgba(103, 80, 164, 0.35);
 
   /* Selection Highlight (Req 3.3) */
   --selection-bg: rgba(234, 221, 255, 0.6); /* primary-container at 60% opacity */

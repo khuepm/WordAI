@@ -448,7 +448,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Apply smooth fade-in with stagger effect
     - _Requirements: 20.5_
 
-  - [~] 17.2 Refine glassmorphism effects
+  - [x] 17.2 Refine glassmorphism effects
     - Fine-tune backdrop blur values
     - Adjust semi-transparent background opacity
     - Ensure tonal shifts are subtle and consistent
