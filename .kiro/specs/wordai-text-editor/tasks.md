@@ -477,7 +477,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Use Manrope font
     - _Requirements: 18.1, 19.2_
 
-  - [~] 18.2 Wire TopNavBar to application
+  - [x] 18.2 Wire TopNavBar to application
     - Add TopNavBar to main application layout
     - Connect to state manager for document title
     - Implement file menu actions (New, Open, Save)
