@@ -501,7 +501,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Log errors for debugging
     - _Requirements: 15.5, 16.1, 16.2_
 
-  - [~] 19.3 Add loading states
+  - [x] 19.3 Add loading states
     - Implement loading indicators for async operations
     - Show loading state during document load
     - Show loading state during AI requests
