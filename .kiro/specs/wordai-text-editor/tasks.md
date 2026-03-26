@@ -381,7 +381,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement state update functions
     - _Requirements: 17.1_
 
-  - [-] 14.2 Implement UI state flags
+  - [x] 14.2 Implement UI state flags
     - Add isAIPanelOpen flag and update functions
     - Add hasUnsavedChanges flag and update functions
     - Update flags on panel open/close
