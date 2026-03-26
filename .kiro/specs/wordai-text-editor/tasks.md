@@ -483,7 +483,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Implement file menu actions (New, Open, Save)
     - _Requirements: 17.1_
 
-  - [~] 18.3 Write unit tests for TopNavBar
+  - [x] 18.3 Write unit tests for TopNavBar
     - Test document title display
     - Test menu actions trigger correct functions
     - _Requirements: 17.1_
