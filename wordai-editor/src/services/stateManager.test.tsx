@@ -224,3 +224,31 @@ describe('useAppState outside provider', () => {
     spy.mockRestore();
   });
 });
+
+// ─── AI service status (Req 25.4, 25.5) ──────────────────────────────────────
+
+describe('aiServiceAvailable state', () => {
+  it('initializes as null (checking)', () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    expect(result.current.state.aiServiceAvailable).toBeNull();
+  });
+
+  it('setAiServiceStatus(true) sets aiServiceAvailable to true', () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    act(() => result.current.setAiServiceStatus(true));
+    expect(result.current.state.aiServiceAvailable).toBe(true);
+  });
+
+  it('setAiServiceStatus(false) sets aiServiceAvailable to false', () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    act(() => result.current.setAiServiceStatus(false));
+    expect(result.current.state.aiServiceAvailable).toBe(false);
+  });
+
+  it('setAiServiceStatus(null) resets to null (checking)', () => {
+    const { result } = renderHook(() => useAppState(), { wrapper });
+    act(() => result.current.setAiServiceStatus(true));
+    act(() => result.current.setAiServiceStatus(null));
+    expect(result.current.state.aiServiceAvailable).toBeNull();
+  });
+});

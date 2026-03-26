@@ -35,6 +35,10 @@ export interface AppState {
 
   // Save state
   saveError: IPCError | null;
+
+  // AI service connectivity (Req 25.4, 25.5)
+  // null = checking, true = available, false = unavailable
+  aiServiceAvailable: boolean | null;
 }
 
 const initialState: AppState = {
@@ -48,6 +52,7 @@ const initialState: AppState = {
   aiSelection: null,
   selectedSuggestion: null,
   saveError: null,
+  aiServiceAvailable: null,
 };
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -65,7 +70,8 @@ type Action =
   | { type: 'CLOSE_VERSION_HISTORY' }
   | { type: 'MARK_UNSAVED' }
   | { type: 'MARK_SAVED'; payload: Document }
-  | { type: 'SET_SAVE_ERROR'; payload: IPCError | null };
+  | { type: 'SET_SAVE_ERROR'; payload: IPCError | null }
+  | { type: 'SET_AI_SERVICE_STATUS'; payload: boolean | null };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
@@ -144,6 +150,9 @@ function appReducer(state: AppState, action: Action): AppState {
     case 'SET_SAVE_ERROR':
       return { ...state, saveError: action.payload };
 
+    case 'SET_AI_SERVICE_STATUS':
+      return { ...state, aiServiceAvailable: action.payload };
+
     default:
       return state;
   }
@@ -167,6 +176,8 @@ interface AppContextValue {
   closeRenderDrawer: () => void;
   openVersionHistory: () => void;
   closeVersionHistory: () => void;
+  // AI service connectivity (Req 25.4, 25.5)
+  setAiServiceStatus: (available: boolean | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -224,6 +235,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLOSE_VERSION_HISTORY' });
   }, []);
 
+  const setAiServiceStatus = useCallback((available: boolean | null) => {
+    dispatch({ type: 'SET_AI_SERVICE_STATUS', payload: available });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -240,6 +255,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         closeRenderDrawer,
         openVersionHistory,
         closeVersionHistory,
+        setAiServiceStatus,
       }}
     >
       {children}

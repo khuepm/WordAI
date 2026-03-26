@@ -422,26 +422,26 @@ The implementation follows an incremental approach: project setup → core edito
     - Test version restore functionality
     - _Requirements: 22.4, 22.5_
 
-- [ ] 16. Implement AI service connectivity check
-  - [ ] 16.1 Add AI service health check
+- [-] 16. Implement AI service connectivity check
+  - [x] 16.1 Add AI service health check
     - Create check_ai_service_health function in ai_service.rs
     - Implement background health check on app startup
     - Return connectivity status to frontend
     - _Requirements: 25.4_
 
-  - [ ] 16.2 Display AI service status
+  - [~] 16.2 Display AI service status
     - Show warning banner if AI service unavailable at startup
     - Allow editing to continue even if AI unavailable
     - Provide retry button to check connectivity again
     - _Requirements: 25.5_
 
-  - [ ] 16.3 Write unit tests for health check
+  - [~] 16.3 Write unit tests for health check
     - Test health check with available service
     - Test health check with unavailable service
     - Test retry functionality
     - _Requirements: 25.4, 25.5_
 
-- [ ] 17. Polish animations and visual effects
+- [~] 17. Polish animations and visual effects
   - [ ] 17.1 Implement staggered card animations
     - Add stagger delay to suggestion card animations
     - Use CSS transitions or animation library
@@ -468,7 +468,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test typography scales properly
     - _Requirements: 18.1, 18.2, 18.3, 19.1, 19.2, 20.1, 20.2_
 
-- [ ] 18. Implement TopNavBar component
+- [~] 18. Implement TopNavBar component
   - [ ] 18.1 Create TopNavBar component
     - Create components/TopNavBar.tsx
     - Display application title and document title
@@ -488,7 +488,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test menu actions trigger correct functions
     - _Requirements: 17.1_
 
-- [ ] 19. Final integration and wiring
+- [~] 19. Final integration and wiring
   - [ ] 19.1 Wire all components together
     - Ensure EditorCanvas, AuraSpherePanel, NegotiationPanel, RenderDrawer, TopNavBar are properly integrated
     - Verify all IPC commands are registered and working
@@ -515,7 +515,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error recovery scenarios
     - _Requirements: All requirements_
 
-- [ ] 20. Final checkpoint - Complete application
+- [~] 20. Final checkpoint - Complete application
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

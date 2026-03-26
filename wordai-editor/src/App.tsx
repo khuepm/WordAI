@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
@@ -32,6 +33,7 @@ function App() {
     closeRenderDrawer,
     openVersionHistory,
     closeVersionHistory,
+    setAiServiceStatus,
   } = useAppState();
 
   const {
@@ -45,6 +47,7 @@ function App() {
     selectedSuggestion,
     saveError,
     hasUnsavedChanges,
+    aiServiceAvailable,
   } = state;
 
   // Initialize: restore last document or create a fresh one (Req 25.1–25.3)
@@ -80,6 +83,18 @@ function App() {
   useEffect(() => {
     if (filePath) localStorage.setItem(LAST_PATH_KEY, filePath);
   }, [filePath]);
+
+  // Check AI service connectivity on startup (Req 25.4)
+  const checkAIHealth = useCallback(async () => {
+    setAiServiceStatus(null);
+    const available = await invoke<boolean>('check_ai_health', { apiKey: '', endpoint: null });
+    setAiServiceStatus(available);
+  }, [setAiServiceStatus]);
+
+  useEffect(() => {
+    checkAIHealth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDocumentChange = useCallback((doc: Document) => {
     updateDocument(doc);
@@ -140,6 +155,48 @@ function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      {/* AI service unavailable banner (Req 25.5) */}
+      {aiServiceAvailable === false && (
+        <div
+          data-testid="ai-service-banner"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--spacing-xs) var(--spacing-lg)',
+            background: 'var(--md-sys-color-error-container)',
+            color: 'var(--md-sys-color-on-error-container)',
+            fontFamily: 'var(--font-family-ui)',
+            fontSize: 'var(--font-size-sm)',
+            borderBottom: '1px solid var(--md-sys-color-error)',
+          }}
+          role="alert"
+        >
+          <span>AI service unavailable. Editing continues normally.</span>
+          <button
+            data-testid="ai-service-retry-button"
+            onClick={checkAIHealth}
+            style={{
+              background: 'var(--md-sys-color-error)',
+              color: 'var(--md-sys-color-on-error)',
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--spacing-xs) var(--spacing-md)',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-ui)',
+              fontSize: 'var(--font-size-sm)',
+              marginLeft: 'var(--spacing-md)',
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
       <EditorCanvas
         document={document}
         onDocumentChange={handleDocumentChange}
