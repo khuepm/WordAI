@@ -132,6 +132,18 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* Staggered fade-in for suggestion cards (Req 20.5) */
+@keyframes card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* EditorCanvas width adjustment when AI panel is open (Req 5.5) */
 .editor-canvas-wrapper {
   transition: padding-right var(--transition-normal);

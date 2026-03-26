@@ -441,28 +441,28 @@ The implementation follows an incremental approach: project setup → core edito
     - Test retry functionality
     - _Requirements: 25.4, 25.5_
 
-- [~] 17. Polish animations and visual effects
-  - [ ] 17.1 Implement staggered card animations
+- [-] 17. Polish animations and visual effects
+  - [x] 17.1 Implement staggered card animations
     - Add stagger delay to suggestion card animations
     - Use CSS transitions or animation library
     - Apply smooth fade-in with stagger effect
     - _Requirements: 20.5_
 
-  - [ ] 17.2 Refine glassmorphism effects
+  - [~] 17.2 Refine glassmorphism effects
     - Fine-tune backdrop blur values
     - Adjust semi-transparent background opacity
     - Ensure tonal shifts are subtle and consistent
     - Verify ambient shadows provide proper depth
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
 
-  - [ ] 17.3 Implement font size adjustment
+  - [~] 17.3 Implement font size adjustment
     - Add user preference for font size
     - Create font size controls in settings
     - Apply font size preference to EditorCanvas
     - Persist font size preference
     - _Requirements: 19.5_
 
-  - [ ] 17.4 Write visual regression tests
+  - [~] 17.4 Write visual regression tests
     - Test glassmorphism effects render correctly
     - Test animations complete smoothly
     - Test typography scales properly

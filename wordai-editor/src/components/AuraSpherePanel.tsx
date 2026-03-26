@@ -35,9 +35,10 @@ interface SuggestionCardProps {
   isFocused: boolean;
   onSelect: (s: AISuggestion) => void;
   onDismiss: (id: string) => void;
+  animationIndex: number;
 }
 
-function SuggestionCard({ suggestion, isFocused, onSelect, onDismiss }: SuggestionCardProps) {
+function SuggestionCard({ suggestion, isFocused, onSelect, onDismiss, animationIndex }: SuggestionCardProps) {
   const [dismissed, setDismissed] = useState(false);
 
   const handleDismiss = useCallback(
@@ -76,6 +77,8 @@ function SuggestionCard({ suggestion, isFocused, onSelect, onDismiss }: Suggesti
       onKeyDown={handleKeyDown}
       style={{
         ...cardStyles.card,
+        animation: 'card-fade-in 250ms ease-out both',
+        animationDelay: `${animationIndex * 80}ms`,
         ...(isFocused ? cardStyles.cardFocused : {}),
         ...(dismissed ? cardStyles.cardDismissed : {}),
       }}
@@ -347,6 +350,7 @@ export function AuraSpherePanel({
             isFocused={focusedCardIndex === idx}
             onSelect={onSuggestionSelect}
             onDismiss={handleDismiss}
+            animationIndex={idx}
           />
         ))}
       </div>
