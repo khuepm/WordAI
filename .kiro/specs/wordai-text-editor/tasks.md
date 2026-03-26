@@ -462,14 +462,14 @@ The implementation follows an incremental approach: project setup → core edito
     - Persist font size preference
     - _Requirements: 19.5_
 
-  - [ ] 17.4 Write visual regression tests
+  - [x] 17.4 Write visual regression tests
     - Test glassmorphism effects render correctly
     - Test animations complete smoothly
     - Test typography scales properly
     - _Requirements: 18.1, 18.2, 18.3, 19.1, 19.2, 20.1, 20.2_
 
-- [ ] 18. Implement TopNavBar component
-  - [ ] 18.1 Create TopNavBar component
+- [~] 18. Implement TopNavBar component
+  - [~] 18.1 Create TopNavBar component
     - Create components/TopNavBar.tsx
     - Display application title and document title
     - Add menu buttons for file operations
@@ -477,38 +477,38 @@ The implementation follows an incremental approach: project setup → core edito
     - Use Manrope font
     - _Requirements: 18.1, 19.2_
 
-  - [ ] 18.2 Wire TopNavBar to application
+  - [~] 18.2 Wire TopNavBar to application
     - Add TopNavBar to main application layout
     - Connect to state manager for document title
     - Implement file menu actions (New, Open, Save)
     - _Requirements: 17.1_
 
-  - [ ] 18.3 Write unit tests for TopNavBar
+  - [~] 18.3 Write unit tests for TopNavBar
     - Test document title display
     - Test menu actions trigger correct functions
     - _Requirements: 17.1_
 
-- [ ] 19. Final integration and wiring
-  - [ ] 19.1 Wire all components together
+- [~] 19. Final integration and wiring
+  - [~] 19.1 Wire all components together
     - Ensure EditorCanvas, AuraSpherePanel, NegotiationPanel, RenderDrawer, TopNavBar are properly integrated
     - Verify all IPC commands are registered and working
     - Test complete user workflows end-to-end
     - _Requirements: All requirements_
 
-  - [ ] 19.2 Implement error boundaries
+  - [~] 19.2 Implement error boundaries
     - Add React error boundaries to catch component errors
     - Display user-friendly error messages
     - Log errors for debugging
     - _Requirements: 15.5, 16.1, 16.2_
 
-  - [ ] 19.3 Add loading states
+  - [~] 19.3 Add loading states
     - Implement loading indicators for async operations
     - Show loading state during document load
     - Show loading state during AI requests
     - Show loading state during export operations
     - _Requirements: 6.1, 11.5, 12.1_
 
-  - [ ] 19.4 Write end-to-end integration tests
+  - [~] 19.4 Write end-to-end integration tests
     - Test complete document creation and editing workflow
     - Test AI suggestion request and acceptance workflow
     - Test export workflow
