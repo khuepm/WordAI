@@ -81,7 +81,8 @@ impl PDFExportEngine {
         let display_lines = wrap_text(content, cpl);
 
         // Create the PDF document with the first page
-        let (doc, first_page_idx, first_layer_idx) = PdfDocument::empty("WordAI Document");
+        let (doc, first_page_idx, first_layer_idx) =
+            PdfDocument::new("WordAI Document", Mm(page_w), Mm(page_h), "Layer 1");
 
         // Use Helvetica as the built-in font (conceptually "Newsreader")
         let font = doc
@@ -90,12 +91,6 @@ impl PDFExportEngine {
                 code: "PDF_FONT_ERROR".to_string(),
                 message: format!("Failed to load built-in font: {e}"),
             })?;
-
-        // Resize the first page to the desired dimensions
-        {
-            let page = doc.get_page(first_page_idx);
-            page.set_media_box(Mm(0.0), Mm(0.0), Mm(page_w), Mm(page_h));
-        }
 
         // Paginate lines across pages
         let chunk_size = if max_lines_per_page > 0 { max_lines_per_page } else { 1 };
@@ -113,7 +108,7 @@ impl PDFExportEngine {
                 // Y position: start from top margin, move down per line
                 let y = page_h - options.margin_top - (line_idx as f32 + 1.0) * line_height_mm;
                 let x = options.margin_left;
-                layer.use_text(line.as_str(), font_size_pt as f64, Mm(x), Mm(y), &font);
+                layer.use_text(line.as_str(), font_size_pt, Mm(x), Mm(y), &font);
             }
         }
 

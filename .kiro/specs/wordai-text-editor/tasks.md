@@ -371,7 +371,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test error handling display
     - _Requirements: 11.2, 11.3, 11.4, 11.5, 12.5_
 
-- [~] 13. Checkpoint - Export functionality complete
+- [x] 13. Checkpoint - Export functionality complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [~] 14. Implement state management and UI coordination
