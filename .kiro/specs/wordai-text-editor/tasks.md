@@ -508,7 +508,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Show loading state during export operations
     - _Requirements: 6.1, 11.5, 12.1_
 
-  - [~] 19.4 Write end-to-end integration tests
+  - [x] 19.4 Write end-to-end integration tests
     - Test complete document creation and editing workflow
     - Test AI suggestion request and acceptance workflow
     - Test export workflow
