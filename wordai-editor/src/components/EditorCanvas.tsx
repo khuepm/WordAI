@@ -34,6 +34,10 @@ export interface EditorCanvasProps {
   onOpenExport?: () => void;
   /** Called when user presses Cmd+H — parent should open VersionHistory (Req 22.5) */
   onOpenVersionHistory?: () => void;
+  /** Font size in px for the editor textarea (Req 19.5) */
+  fontSize?: number;
+  /** Called when font size changes (Req 19.5) */
+  onFontSizeChange?: (size: number) => void;
 }
 
 export function EditorCanvas({
@@ -46,8 +50,27 @@ export function EditorCanvas({
   onManualSave,
   onOpenExport,
   onOpenVersionHistory,
+  fontSize: fontSizeProp = 18,
+  onFontSizeChange,
 }: EditorCanvasProps) {
   const [localContent, setLocalContent] = useState(document.content);
+  const [fontSize, setFontSize] = useState(fontSizeProp);
+
+  const handleDecreaseFontSize = useCallback(() => {
+    setFontSize((prev) => {
+      const next = Math.max(12, prev - 1);
+      onFontSizeChange?.(next);
+      return next;
+    });
+  }, [onFontSizeChange]);
+
+  const handleIncreaseFontSize = useCallback(() => {
+    setFontSize((prev) => {
+      const next = Math.min(28, prev + 1);
+      onFontSizeChange?.(next);
+      return next;
+    });
+  }, [onFontSizeChange]);
   // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
   const selectionRef = useRef<TextSelection>({ start: 0, end: 0, text: '' });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -174,7 +197,7 @@ export function EditorCanvas({
           onSelect={handleSelectionChange}
           placeholder="Start writing..."
           spellCheck
-          style={styles.textarea}
+          style={{ ...styles.textarea, fontSize: `${fontSize}px` }}
           aria-label="Document editor"
         />
         {/* Document metadata bar (Req 4.1–4.5) */}
@@ -200,6 +223,20 @@ export function EditorCanvas({
               </span>
             </>
           )}
+          <span style={styles.metaSep}>·</span>
+          <button
+            data-testid="font-size-decrease"
+            aria-label="Decrease font size"
+            onClick={handleDecreaseFontSize}
+            style={styles.fontSizeBtn}
+          >A−</button>
+          <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
+          <button
+            data-testid="font-size-increase"
+            aria-label="Increase font size"
+            onClick={handleIncreaseFontSize}
+            style={styles.fontSizeBtn}
+          >A+</button>
         </div>
       </div>
     </div>
@@ -274,6 +311,23 @@ const styles: Record<string, React.CSSProperties> = {
   unsavedIndicator: {
     color: 'var(--md-sys-color-primary)',
     fontStyle: 'italic',
+  },
+  fontSizeBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--md-sys-color-on-surface-variant)',
+    padding: '0 0.15rem',
+    lineHeight: 1,
+  },
+  fontSizeDisplay: {
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--md-sys-color-on-surface-variant)',
+    minWidth: '2.5rem',
+    textAlign: 'center' as const,
   },
 };
 

@@ -455,7 +455,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Verify ambient shadows provide proper depth
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
 
-  - [~] 17.3 Implement font size adjustment
+  - [x] 17.3 Implement font size adjustment
     - Add user preference for font size
     - Create font size controls in settings
     - Apply font size preference to EditorCanvas

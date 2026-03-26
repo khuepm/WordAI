@@ -3,7 +3,7 @@
  * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
@@ -17,6 +17,8 @@ import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
+const FONT_SIZE_KEY = 'wordai_font_size';
+const DEFAULT_FONT_SIZE = 18;
 
 function App() {
   const {
@@ -35,6 +37,16 @@ function App() {
     closeVersionHistory,
     setAiServiceStatus,
   } = useAppState();
+
+  const [fontSize, setFontSize] = useState<number>(() => {
+    const stored = localStorage.getItem(FONT_SIZE_KEY);
+    return stored ? Number(stored) : DEFAULT_FONT_SIZE;
+  });
+
+  const handleFontSizeChange = useCallback((size: number) => {
+    setFontSize(size);
+    localStorage.setItem(FONT_SIZE_KEY, String(size));
+  }, []);
 
   const {
     document,
@@ -207,6 +219,8 @@ function App() {
         onManualSave={triggerSave}
         onOpenExport={openRenderDrawer}
         onOpenVersionHistory={openVersionHistory}
+        fontSize={fontSize}
+        onFontSizeChange={handleFontSizeChange}
       />
       <AuraSpherePanel
         isOpen={isAIPanelOpen}

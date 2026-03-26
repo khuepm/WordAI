@@ -323,3 +323,124 @@ describe('EditorCanvas - save error and unsaved changes (Req 2.5, 17.2, 17.3)', 
     expect(screen.queryByLabelText('Unsaved changes')).not.toBeInTheDocument();
   });
 });
+
+describe('EditorCanvas - font size controls (Req 19.5)', () => {
+  let onDocumentChange: Mock<(doc: Document) => void>;
+  let onAITrigger: Mock<(selection: TextSelection) => void>;
+
+  beforeEach(() => {
+    onDocumentChange = vi.fn();
+    onAITrigger = vi.fn();
+  });
+
+  it('displays the current font size in the metadata bar', () => {
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={18}
+      />
+    );
+    expect(screen.getByTestId('font-size-display')).toHaveTextContent('18px');
+  });
+
+  it('decreases font size when decrease button is clicked', async () => {
+    const user = userEvent.setup();
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={18}
+      />
+    );
+    await user.click(screen.getByTestId('font-size-decrease'));
+    expect(screen.getByTestId('font-size-display')).toHaveTextContent('17px');
+  });
+
+  it('increases font size when increase button is clicked', async () => {
+    const user = userEvent.setup();
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={18}
+      />
+    );
+    await user.click(screen.getByTestId('font-size-increase'));
+    expect(screen.getByTestId('font-size-display')).toHaveTextContent('19px');
+  });
+
+  it('does not decrease font size below 12', async () => {
+    const user = userEvent.setup();
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={12}
+      />
+    );
+    await user.click(screen.getByTestId('font-size-decrease'));
+    expect(screen.getByTestId('font-size-display')).toHaveTextContent('12px');
+  });
+
+  it('does not increase font size above 28', async () => {
+    const user = userEvent.setup();
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={28}
+      />
+    );
+    await user.click(screen.getByTestId('font-size-increase'));
+    expect(screen.getByTestId('font-size-display')).toHaveTextContent('28px');
+  });
+
+  it('calls onFontSizeChange when font size changes', async () => {
+    const user = userEvent.setup();
+    const onFontSizeChange = vi.fn();
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={18}
+        onFontSizeChange={onFontSizeChange}
+      />
+    );
+    await user.click(screen.getByTestId('font-size-increase'));
+    expect(onFontSizeChange).toHaveBeenCalledWith(19);
+  });
+
+  it('applies font size as inline style to the textarea', () => {
+    const doc = makeDoc();
+    render(
+      <EditorCanvas
+        document={doc}
+        onDocumentChange={onDocumentChange}
+        onAITrigger={onAITrigger}
+        isAIPanelOpen={false}
+        fontSize={20}
+      />
+    );
+    const textarea = screen.getByRole('textbox', { name: /document editor/i });
+    expect(textarea).toHaveStyle({ fontSize: '20px' });
+  });
+});
