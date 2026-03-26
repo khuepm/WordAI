@@ -388,7 +388,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Update flags on document save
     - _Requirements: 17.2, 17.3, 17.4, 17.5_
 
-  - [ ] 14.3 Wire state manager to components
+  - [x] 14.3 Wire state manager to components
     - Wrap application with state context provider
     - Connect EditorCanvas to state manager
     - Connect AuraSpherePanel to state manager

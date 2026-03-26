@@ -1,30 +1,49 @@
 /**
- * App - Application root with document initialization and AI panel coordination
- * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 14.1, 14.2, 17.4, 17.5, 21.1
+ * App - Application root wired to global state manager
+ * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
+import { useAppState } from './services/stateManager';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
 
 function App() {
-  const [document, setDocument] = useState<Document | null>(null);
-  const [filePath, setFilePath] = useState('');
-  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
-  const [aiSelection, setAiSelection] = useState<TextSelection | null>(null);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<AISuggestion | null>(null);
-  const [isNegotiationOpen, setIsNegotiationOpen] = useState(false);
-  const [isRenderDrawerOpen, setIsRenderDrawerOpen] = useState(false);
+  const {
+    state,
+    setDocument,
+    updateDocument,
+    markSaved,
+    setSaveError,
+    openAIPanel,
+    closeAIPanel,
+    openNegotiation,
+    closeNegotiation,
+    openRenderDrawer,
+    closeRenderDrawer,
+  } = useAppState();
 
-  // Initialize: restore last document or create a fresh one
+  const {
+    document,
+    filePath,
+    isAIPanelOpen,
+    isNegotiationOpen,
+    isRenderDrawerOpen,
+    aiSelection,
+    selectedSuggestion,
+    saveError,
+    hasUnsavedChanges,
+  } = state;
+
+  // Initialize: restore last document or create a fresh one (Req 25.1–25.3)
   useEffect(() => {
     let cancelled = false;
     async function init() {
@@ -44,91 +63,73 @@ function App() {
         path = getDocumentPath(doc.id);
       }
       if (!cancelled) {
-        setDocument(doc);
-        setFilePath(path);
+        setDocument(doc, path);
         localStorage.setItem(LAST_PATH_KEY, path);
       }
     }
     init();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep localStorage in sync when filePath changes
+  useEffect(() => {
+    if (filePath) localStorage.setItem(LAST_PATH_KEY, filePath);
+  }, [filePath]);
 
   const handleDocumentChange = useCallback((doc: Document) => {
-    setDocument(doc);
-    const path = getDocumentPath(doc.id);
-    localStorage.setItem(LAST_PATH_KEY, path);
-  }, []);
+    updateDocument(doc);
+  }, [updateDocument]);
 
   const handleSaveSuccess = useCallback((doc: Document) => {
-    setDocument(doc);
-  }, []);
+    markSaved(doc);
+  }, [markSaved]);
 
   const handleSaveError = useCallback(() => {
-    // error surfaced via saveError from useAutoSave
+    // saveError is surfaced via useAutoSave return value and stored in state
   }, []);
 
-  // Cmd+K in EditorCanvas triggers this (Req 5.1, 5.2, 5.3, 21.1)
+  // Cmd+K triggers AI panel (Req 5.1–5.3, 21.1)
   const handleAITrigger = useCallback((selection: TextSelection) => {
-    setAiSelection(selection);
-    setIsAIPanelOpen(true);
-  }, []);
+    openAIPanel(selection);
+  }, [openAIPanel]);
 
-  const handleAIPanelClose = useCallback(() => {
-    setIsAIPanelOpen(false);
-    setAiSelection(null);
-  }, []);
-
-  // Placeholder: parent will open NegotiationPanel in a later task (Req 8.1)
   const handleSuggestionSelect = useCallback((suggestion: AISuggestion) => {
-    setSelectedSuggestion(suggestion);
-    setIsNegotiationOpen(true);
-  }, []);
+    openNegotiation(suggestion);
+  }, [openNegotiation]);
 
   const handleNegotiationAccept = useCallback((acceptedText: string) => {
     if (!selectedSuggestion || !document) return;
     const newContent = document.content.replace(selectedSuggestion.originalText, acceptedText);
-    const updatedDoc = {
+    const updatedDoc: Document = {
       ...document,
       content: newContent,
       version: document.version + 1,
       lastModified: new Date(),
     };
-    setDocument(updatedDoc);
-    setIsNegotiationOpen(false);
-    setSelectedSuggestion(null);
-  }, [selectedSuggestion, document]);
+    updateDocument(updatedDoc);
+    closeNegotiation();
+  }, [selectedSuggestion, document, updateDocument, closeNegotiation]);
 
-  const handleNegotiationReject = useCallback(() => {
-    setIsNegotiationOpen(false);
-    setSelectedSuggestion(null);
-  }, []);
-
-  const handleOpenExport = useCallback(() => {
-    setIsRenderDrawerOpen(true);
-  }, []);
-
-  const handleCloseExport = useCallback(() => {
-    setIsRenderDrawerOpen(false);
-  }, []);
-
-  const { saveError, hasUnsavedChanges, triggerSave } = useAutoSave(
+  const { saveError: autoSaveError, triggerSave } = useAutoSave(
     document ?? ({} as Document),
     filePath,
     handleSaveSuccess,
     handleSaveError
   );
 
+  // Sync auto-save error into global state
+  useEffect(() => {
+    setSaveError(autoSaveError);
+  }, [autoSaveError, setSaveError]);
+
   if (!document) {
     return <div style={{ fontFamily: 'var(--font-family-ui)', padding: '2rem' }}>Loading…</div>;
   }
 
-  // Derive context string for AI: selected text or first 500 chars of doc (Req 5.3)
-  const aiContext = aiSelection?.text
-    ? aiSelection.text
-    : document.content.slice(0, 500);
+  const aiContext = aiSelection?.text ?? document.content.slice(0, 500);
 
   return (
-    // Outer flex container so EditorCanvas shrinks when panel opens (Req 5.5)
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <EditorCanvas
         document={document}
@@ -138,11 +139,11 @@ function App() {
         saveError={saveError}
         hasUnsavedChanges={hasUnsavedChanges}
         onManualSave={triggerSave}
-        onOpenExport={handleOpenExport}
+        onOpenExport={openRenderDrawer}
       />
       <AuraSpherePanel
         isOpen={isAIPanelOpen}
-        onClose={handleAIPanelClose}
+        onClose={closeAIPanel}
         selection={aiSelection}
         documentId={document.id}
         documentContext={aiContext}
@@ -152,12 +153,12 @@ function App() {
         isOpen={isNegotiationOpen}
         suggestion={selectedSuggestion}
         onAccept={handleNegotiationAccept}
-        onReject={handleNegotiationReject}
-        onClose={handleNegotiationReject}
+        onReject={closeNegotiation}
+        onClose={closeNegotiation}
       />
       <RenderDrawer
         isOpen={isRenderDrawerOpen}
-        onClose={handleCloseExport}
+        onClose={closeRenderDrawer}
         documentId={document.id}
         documentContent={document.content}
       />
