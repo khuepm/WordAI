@@ -396,7 +396,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Connect RenderDrawer to state manager
     - _Requirements: 17.1_
 
-  - [ ] 14.4 Write integration tests for state management
+  - [x] 14.4 Write integration tests for state management
     - Test state updates propagate to all components
     - Test UI flags update correctly
     - Test unsaved changes flag behavior
