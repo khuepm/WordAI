@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { DocumentSnapshot } from '../types/document';
+import { extractPlainText } from '../utils/blockText';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -146,7 +147,7 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
           <div style={styles.previewPane} aria-label="Version preview">
             {selected ? (
               <pre style={styles.previewContent} data-testid="version-preview">
-                {selected.content || <em>(empty document)</em>}
+                {extractPlainText(selected.content) || <em>(empty document)</em>}
               </pre>
             ) : (
               <p style={styles.hint} data-testid="version-preview-hint">

@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "./utils/reactInternals";
 import App from "./App";
 import { AppStateProvider } from "./services/stateManager";
 import { ErrorBoundary } from "./components/ErrorBoundary";
