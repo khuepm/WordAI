@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AuraSphere Assistant - Success</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "tertiary-container": "#b65700",
+              "surface-variant": "#e1e3e4",
+              "primary-container": "#5d5fef",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#3f417b",
+              "inverse-surface": "#2e3132",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-secondary-container": "#474984",
+              "error-container": "#ffdad6",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-secondary": "#ffffff",
+              "outline": "#767586",
+              "on-primary-container": "#faf7ff",
+              "inverse-on-surface": "#f0f1f2",
+              "background": "#f8f9fa",
+              "tertiary": "#904400",
+              "on-background": "#191c1d",
+              "surface-tint": "#4849da",
+              "on-secondary-fixed": "#12134d",
+              "secondary": "#575995",
+              "primary-fixed": "#e1e0ff",
+              "primary-fixed-dim": "#c1c1ff",
+              "outline-variant": "#c7c4d7",
+              "on-surface": "#191c1d",
+              "on-tertiary-fixed": "#321300",
+              "secondary-container": "#babbfe",
+              "surface-dim": "#d9dadb",
+              "surface-container": "#edeeef",
+              "primary": "#4343d5",
+              "surface-bright": "#f8f9fa",
+              "tertiary-fixed": "#ffdbc8",
+              "surface-container-low": "#f3f4f5",
+              "surface-container-highest": "#e1e3e4",
+              "surface-container-high": "#e7e8e9",
+              "inverse-primary": "#c1c1ff",
+              "secondary-fixed-dim": "#c1c1ff",
+              "on-surface-variant": "#464555",
+              "secondary-fixed": "#e1e0ff",
+              "on-primary-fixed": "#07006c",
+              "tertiary-fixed-dim": "#ffb689",
+              "on-tertiary-container": "#fff6f3",
+              "surface": "#f8f9fa",
+              "surface-container-lowest": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .writing-canvas {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-headline selection:bg-primary-fixed">
+<!-- Sidebar Shell -->
+<aside class="fixed left-0 top-0 h-screen z-40 flex flex-col py-8 bg-[#edeeef] dark:bg-[#2e3132] h-full w-72 rounded-r-xl">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-bold tracking-tight text-[#191c1d] dark:text-[#f8f9fa]">The Ethereal Editor</h1>
+<p class="text-[0.7rem] uppercase tracking-widest text-on-surface-variant opacity-60">Pro Workspace</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="text-[0.75rem] uppercase font-semibold tracking-wide">Editor</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#4343d5] dark:text-[#5d5fef] font-bold border-r-2 border-[#4343d5] dark:border-[#5d5fef] bg-[#f8f9fa]/40" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-[0.75rem] uppercase font-semibold tracking-wide">AuraSphere</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-[0.75rem] uppercase font-semibold tracking-wide">Archive</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[0.75rem] uppercase font-semibold tracking-wide">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<div class="p-4 rounded-xl bg-surface-container-low/50 flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container/20">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="close-up portrait of a creative professional in a bright studio with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnEyL8-QszbxWhzFitg19r98WD6ndVlXhvvCDZg6n_8Qc7PBf31xk_v0IaXVO7ozz_qsYmSbxd_R8-QO2kN5t2ZqHvFg3v6HZ2qwvJi2PuAk3qILk46O-6Q1sd8_h5aV9TEKql3kls6A28C-9FjaZU-rszICIqjuL9gk50SP5Ls7kDm0gERADUXcbPh6YMPCf9X99BE4TuuMyLmfeQuSyWKRhiGS3vYql_cAzvpcQzRpozv6bcwUCotSiLYEm1QXnRmFQcBkrRbFI"/>
+</div>
+<div>
+<p class="text-sm font-bold leading-none">Alex Rivera</p>
+<p class="text-[0.65rem] text-on-surface-variant">Editorial Director</p>
+</div>
+</div>
+<button class="w-full py-2.5 rounded-lg bg-primary text-on-primary text-[0.75rem] font-bold uppercase tracking-wider transition-all hover:bg-primary-container active:scale-[0.98]">
+                    Connect AI
+                </button>
+</div>
+</div>
+</aside>
+<!-- Top Navigation -->
+<header class="fixed top-0 right-0 left-72 h-16 flex justify-between items-center px-12 z-30 bg-[#f8f9fa]/80 dark:bg-[#191c1d]/80 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black text-[#191c1d] dark:text-[#f8f9fa]">AuraSphere</span>
+<div class="flex gap-6 h-full items-center">
+<a class="text-[#191c1d]/70 dark:text-[#f8f9fa]/70 text-[0.75rem] uppercase font-bold tracking-widest hover:text-[#4343d5] transition-colors duration-300" href="#">Drafts</a>
+<a class="text-[#4343d5] dark:text-[#5d5fef] font-bold border-b-2 border-[#4343d5] text-[0.75rem] uppercase tracking-widest py-5" href="#">Published</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-sm" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-1.5 rounded-full bg-surface-container-low border-none focus:ring-1 focus:ring-primary text-sm w-48 transition-all focus:w-64" placeholder="Search stories..." type="text"/>
+</div>
+<div class="flex gap-3">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_balance_wallet">account_balance_wallet</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="bolt">bolt</span>
+</button>
+</div>
+<button class="px-5 py-2 rounded-lg bg-primary text-on-primary text-[0.75rem] font-bold uppercase tracking-widest hover:shadow-[0_0_15px_rgba(67,67,213,0.3)] transition-all">
+                New Story
+            </button>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="ml-72 pt-32 pb-24 px-12 min-h-screen">
+<div class="writing-canvas">
+<header class="mb-16">
+<div class="flex items-center gap-4 mb-4">
+<span class="px-2 py-0.5 rounded text-[0.65rem] font-bold uppercase tracking-tighter bg-tertiary-fixed text-on-tertiary-fixed">Feature Story</span>
+<span class="text-[0.7rem] text-on-surface-variant/60 font-medium">May 24, 2024</span>
+</div>
+<h2 class="font-body text-4xl text-on-surface leading-tight mb-4 focus:outline-none" contenteditable="true">The Architecture of Silence: Why Modern Spaces Need to Breathe</h2>
+<p class="font-body italic text-xl text-on-surface-variant/80">Exploring the intersection of minimalism and mental wellbeing in urban design.</p>
+</header>
+<article class="font-body text-lg text-on-surface leading-relaxed space-y-8 focus:outline-none" contenteditable="true">
+<p>In the relentless crescendo of the twenty-first century, silence has become the ultimate luxury. It is no longer merely the absence of sound, but a physical space—a deliberate carving out of the void within our increasingly dense environments. Architects are beginning to treat quietude not as a byproduct of isolation, but as a primary material, as essential as glass or steel.</p>
+<p>The concept of "negative space" has long been a staple of visual art, yet its application in the three-dimensional world of habitations is undergoing a radical transformation. We are moving away from the "efficiency-at-all-costs" era, where every square inch had to justify its existence through utility. Instead, we are entering an age of atmospheric intent.</p>
+<div class="my-12 relative group">
+<img alt="Minimalist Interior" class="w-full aspect-[21/9] object-cover rounded-xl shadow-sm grayscale hover:grayscale-0 transition-all duration-700" data-alt="minimalist modern interior with high ceilings, clean white walls, and a single sculptural chair illuminated by soft natural light through a tall window" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDJWwWbiVItYsZO7Lc38JMv5C82Qv01weUxJ9GUa2tScIO7vCeoGa9RoOApRJKjHYsSO8clz6zVpEa7DyW-gqwtcR5te3xhhFcEe7b2X-bzWyG7bBYwAnpQ81F9m9Fprw4byzQ1CRDJsy0_PqH4NfmZOxtBg_2p-IpdoFTOF4W91wbrZo-hDyktKdk_zlCHyfEAjyeqnW1kapp_WssgpylfdU4QRlwqyEtgTyXPeev1i5h1XkVXqN7s7ZZnAT7szdb5GZxVUJnrOw"/>
+<p class="mt-3 text-xs italic text-on-surface-variant opacity-60 text-center">Fig 1.1: The Sanai Gallery, Tokyo. A masterclass in rhythmic void.</p>
+</div>
+<p>Consider the way light falls across a bare concrete wall at 4:00 PM. In a traditional office, this is a distraction; in the new architecture of silence, this is the event itself. It is the "AuraSphere" of the physical world—a moment where the environment communicates with the dweller without the need for interface or instruction.</p>
+</article>
+</div>
+</main>
+<!-- AuraSphere Assistant Overlay (Success State) -->
+<aside class="fixed right-0 top-0 w-[400px] h-screen bg-surface-container-low/95 backdrop-blur-2xl z-50 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.04)] border-l border-white/10">
+<!-- Connection Header -->
+<div class="pt-8 px-8 pb-4">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="px-2 py-1 rounded bg-primary/10 text-primary text-[0.65rem] font-black uppercase tracking-widest">New Connection</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</div>
+<button class="text-on-surface-variant/40 hover:text-on-surface">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Success Message Transition Area -->
+<div class="flex flex-col items-center justify-center py-6 px-4 bg-primary-container/10 rounded-2xl mb-8 text-center border border-primary/10">
+<div class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center mb-4 shadow-[0_8px_20px_rgba(67,67,213,0.3)]">
+<span class="material-symbols-outlined text-2xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface mb-1">Connection Successful</h3>
+<p class="text-[0.7rem] text-on-surface-variant font-medium uppercase tracking-tight">Claude Agent Active &amp; Synced</p>
+</div>
+</div>
+<!-- AI Assistant Interface -->
+<div class="flex-1 flex flex-col px-8 overflow-hidden">
+<div class="flex items-center gap-4 mb-6">
+<div class="flex-1 h-[1px] bg-outline-variant/30"></div>
+<span class="text-[0.65rem] uppercase font-bold text-on-surface-variant/40 tracking-[0.2em]">Contextual Insights</span>
+<div class="flex-1 h-[1px] bg-outline-variant/30"></div>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 space-y-6 scrollbar-hide">
+<!-- AuraSphere Suggestions -->
+<div class="p-6 rounded-2xl glass-panel shadow-[0_10px_40px_rgba(67,67,213,0.06)] border border-white/40">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h4 class="font-headline font-bold text-sm">Tone Analysis</h4>
+</div>
+<p class="font-body text-on-surface-variant text-base leading-relaxed mb-4">
+                        "The writing is beautifully contemplative. I've detected a shift towards academic terminology in the second paragraph. Would you like to soften the phrasing to maintain the editorial flow?"
+                    </p>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface text-[0.7rem] font-bold border border-outline-variant/20 hover:border-primary/40 transition-colors">Apply Softening</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface text-[0.7rem] font-bold border border-outline-variant/20 hover:border-primary/40 transition-colors">Explain Why</button>
+</div>
+</div>
+<div class="p-6 rounded-2xl bg-surface-container-highest/30 border border-white/20">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-secondary text-xl" data-icon="history_edu">history_edu</span>
+<h4 class="font-headline font-bold text-sm">Historical Ref</h4>
+</div>
+<p class="font-body text-sm text-on-surface-variant/80 italic">
+                        "Your mention of negative space echoes Jun'ichirō Tanizaki's 'In Praise of Shadows'. Should we insert a subtle reference to reinforce the thesis?"
+                    </p>
+</div>
+</div>
+<!-- Interaction Input -->
+<div class="mt-auto pt-6 pb-10">
+<div class="relative group">
+<textarea class="w-full bg-surface-container-lowest border-none rounded-2xl py-4 pl-4 pr-12 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm resize-none transition-all focus:shadow-md" placeholder="Ask Claude to refine, research, or rewrite..." rows="1"></textarea>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_upward">arrow_upward</span>
+</button>
+<div class="absolute bottom-[-1px] left-4 right-4 h-[2px] bg-primary scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 origin-left"></div>
+</div>
+<div class="mt-4 flex justify-between items-center px-2">
+<div class="flex gap-4">
+<button class="text-on-surface-variant/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="mic">mic</span>
+</button>
+<button class="text-on-surface-variant/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="attach_file">attach_file</span>
+</button>
+</div>
+<span class="text-[0.6rem] uppercase tracking-widest font-bold text-on-surface-variant/30">Press ⌘ + J to focus</span>
+</div>
+</div>
+</div>
+</aside>
+</body></html>

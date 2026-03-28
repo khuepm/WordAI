@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "tertiary-container": "#b65700",
+              "surface-variant": "#e1e3e4",
+              "primary-container": "#5d5fef",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#3f417b",
+              "inverse-surface": "#2e3132",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-secondary-container": "#474984",
+              "error-container": "#ffdad6",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-secondary": "#ffffff",
+              "outline": "#767586",
+              "on-primary-container": "#faf7ff",
+              "inverse-on-surface": "#f0f1f2",
+              "background": "#f8f9fa",
+              "tertiary": "#904400",
+              "on-background": "#191c1d",
+              "surface-tint": "#4849da",
+              "on-secondary-fixed": "#12134d",
+              "secondary": "#575995",
+              "primary-fixed": "#e1e0ff",
+              "primary-fixed-dim": "#c1c1ff",
+              "outline-variant": "#c7c4d7",
+              "on-surface": "#191c1d",
+              "on-tertiary-fixed": "#321300",
+              "secondary-container": "#babbfe",
+              "surface-dim": "#d9dadb",
+              "surface-container": "#edeeef",
+              "primary": "#4343d5",
+              "surface-bright": "#f8f9fa",
+              "tertiary-fixed": "#ffdbc8",
+              "surface-container-low": "#f3f4f5",
+              "surface-container-highest": "#e1e3e4",
+              "surface-container-high": "#e7e8e9",
+              "inverse-primary": "#c1c1ff",
+              "secondary-fixed-dim": "#c1c1ff",
+              "on-surface-variant": "#464555",
+              "secondary-fixed": "#e1e0ff",
+              "on-primary-fixed": "#07006c",
+              "tertiary-fixed-dim": "#ffb689",
+              "on-tertiary-container": "#fff6f3",
+              "surface": "#f8f9fa",
+              "surface-container-lowest": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .aura-pulse {
+            background: radial-gradient(circle, rgba(67, 67, 213, 0.15) 0%, rgba(93, 95, 239, 0) 70%);
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-headline overflow-hidden">
+<!-- Sidebar Shell: SideNavBar Navigation -->
+<aside class="fixed left-0 top-0 h-screen z-40 flex flex-col py-8 h-full w-72 bg-[#edeeef] dark:bg-[#2e3132] rounded-r-xl">
+<div class="px-6 mb-12">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-[#191c1d] dark:text-[#f8f9fa]">The Ethereal Editor</h1>
+<p class="text-[0.65rem] font-label uppercase tracking-widest text-on-surface-variant/70">Pro Workspace</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="text-sm font-medium tracking-tight">Editor</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#4343d5] dark:text-[#5d5fef] font-bold border-r-2 border-[#4343d5] dark:border-[#5d5fef]" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-sm font-medium tracking-tight">AuraSphere</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-sm font-medium tracking-tight">Archive</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 hover:bg-[#f8f9fa]/50 dark:hover:bg-[#ffffff]/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm font-medium tracking-tight">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-6 pt-6">
+<button class="w-full py-3 px-4 bg-primary text-on-primary rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md shadow-primary/10">
+                Connect AI
+            </button>
+</div>
+</aside>
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 right-0 left-72 h-16 flex justify-between items-center px-12 z-30 bg-[#f8f9fa]/80 dark:bg-[#191c1d]/80 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black text-[#191c1d] dark:text-[#f8f9fa]">AuraSphere</span>
+<div class="flex gap-6 h-full items-center">
+<a class="text-[#191c1d]/70 dark:text-[#f8f9fa]/70 hover:text-[#4343d5] text-sm font-medium" href="#">Drafts</a>
+<a class="text-[#191c1d]/70 dark:text-[#f8f9fa]/70 hover:text-[#4343d5] text-sm font-medium" href="#">Published</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" data-icon="bolt">bolt</span>
+</div>
+<button class="px-5 py-2 bg-primary text-on-primary rounded-lg font-bold text-sm shadow-sm">
+                New Story
+            </button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary/20">
+<img alt="Profile Settings" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male editor in a bright office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACqeSDQZKGH7TZUkugC2mWshmmHbxT22sdeO12ZEDJ8JuNvkddml5n4YWO5YC7FiyUzOrpZ_9PWEuErciZU8jkPkyKJklChkgMfu9QlmIZBHnbCWDhs7u_pf34bSFjr9vMMZorg8VhKbNpY-e30X3YlUTYkjCsDfMMVbvBe15KErrWFvJyEUgxf9I_9kvqBV-e5C81UVEGRjAdzOhLGzo6uaCQQQbnQfVx-_iJ6qn9eVntLIw0gM26ITJarn9oGb8HDI83X2kF8t8"/>
+</div>
+</div>
+</header>
+<!-- Main Workspace (Editor Background) -->
+<main class="pl-72 pt-16 h-screen w-full bg-surface">
+<div class="max-w-4xl mx-auto pt-24 px-12 pb-32">
+<h2 class="font-body text-4xl font-light text-on-surface/40 select-none">Untitled Manuscript...</h2>
+<div class="mt-8 space-y-6">
+<div class="h-4 bg-surface-container-low rounded-full w-3/4 opacity-50"></div>
+<div class="h-4 bg-surface-container-low rounded-full w-full opacity-50"></div>
+<div class="h-4 bg-surface-container-low rounded-full w-5/6 opacity-50"></div>
+</div>
+</div>
+</main>
+<!-- AuraSphere Assistant Sidebar Overlay (Right Focus) -->
+<section class="fixed top-0 right-0 h-screen w-96 z-50 glass-panel shadow-[-20px_0_60px_-15px_rgba(67,67,213,0.06)] flex flex-col overflow-hidden">
+<!-- Header -->
+<div class="p-8 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-xs font-label uppercase tracking-widest font-bold text-primary">AuraSphere Assistant</span>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="close">close</span>
+</button>
+</div>
+<!-- Center Content: Redirection/Waiting State -->
+<div class="flex-1 flex flex-col items-center justify-center px-10 text-center relative">
+<!-- Aura Pulse Background -->
+<div class="absolute inset-0 aura-pulse animate-pulse pointer-events-none"></div>
+<!-- Central Loading Spinner/Indicator -->
+<div class="relative w-24 h-24 mb-12">
+<!-- Glowing Outer Ring -->
+<div class="absolute inset-0 rounded-full border-4 border-primary/10 animate-[spin_3s_linear_infinite]"></div>
+<!-- Pulsing Inner Core -->
+<div class="absolute inset-4 rounded-full bg-primary-container/20 flex items-center justify-center animate-pulse">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="sync">sync</span>
+</div>
+<!-- Floating Orbs (Ethereal particles) -->
+<div class="absolute -top-2 left-1/2 w-2 h-2 rounded-full bg-primary-container blur-[1px]"></div>
+<div class="absolute -bottom-1 left-4 w-1.5 h-1.5 rounded-full bg-primary-container/40 blur-[1px]"></div>
+</div>
+<!-- Text Content -->
+<div class="space-y-4 relative z-10">
+<h3 class="font-body text-2xl font-medium text-on-surface">Redirecting to Provider...</h3>
+<p class="font-headline text-sm text-on-surface-variant leading-relaxed max-w-[240px] mx-auto opacity-80">
+                    Waiting for authorization from web browser...
+                </p>
+</div>
+<!-- Status Badge -->
+<div class="mt-12 inline-flex items-center gap-2 px-4 py-1.5 bg-surface-container-low rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="text-[0.65rem] font-label uppercase tracking-wider font-semibold text-primary/80">Secure Link Active</span>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="p-10 mt-auto border-t border-outline-variant/10">
+<div class="flex flex-col items-center gap-6">
+<p class="text-xs text-on-surface-variant/60 text-center px-4 italic font-body">
+                    A new tab was opened for you to complete the sign-in process safely.
+                </p>
+<a class="text-xs font-label uppercase tracking-widest font-bold text-on-surface-variant hover:text-error transition-colors underline underline-offset-8 decoration-outline-variant/30" href="#">
+                    Cancel
+                </a>
+</div>
+</div>
+<!-- Ghost Border Detail -->
+<div class="absolute inset-0 pointer-events-none border border-outline-variant opacity-10 rounded-l-xl"></div>
+</section>
+<!-- Contextual Decorative Gradient (Soft Glow in Background) -->
+<div class="fixed bottom-0 right-96 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10 translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+</body></html>

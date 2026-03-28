@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#904400",
+              "on-tertiary-fixed": "#321300",
+              "on-surface": "#191c1d",
+              "on-secondary-container": "#474984",
+              "on-error-container": "#93000a",
+              "background": "#f8f9fa",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#faf7ff",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#c1c1ff",
+              "on-primary": "#ffffff",
+              "outline": "#767586",
+              "on-tertiary-fixed-variant": "#743500",
+              "primary-fixed-dim": "#c1c1ff",
+              "secondary-container": "#babbfe",
+              "outline-variant": "#c7c4d7",
+              "on-secondary-fixed-variant": "#3f417b",
+              "surface": "#f8f9fa",
+              "error": "#ba1a1a",
+              "surface-dim": "#d9dadb",
+              "inverse-primary": "#c1c1ff",
+              "on-primary-fixed": "#07006c",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed": "#12134d",
+              "on-background": "#191c1d",
+              "surface-bright": "#f8f9fa",
+              "surface-container-highest": "#e1e3e4",
+              "secondary-fixed": "#e1e0ff",
+              "on-tertiary-container": "#fff6f3",
+              "tertiary-fixed": "#ffdbc8",
+              "on-error": "#ffffff",
+              "surface-tint": "#4849da",
+              "inverse-surface": "#2e3132",
+              "surface-container": "#edeeef",
+              "primary": "#4343d5",
+              "secondary": "#575995",
+              "primary-fixed": "#e1e0ff",
+              "tertiary-container": "#b65700",
+              "inverse-on-surface": "#f0f1f2",
+              "surface-variant": "#e1e3e4",
+              "on-surface-variant": "#464555",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "tertiary-fixed-dim": "#ffb689",
+              "primary-container": "#5d5fef",
+              "surface-container-high": "#e7e8e9",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#f3f4f5"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .editorial-shadow {
+            box-shadow: 0 40px 60px -5px rgba(0, 0, 0, 0.04);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #edeeef;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-label antialiased overflow-hidden">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full z-50 bg-[#f8f9fa] flex justify-between items-center h-16 px-8 border-b border-outline-variant/15">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-slate-900 tracking-tight">AuraSphere Editor</span>
+<nav class="flex gap-6 items-center">
+<a class="text-primary font-semibold border-b-2 border-primary py-5 text-sm uppercase tracking-widest font-headline" href="#">Editor</a>
+<a class="text-slate-500 hover:text-slate-800 transition-colors py-5 text-sm uppercase tracking-widest font-headline" href="#">Library</a>
+<a class="text-slate-500 hover:text-slate-800 transition-colors py-5 text-sm uppercase tracking-widest font-headline" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 px-4 py-1.5 bg-surface-container rounded-full">
+<span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 font-headline" placeholder="Search insights..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container rounded-full text-slate-500 transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 hover:bg-surface-container rounded-full text-slate-500 transition-colors"><span class="material-symbols-outlined">settings</span></button>
+<img alt="User Profile" class="w-8 h-8 rounded-full bg-slate-200" data-alt="minimalist 3d avatar of a professional editor with clean features on a soft blue background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBybH9yis6Z3s2mZuX8UK0c-EAnLzPOYLuxCccVOgIWgns5aVu-KfuNDl-cnIt4kEmrZyLlJLqNAD9xFeO97NnfsVWXwADPWpG801x2VFO7avooH5AqrqeVWOSTnFfDVGNMui9bWfXrNj8CyTlfcJhb2QVUcnQi9PyskH20VaGMH7L056lxkvq-WwgGuCYubOIP6CxV4KSNozpuMi7y63rFyIxK-HQKqze47tf4drMhoInaGF_rM5Ay49c0P97NL9wDZMq85_EsTkQ"/>
+</div>
+</div>
+</header>
+<div class="flex h-screen pt-16">
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto pr-[360px] flex flex-col items-center">
+<div class="max-w-3xl w-full bg-surface-container-lowest editorial-shadow mt-12 mb-24 rounded-t-xl p-20 min-h-[1200px]">
+<header class="mb-12">
+<h1 class="font-body text-4xl font-light text-on-surface mb-4 tracking-tight">The Architecture of Silence</h1>
+<div class="flex items-center gap-4 text-slate-400 text-[10px] font-label uppercase tracking-widest">
+<span>Word Count: 1,240</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span>Read Time: 6 min</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span>Draft: v2.4</span>
+</div>
+</header>
+<article class="font-body text-lg leading-[1.8] text-on-surface-variant space-y-8">
+<p>In the digital age, noise is the default state of existence. We are constantly barraged by notifications, pings, and the incessant hum of a world that refuses to sleep. However, within the realm of high-end editorial design, there is a growing movement toward the architecture of silence—a philosophy that prioritizes what is left out over what is included.</p>
+<p>This "Zero-UI" approach isn't merely about aesthetics; it is about cognitive load. When we strip away the chrome of traditional word processors—the endless toolbars, the distracting margins, the aggressive borders—we allow the human mind to enter a state of deep work. It is in this negative space that creativity truly flourishes.</p>
+<p>Consider the relationship between the writer and the digital canvas. If the canvas mimics the physical properties of heavy-weight paper, the interaction feels more deliberate. The soft falloff of shadows, the absence of rigid lines, the subtle texture of the "surface-container-lowest" palette—these all contribute to a sense of permanence and focus.</p>
+<p class="bg-primary/5 border-l-2 border-primary py-4 px-8 italic rounded-r-lg">"Silence is not the absence of sound, but the presence of focus."</p>
+<p>As we move forward, the role of intelligence in our tools must shift from being a proactive interrupter to a reactive curator. An AI that lives in the margins, only revealing itself through a soft glow when an analysis is requested, is the ultimate manifestation of this silent architecture.</p>
+</article>
+</div>
+</main>
+<!-- Right Side Panel: AuraSphere Assistant (Consistent with SCREEN_2) -->
+<aside class="fixed right-0 top-16 bottom-0 w-[360px] glass-panel border-l border-outline-variant/15 flex flex-col z-40 shadow-[0_40px_60px_-5px_rgba(67,67,213,0.08)]">
+<!-- Sidebar Header -->
+<div class="p-6 border-b border-outline-variant/10">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h2 class="text-lg font-bold text-primary">AuraSphere</h2>
+<p class="text-[10px] font-label uppercase tracking-widest text-slate-500">AI Writing Partner</p>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex bg-surface-container rounded-lg p-1">
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 opacity-70 hover:opacity-100 transition-all">Assistant</button>
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-white/50 text-primary rounded-md shadow-sm">Analysis</button>
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 opacity-70 hover:opacity-100 transition-all">History</button>
+</div>
+</div>
+<!-- Scrollable Analysis Content (Styled to match Assistant Aesthetic) -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- Tone Analysis Section -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 opacity-70">Tone Analysis</h3>
+<span class="material-symbols-outlined text-primary text-sm">info</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm">
+<p class="text-[10px] font-bold text-primary uppercase mb-1">Primary Tone</p>
+<p class="font-headline text-lg font-bold text-on-surface">Formal</p>
+<div class="w-full bg-slate-100 h-1 mt-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[82%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-sm">
+<p class="text-[10px] font-bold text-primary uppercase mb-1">Secondary</p>
+<p class="font-headline text-lg font-bold text-on-surface">Evocative</p>
+<div class="w-full bg-slate-100 h-1 mt-3 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[64%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Reading Level Section -->
+<section class="bg-surface-container-low rounded-xl p-6 relative overflow-hidden border border-outline-variant/10 shadow-sm">
+<div class="relative z-10">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-primary mb-4">Reading Level</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-bold text-primary font-headline tracking-tighter">Grade 10</span>
+<span class="text-[10px] text-primary/60 font-bold uppercase">Academic</span>
+</div>
+<p class="mt-3 text-xs text-on-surface-variant font-body leading-relaxed">Your prose is sophisticated yet accessible. Ideal for editorial features and thought leadership pieces.</p>
+</div>
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
+</section>
+<!-- Editorial Sentiment Graph -->
+<section>
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 opacity-70 mb-4">Editorial Sentiment</h3>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-sm h-48 relative flex items-end justify-between gap-1">
+<div class="w-full h-full absolute inset-0 p-6 flex items-end justify-between gap-2 opacity-10 pointer-events-none">
+<div class="w-4 bg-primary h-[30%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[50%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[45%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[70%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[85%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[60%] rounded-t-sm"></div>
+<div class="w-4 bg-primary h-[40%] rounded-t-sm"></div>
+</div>
+<svg class="absolute inset-0 w-full h-full p-6" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,70 Q15,60 25,40 T50,20 T75,50 T100,30" fill="none" stroke="#4343d5" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<circle cx="25" cy="40" fill="#4343d5" r="2"></circle>
+<circle cx="50" cy="20" fill="#4343d5" r="2"></circle>
+</svg>
+<div class="w-full flex justify-between mt-auto pt-4 border-t border-slate-50 text-[8px] text-slate-400 font-bold uppercase tracking-widest relative z-10">
+<span>Intro</span>
+<span>Middle</span>
+<span>Climax</span>
+<span>Outro</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Input Area (Consistent with SCREEN_2) -->
+<div class="p-6 border-t border-outline-variant/10">
+<div class="relative group">
+<textarea class="w-full bg-surface-container-low border-none rounded-xl p-4 pr-12 text-sm focus:ring-0 focus:bg-surface-container-lowest transition-all min-h-[100px] resize-none font-label" placeholder="Ra lệnh (e.g., @Báo_cáo_Q1)"></textarea>
+<div class="absolute right-4 bottom-4 flex gap-2">
+<button class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-sm">north</span>
+</button>
+</div>
+<div class="absolute left-4 bottom-4">
+<button class="text-on-surface-variant/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">attach_file</span>
+</button>
+</div>
+</div>
+<p class="text-[9px] text-center mt-4 text-on-surface-variant opacity-40 uppercase tracking-[0.2em]">Press Cmd + K to trigger AI</p>
+</div>
+</aside>
+</div>
+</body></html>
