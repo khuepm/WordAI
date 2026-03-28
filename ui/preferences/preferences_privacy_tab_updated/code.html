@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WordAI Preferences | Privacy &amp; Security</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffdbc8",
+              "outline": "#767586",
+              "surface-container-low": "#f3f4f5",
+              "primary-fixed-dim": "#c1c1ff",
+              "surface-container-lowest": "#ffffff",
+              "surface-variant": "#e1e3e4",
+              "secondary-fixed-dim": "#c1c1ff",
+              "primary-fixed": "#e1e0ff",
+              "error": "#ba1a1a",
+              "on-secondary-container": "#474984",
+              "surface-tint": "#4849da",
+              "secondary-container": "#babbfe",
+              "surface-container-highest": "#e1e3e4",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-tertiary-fixed": "#321300",
+              "background": "#f8f9fa",
+              "on-tertiary-container": "#fff6f3",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#3f417b",
+              "on-secondary-fixed": "#12134d",
+              "surface-dim": "#d9dadb",
+              "surface-bright": "#f8f9fa",
+              "primary": "#4343d5",
+              "primary-container": "#5d5fef",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "on-primary-container": "#faf7ff",
+              "surface-container-high": "#e7e8e9",
+              "surface": "#f8f9fa",
+              "inverse-on-surface": "#f0f1f2",
+              "on-secondary": "#ffffff",
+              "inverse-primary": "#c1c1ff",
+              "secondary": "#575995",
+              "error-container": "#ffdad6",
+              "tertiary": "#904400",
+              "on-primary-fixed": "#07006c",
+              "on-surface-variant": "#464555",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#ffb689",
+              "secondary-fixed": "#e1e0ff",
+              "on-background": "#191c1d",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#2e3132",
+              "on-error-container": "#93000a",
+              "surface-container": "#edeeef",
+              "on-surface": "#191c1d",
+              "outline-variant": "#c7c4d7",
+              "tertiary-container": "#b65700"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .aurasphere-glow {
+        box-shadow: 0 0 40px -5px rgba(67, 67, 213, 0.08);
+      }
+      .editor-font {
+        font-family: 'Newsreader', serif;
+      }
+    </style>
+</head>
+<body class="bg-surface font-headline antialiased text-on-surface min-h-screen flex items-center justify-center p-6 md:p-12 overflow-hidden">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 w-full max-w-[1920px] mx-auto shadow-sm shadow-indigo-500/5">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-zinc-900">WordAI</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Editor</a>
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Library</a>
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Archive</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2">search</span>
+<input class="bg-zinc-100/50 border-none rounded-md pl-10 pr-4 py-1.5 text-sm focus:ring-2 ring-indigo-500/20 w-48 transition-all group-hover:w-64" placeholder="Search..." type="text"/>
+</div>
+<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Modal Background Shade -->
+<div class="fixed inset-0 bg-on-surface/5 backdrop-blur-sm z-40"></div>
+<!-- Main Preferences Modal -->
+<main class="relative z-50 w-full max-w-5xl h-[870px] bg-surface-container-lowest rounded-xl flex overflow-hidden aurasphere-glow ring-1 ring-outline-variant/10">
+<!-- Side Navigation (The Sidebar) -->
+<aside class="flex flex-col w-64 h-full py-6 px-4 gap-2 bg-zinc-50 border-r border-zinc-200/20">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-black text-zinc-900 tracking-tight">Preferences</h1>
+<p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mt-1">System Configuration</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1.5">
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+                    General
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="psychology">psychology</span>
+                    AI Engine
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="format_size">format_size</span>
+                    Typography
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm border-r-4 border-indigo-500 scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+                    Privacy
+                </button>
+</nav>
+<div class="mt-auto px-2">
+<div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
+<p class="text-xs font-semibold text-primary mb-1">AuraSphere Pro</p>
+<p class="text-[11px] text-zinc-500 leading-relaxed">Unlock larger context windows and exclusive models.</p>
+</div>
+</div>
+</aside>
+<!-- Content Area -->
+<section class="flex-1 flex flex-col overflow-hidden bg-white">
+<!-- Modal Header -->
+<header class="h-16 flex items-center justify-between px-8 border-b border-outline-variant/5">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold tracking-tight">Privacy &amp; Security</h2>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Shield Active</span>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">search</span>
+<input class="text-xs bg-surface-container-low border-none rounded-full py-2 pl-9 pr-4 w-48 focus:ring-1 ring-primary/20 transition-all" placeholder="Search preference..." type="text"/>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+<!-- Intro Section -->
+<div>
+<span class="text-[10px] font-bold tracking-widest text-primary uppercase mb-2 block">Security Workspace</span>
+<h3 class="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Data Sovereignty</h3>
+<p class="text-on-surface-variant mt-4 max-w-2xl editor-font text-lg italic opacity-80">"Your thoughts are private by design. Manage how your data interacts with our curator intelligence."</p>
+</div>
+<!-- AI Training Toggle Section -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-sm font-bold text-zinc-900">AI Model Training</h3>
+<p class="text-xs text-zinc-500 max-w-lg">Anonymized snippets help improve the engine. We never store personal identifiers.</p>
+</div>
+<span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">Recommended</span>
+</div>
+<div class="flex items-center justify-between p-5 bg-surface-container-low/50 rounded-2xl border border-outline-variant/10">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl">neurology</span>
+<span class="text-sm font-medium text-zinc-900">Liquid Intelligence Contribution</span>
+</div>
+<button class="w-10 h-5 bg-primary rounded-full relative transition-colors">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+<!-- Regional Infrastructure Section -->
+<div class="space-y-4">
+<h3 class="text-sm font-bold text-zinc-900">Regional Data Infrastructure</h3>
+<div class="grid grid-cols-2 gap-4">
+<!-- Singapore Node -->
+<div class="p-5 rounded-2xl bg-surface-container-low border border-primary/20 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/50">
+<img class="w-full h-full object-cover" data-alt="Modern Singapore skyline with lush greenery and sleek architecture at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaY5vbviP0gCeBhK6xeFTzIOxOSOjY_m09J0tGTT9hc891Hq56cJODsU8ZH1c1kzQ3Izi83kRM8B-9FSffOHxiVlFKdj89FobBBOoq9mqs75qUpqysfLhLCoRkRunAKiiV4k1KoFymbXVwKSuQAp72CAc1_kq_bJS74v3HwcGXJcEYQiESggNgekwFdOZ_nbM2lC4p8ZijGEYRGGjl3dwhg_jptMDRDdJ2k8ZBNimdpnic46SvRICEe763_-MilxMyvQ4gW5aR5Uw"/>
+</div>
+<div>
+<p class="text-[10px] font-bold text-primary uppercase tracking-wider">Primary Node</p>
+<h4 class="text-sm font-bold text-zinc-900">Singapore Central</h4>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center gap-2 text-[10px] font-bold text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>ACTIVE CONNECTION</span>
+</div>
+</div>
+<!-- US Node -->
+<div class="p-5 rounded-2xl bg-surface-container-low border border-transparent opacity-70 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 grayscale">
+<img class="w-full h-full object-cover" data-alt="Iconic San Francisco bridge view with soft morning mist and urban city lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDARTy5xY_6iH6rYB95EmYixTgJJzKrhVjFre9G08wBeN6hWabqTC1d2ndgktNstFPz2bmfqRSctStRxTRzroPKgPuF4S3DDfWLhD7cpv2D-WOpR4Gv-OJ7tE1-jTqNIJPL7mtvbLA4kXsVPWOiQt9pTFTB7aVwiZQtXKOGS8hQM-4HTuEo9NFNTsSlijlnWPVZ7hdOSE5bgggHT6qK2ELkHI7YNovFz-kXuyWRoIqRiBRv-C7gGJF29wgKcEcnWXfj4v5O9Gpaquk"/>
+</div>
+<div>
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Redundancy Node</p>
+<h4 class="text-sm font-bold text-zinc-900">United States East</h4>
+</div>
+</div>
+<span class="material-symbols-outlined text-zinc-300 text-lg">schedule</span>
+</div>
+<div class="text-[10px] font-bold text-zinc-400">
+<span>STANDBY MODE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Visual Asset / Informational -->
+<div class="relative h-36 rounded-2xl overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-[#4849da] to-[#5d5fef] opacity-90"></div>
+<img alt="Abstract flowing liquid gradient" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay" data-alt="smooth liquid gradient flowing from deep violet to cobalt blue with soft iridescent glow and micrograin texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAYR3dCvRc5hmiXgA96XCy3Wpts38li_I-MZriFWxB-1x-q-yGWHOHE6VE7NiyzHNzEse0zuu9faLy00YdpDU2SWMtZ4E8NH-HUIEuBvqYpH6V8Y28mzo0F2udrSpqcoAZE-_1-eyLQXka1d4d8KG9-_-Unvo8G-VGMwi4sp4CtFZnBJzk49LyYbOXgsKv1QmB7lQLMPbJlIAwxs3b0fMx68yXGojFSUGwe1k_rVaSSQB5PgTv7baSpDxxRUWN-k7wM_TRR5H9Rxo"/>
+<div class="relative h-full flex items-center justify-between px-8 text-white">
+<div class="max-w-[70%]">
+<h4 class="text-sm font-extrabold tracking-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+                        End-to-End Encryption Enabled
+                    </h4>
+<p class="text-[11px] opacity-80 mt-1 leading-relaxed">Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.</p>
+</div>
+<button class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/30 transition-all">Audit Security</button>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<footer class="h-20 flex items-center justify-between px-8 bg-zinc-50 border-t border-outline-variant/10">
+<button class="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase tracking-widest">
+                    Restore Defaults
+                </button>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 text-xs font-bold text-zinc-600 hover:bg-zinc-200 transition-all rounded-lg">
+                        Cancel
+                    </button>
+<button class="px-8 py-2.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary-container shadow-lg shadow-primary/20 transition-all rounded-lg flex items-center gap-2">
+                        Apply Changes
+                        <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+</button>
+</div>
+</footer>
+</section>
+</main>
+<!-- Decorative Context Elements -->
+<div class="fixed bottom-12 right-12 w-32 h-32 bg-primary/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+<div class="fixed top-12 left-12 w-48 h-48 bg-indigo-500/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+</body></html>

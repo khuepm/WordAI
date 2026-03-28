@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WordAI - Typography Preferences</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#ffdbc8",
+                        "outline": "#767586",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "primary-fixed": "#e1e0ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#474984",
+                        "surface-tint": "#4849da",
+                        "secondary-container": "#babbfe",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "on-tertiary-fixed": "#321300",
+                        "background": "#f8f9fa",
+                        "on-tertiary-container": "#fff6f3",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3f417b",
+                        "on-secondary-fixed": "#12134d",
+                        "surface-dim": "#d9dadb",
+                        "surface-bright": "#f8f9fa",
+                        "primary": "#4343d5",
+                        "primary-container": "#5d5fef",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "on-primary-container": "#faf7ff",
+                        "surface-container-high": "#e7e8e9",
+                        "surface": "#f8f9fa",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#c1c1ff",
+                        "secondary": "#575995",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#904400",
+                        "on-primary-fixed": "#07006c",
+                        "on-surface-variant": "#464555",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "secondary-fixed": "#e1e0ff",
+                        "on-background": "#191c1d",
+                        "on-tertiary": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#edeeef",
+                        "on-surface": "#191c1d",
+                        "outline-variant": "#c7c4d7",
+                        "tertiary-container": "#b65700"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Newsreader"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .aurasphere-glow {
+            box-shadow: 0 0 40px -5px rgba(67, 67, 213, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-surface font-headline antialiased text-on-surface min-h-screen flex items-center justify-center p-6 md:p-12 overflow-hidden">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 w-full max-w-[1920px] mx-auto shadow-sm shadow-indigo-500/5">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-zinc-900">WordAI</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Editor</a>
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Library</a>
+<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Archive</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2">search</span>
+<input class="bg-zinc-100/50 border-none rounded-md pl-10 pr-4 py-1.5 text-sm focus:ring-2 ring-indigo-500/20 w-48 transition-all group-hover:w-64" placeholder="Search..." type="text"/>
+</div>
+<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Modal Background Shade -->
+<div class="fixed inset-0 bg-on-surface/5 backdrop-blur-sm z-40"></div>
+<!-- Main Preferences Modal (Standardized Shell) -->
+<main class="relative z-50 w-full max-w-5xl h-[870px] bg-surface-container-lowest rounded-xl flex overflow-hidden aurasphere-glow ring-1 ring-outline-variant/10">
+<!-- Side Navigation -->
+<aside class="flex flex-col w-64 h-full py-6 px-4 gap-2 bg-zinc-50 border-r border-zinc-200/20">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-black text-zinc-900 tracking-tight">Preferences</h1>
+<p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mt-1">SYSTEM CONFIGURATION</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1.5">
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                    General
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+                    AI Engine
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm border-r-4 border-indigo-500 scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">format_size</span>
+                    Typography
+                </button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+<span class="material-symbols-outlined text-[20px]">security</span>
+                    Privacy
+                </button>
+</nav>
+<div class="mt-auto px-2">
+<div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
+<p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">Editor Mood</p>
+<div class="flex gap-3">
+<div class="h-6 w-6 rounded-full bg-white border-2 border-primary cursor-pointer ring-1 ring-offset-1 ring-primary/20"></div>
+<div class="h-6 w-6 rounded-full bg-zinc-900 cursor-pointer hover:scale-110 transition-transform"></div>
+<div class="h-6 w-6 rounded-full bg-indigo-100 border border-indigo-200 cursor-pointer hover:scale-110 transition-transform"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Content Area -->
+<section class="flex-1 flex flex-col overflow-hidden bg-white">
+<!-- Modal Header -->
+<header class="h-16 flex items-center justify-between px-8 border-b border-outline-variant/5">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold tracking-tight">Typography &amp; Formatting</h2>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">search</span>
+<input class="text-xs bg-surface-container-low border-none rounded-full py-2 pl-9 pr-4 w-48 focus:ring-1 ring-primary/20 transition-all font-label" placeholder="Search settings..." type="text"/>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+<!-- Intro Section -->
+<div>
+<h3 class="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Typography &amp; Formatting</h3>
+<p class="text-zinc-500 font-body text-lg italic mt-2">Refine the rhythm of your reading and writing experience.</p>
+</div>
+<!-- Expanded Font Family Selection -->
+<div class="group">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-1">Standard Font</h3>
+<p class="text-xs text-zinc-500">Editorial grade typefaces optimized for readability.</p>
+</div>
+<span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded">PREMIUM TYPE</span>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<label class="relative cursor-pointer">
+<input checked="" class="peer sr-only" name="font" type="radio" value="inter"/>
+<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-white peer-checked:border-primary peer-checked:shadow-lg transition-all duration-300">
+<span class="block text-2xl font-['Inter'] mb-1">Aa</span>
+<span class="block text-[11px] font-bold font-label">Inter (Sans)</span>
+</div>
+</label>
+<label class="relative cursor-pointer">
+<input class="peer sr-only" name="font" type="radio" value="newsreader"/>
+<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-white peer-checked:border-primary peer-checked:shadow-lg transition-all duration-300">
+<span class="block text-2xl font-['Newsreader'] mb-1">Aa</span>
+<span class="block text-[11px] font-bold font-label">Newsreader (Serif)</span>
+</div>
+</label>
+<label class="relative cursor-pointer">
+<input class="peer sr-only" name="font" type="radio" value="roboto"/>
+<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-white peer-checked:border-primary peer-checked:shadow-lg transition-all duration-300">
+<span class="block text-2xl font-mono mb-1">Aa</span>
+<span class="block text-[11px] font-bold font-label">Roboto Mono</span>
+</div>
+</label>
+<label class="relative cursor-pointer">
+<input class="peer sr-only" name="font" type="radio" value="helvetica"/>
+<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-white peer-checked:border-primary peer-checked:shadow-lg transition-all duration-300">
+<span class="block text-2xl font-sans mb-1">Aa</span>
+<span class="block text-[11px] font-bold font-label">Helvetica Neue</span>
+</div>
+</label>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<!-- Font Size Selection -->
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4">Font Size</h3>
+<div class="flex items-center bg-surface-container-low p-1.5 rounded-xl w-full gap-1">
+<button class="flex-1 px-3 py-2 rounded-lg text-[10px] font-bold font-label transition-all text-zinc-500 hover:text-zinc-800 uppercase tracking-tighter">Small</button>
+<button class="flex-1 px-3 py-2 rounded-lg text-xs font-bold font-label transition-all bg-white shadow-sm text-primary uppercase tracking-tighter">Medium</button>
+<button class="flex-1 px-3 py-2 rounded-lg text-sm font-bold font-label transition-all text-zinc-500 hover:text-zinc-800 uppercase tracking-tighter">Large</button>
+<button class="flex-1 px-3 py-2 rounded-lg text-base font-bold font-label transition-all text-zinc-500 hover:text-zinc-800 uppercase tracking-tighter">XL</button>
+</div>
+<p class="mt-3 text-[11px] text-zinc-400 font-body italic">Base size currently set to 16px.</p>
+</div>
+<!-- Line Spacing Selection -->
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4">Line Spacing</h3>
+<div class="flex items-center bg-surface-container-low p-1.5 rounded-xl w-full gap-1">
+<button class="flex-1 px-4 py-2 rounded-lg text-xs font-bold font-label transition-all bg-white shadow-sm text-primary">1.15</button>
+<button class="flex-1 px-4 py-2 rounded-lg text-xs font-bold font-label transition-all text-zinc-500 hover:text-zinc-800">1.50</button>
+<button class="flex-1 px-4 py-2 rounded-lg text-xs font-bold font-label transition-all text-zinc-500 hover:text-zinc-800">2.00</button>
+</div>
+<p class="mt-3 text-[11px] text-zinc-400 font-body italic">Recommended for long-form editorial.</p>
+</div>
+</div>
+<!-- Advanced Toggles & Smart Features -->
+<div>
+<h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4">Smart Formatting</h3>
+<div class="grid grid-cols-3 gap-4">
+<div class="flex flex-col justify-between p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-primary/10 transition-colors">
+<div class="flex items-start gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-xl">format_quote</span>
+<div class="flex-1">
+<p class="text-xs font-bold text-on-surface">Smart Quotes</p>
+<p class="text-[10px] text-zinc-500 leading-tight">Convert to curly quotes.</p>
+</div>
+</div>
+<button class="w-10 h-5 bg-primary rounded-full relative transition-colors self-end">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</button>
+</div>
+<div class="flex flex-col justify-between p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-primary/10 transition-colors">
+<div class="flex items-start gap-3 mb-4">
+<span class="material-symbols-outlined text-zinc-400 text-xl">match_case</span>
+<div class="flex-1">
+<p class="text-xs font-bold text-on-surface">Auto-Capitalize</p>
+<p class="text-[10px] text-zinc-500 leading-tight">Sentences start with caps.</p>
+</div>
+</div>
+<button class="w-10 h-5 bg-zinc-300 rounded-full relative transition-colors self-end">
+<div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</button>
+</div>
+<div class="flex flex-col justify-between p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-primary/10 transition-colors">
+<div class="flex items-start gap-3 mb-4">
+<span class="material-symbols-outlined text-zinc-400 text-xl">join_inner</span>
+<div class="flex-1">
+<p class="text-xs font-bold text-on-surface">Ligatures</p>
+<p class="text-[10px] text-zinc-500 leading-tight">Advanced glyph pairing.</p>
+</div>
+</div>
+<button class="w-10 h-5 bg-primary rounded-full relative transition-colors self-end">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Preview Section -->
+<div class="p-6 bg-surface-container-low/50 rounded-2xl border border-dashed border-outline-variant/30">
+<div class="flex justify-between items-center mb-4">
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Real-time Preview</h4>
+<span class="text-[10px] font-bold text-zinc-400 bg-white px-2 py-0.5 rounded shadow-sm">16pt / 1.15 LH / INTER</span>
+</div>
+<div class="bg-white p-8 rounded-xl shadow-sm min-h-[140px] border border-zinc-100">
+<h2 class="font-headline font-bold text-xl mb-4 text-zinc-900">The Modern Editorial Ethos</h2>
+<p class="font-['Inter'] text-base leading-[1.15] text-zinc-700">
+                            Typography is the voice of the written word. By selecting "Editorial Grade" typefaces and refining the rhythm of line spacing, you ensure that every character flows with purpose. This preview reflects your current configurations in real-time.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Standardized Footer (SCREEN_23 Style) -->
+<footer class="h-20 flex items-center justify-between px-8 bg-zinc-50 border-t border-outline-variant/10">
+<button class="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase tracking-widest">
+                    RESTORE DEFAULTS
+                </button>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 text-xs font-bold text-zinc-600 hover:bg-zinc-200 transition-all rounded-lg">
+                        Cancel
+                    </button>
+<button class="px-8 py-2.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary-container shadow-lg shadow-primary/20 transition-all rounded-lg flex items-center gap-2">
+                        Apply Changes
+                        <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+</button>
+</div>
+</footer>
+</section>
+</main>
+<!-- Decorative Background Elements -->
+<div class="fixed bottom-12 right-12 w-32 h-32 bg-primary/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+<div class="fixed top-12 left-12 w-48 h-48 bg-indigo-500/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+</body></html>
