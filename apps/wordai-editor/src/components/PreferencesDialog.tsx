@@ -411,25 +411,43 @@ function PrivacyTab() {
         <SectionHeader label="Regional Data Infrastructure" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Singapore - active */}
-          <div style={{ padding: '1.25rem', borderRadius: '1rem', background: '#f3f4f5', border: '1px solid rgba(67,67,213,0.2)' }}>
+          <div style={{ padding: '1.25rem', borderRadius: '1rem', background: '#f3f4f5', border: '1px solid rgba(67,67,213,0.2)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Primary Node</p>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>Singapore Central</h4>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.5)' }}>
+                  <img
+                    src="/singapore.png"
+                    alt="Singapore skyline"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+                <div>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Primary Node</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>Singapore Central</h4>
+                </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#4343d5', fontVariationSettings: "'FILL' 1", fontSize: '20px' }}>check_circle</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 700, color: '#4343d5' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4343d5' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4343d5', animation: 'pulse 2s infinite' }} />
               ACTIVE CONNECTION
             </div>
           </div>
           {/* US - standby */}
           <div style={{ padding: '1.25rem', borderRadius: '1rem', background: '#f3f4f5', border: '1px solid transparent', opacity: 0.7 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Redundancy Node</p>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>United States East</h4>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, filter: 'grayscale(1)' }}>
+                  <img
+                    src="/usa.png"
+                    alt="United States"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+                <div>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Redundancy Node</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>United States East</h4>
+                </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#d4d4d8', fontSize: '20px' }}>schedule</span>
             </div>
@@ -439,17 +457,25 @@ function PrivacyTab() {
       </div>
 
       {/* Encryption Banner */}
-      <div style={{ borderRadius: '1rem', overflow: 'hidden', background: 'linear-gradient(to right, #4849da, #5d5fef)', padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ maxWidth: '70%' }}>
-          <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified_user</span>
-            End-to-End Encryption Enabled
-          </h4>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: 0 }}>
-            Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.
-          </p>
+      <div style={{ borderRadius: '1rem', overflow: 'hidden', position: 'relative', height: '144px' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #4849da, #5d5fef)', opacity: 0.9 }} />
+        <img
+          src="/gradient-banner.png"
+          alt="Abstract gradient"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'overlay' }}
+        />
+        <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
+          <div style={{ maxWidth: '70%' }}>
+            <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified_user</span>
+              End-to-End Encryption Enabled
+            </h4>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: 0 }}>
+              Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.
+            </p>
+          </div>
+          <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
         </div>
-        <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
       </div>
     </div>
   );
