@@ -16,6 +16,7 @@ import { createDocument, loadDocument, getDocumentPath } from './services/docume
 import { useAppState } from './services/stateManager';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
+import { ensureBlockValue, extractPlainText, replaceTextInBlockValue } from './utils/blockText';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
 const FONT_SIZE_KEY = 'wordai_font_size';
@@ -89,7 +90,7 @@ function App() {
         }
       }
       if (!cancelled) {
-        setDocument(doc, path);
+        setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
         localStorage.setItem(LAST_PATH_KEY, path);
       }
     }
@@ -142,7 +143,11 @@ function App() {
 
   const handleNegotiationAccept = useCallback((acceptedText: string) => {
     if (!selectedSuggestion || !document) return;
-    const newContent = document.content.replace(selectedSuggestion.originalText, acceptedText);
+    const newContent = replaceTextInBlockValue(
+      document.content,
+      selectedSuggestion.originalText,
+      acceptedText
+    );
     const updatedDoc: Document = {
       ...document,
       content: newContent,
@@ -155,13 +160,13 @@ function App() {
 
   const handleVersionRestore = useCallback((content: string) => {
     if (!document) return;
-    updateDocument({ ...document, content, lastModified: new Date() });
+    updateDocument({ ...document, content: ensureBlockValue(content), lastModified: new Date() });
   }, [document, updateDocument]);
 
   const handleNew = useCallback(async () => {
     const doc = await createDocument();
     const path = getDocumentPath(doc.id);
-    setDocument(doc, path);
+    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
     localStorage.setItem(LAST_PATH_KEY, path);
   }, [setDocument]);
 
@@ -208,7 +213,7 @@ function App() {
     );
   }
 
-  const aiContext = aiSelection?.text ?? document.content.slice(0, 500);
+  const aiContext = aiSelection?.text ?? extractPlainText(document.content).slice(0, 500);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
@@ -361,6 +366,33 @@ function App() {
           onOpenVersionHistory={openVersionHistory}
           fontSize={fontSize}
           onFontSizeChange={handleFontSizeChange}
+        />
+        <AuraSpherePanel
+          isOpen={isAIPanelOpen}
+          onClose={closeAIPanel}
+          selection={aiSelection}
+          documentId={document.id}
+          documentContext={aiContext}
+          onSuggestionSelect={handleSuggestionSelect}
+        />
+        <NegotiationPanel
+          isOpen={isNegotiationOpen}
+          suggestion={selectedSuggestion}
+          onAccept={handleNegotiationAccept}
+          onReject={closeNegotiation}
+          onClose={closeNegotiation}
+        />
+        <RenderDrawer
+          isOpen={isRenderDrawerOpen}
+          onClose={closeRenderDrawer}
+          documentId={document.id}
+          documentContent={extractPlainText(document.content)}
+        />
+        <VersionHistory
+          isOpen={isVersionHistoryOpen}
+          onClose={closeVersionHistory}
+          documentId={document.id}
+          onRestore={handleVersionRestore}
         />
       </div>
 

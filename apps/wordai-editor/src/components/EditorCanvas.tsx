@@ -3,9 +3,12 @@
  * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
  */
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import '../utils/reactInternals';
+import ReactBlockText, { headerPlugin, listPlugin, quotePlugin, todoPlugin } from 'react-block-text';
 import type { Document, TextSelection } from '../types/document';
 import type { IPCError } from '../types/ipc';
+import { ensureBlockValue, extractPlainText } from '../utils/blockText';
 
 /** Returns a human-readable relative time string (Req 4.4) */
 function formatRelativeTime(date: Date): string {
@@ -53,8 +56,12 @@ export function EditorCanvas({
   fontSize: fontSizeProp = 18,
   onFontSizeChange,
 }: EditorCanvasProps) {
-  const [localContent, setLocalContent] = useState(document.content);
   const [fontSize, setFontSize] = useState(fontSizeProp);
+  const [blockValue, setBlockValue] = useState(() => ensureBlockValue(document.content));
+
+  useEffect(() => {
+    setBlockValue(ensureBlockValue(document.content));
+  }, [document.content, document.id]);
 
   const handleDecreaseFontSize = useCallback(() => {
     setFontSize((prev) => {
@@ -71,93 +78,17 @@ export function EditorCanvas({
       return next;
     });
   }, [onFontSizeChange]);
-  // Track current text selection (Req 3.2, 3.3) — exposed to parent via onAITrigger on Cmd+K
-  const selectionRef = useRef<TextSelection>({ start: 0, end: 0, text: '' });
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // Track cursor position so React re-renders don't cause cursor jumps (Req 3.5)
-  const cursorRef = useRef<{ start: number; end: number } | null>(null);
 
-  // Restore cursor position after state-driven re-renders (Req 3.5)
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea && cursorRef.current !== null) {
-      textarea.selectionStart = cursorRef.current.start;
-      textarea.selectionEnd = cursorRef.current.end;
-      cursorRef.current = null;
-    }
-  });
-
-  const handleContentChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const textarea = e.target;
-      const newContent = textarea.value;
-      // Capture cursor before React batches the state update (Req 3.5)
-      cursorRef.current = {
-        start: textarea.selectionStart,
-        end: textarea.selectionEnd,
-      };
-      setLocalContent(newContent);
-      onDocumentChange({
-        ...document,
-        content: newContent,
-        lastModified: new Date(),
-      });
-    },
-    [document, onDocumentChange]
+  const plugins = useMemo(
+    () => [...headerPlugin(), ...todoPlugin(), ...listPlugin(), ...quotePlugin()],
+    []
   );
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const isMod = e.metaKey || e.ctrlKey;
-      if (isMod && e.key === 'k') {
-        e.preventDefault();
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const selectedText = localContent.slice(start, end);
-        const sel: TextSelection = { start, end, text: selectedText };
-        selectionRef.current = sel;
-        onAITrigger(sel);
-      }
-      // Cmd+S / Ctrl+S — manual save (Req 21.2)
-      if (isMod && e.key === 's') {
-        e.preventDefault();
-        onManualSave?.();
-      }
-      // Cmd+E / Ctrl+E — open export drawer (Req 21.3)
-      if (isMod && e.key === 'e') {
-        e.preventDefault();
-        onOpenExport?.();
-      }
-      // Cmd+H / Ctrl+H — open version history (Req 22.5)
-      if (isMod && e.key === 'h') {
-        e.preventDefault();
-        onOpenVersionHistory?.();
-      }
-      // Cmd+A / Ctrl+A — select all content (Req 3.4, 21.5)
-      if (isMod && e.key === 'a') {
-        e.preventDefault();
-        const textarea = e.currentTarget;
-        textarea.setSelectionRange(0, localContent.length);
-        selectionRef.current = { start: 0, end: localContent.length, text: localContent };
-      }
-    },
-    [localContent, onAITrigger, onManualSave, onOpenExport, onOpenVersionHistory]
-  );
+  const plainText = useMemo(() => extractPlainText(blockValue), [blockValue]);
 
-  // Capture selection after mouse drag or click (Req 3.1, 3.2, 3.3)
-  const handleSelectionChange = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    selectionRef.current = { start, end, text: localContent.slice(start, end) };
-  }, [localContent]);
-
-  // Real-time word count (Req 4.1) and reading time (Req 4.2)
   const wordCount = useMemo(
-    () => localContent.trim().split(/\s+/).filter(Boolean).length,
-    [localContent]
+    () => plainText.trim().split(/\s+/).filter(Boolean).length,
+    [plainText]
   );
   const readingTime = useMemo(() => Math.ceil(wordCount / 200), [wordCount]);
 
@@ -175,6 +106,49 @@ export function EditorCanvas({
   }, [document.lastModified]);
 
   const tags = document.metadata.tags ?? [];
+
+  const handleBlockChange = useCallback(
+    (value: string) => {
+      const nextPlain = extractPlainText(value);
+      const nextWordCount = nextPlain.trim().split(/\s+/).filter(Boolean).length;
+      const nextReadingTime = Math.ceil(nextWordCount / 200);
+      setBlockValue(value);
+      onDocumentChange({
+        ...document,
+        content: value,
+        metadata: {
+          ...document.metadata,
+          wordCount: nextWordCount,
+          readingTime: nextReadingTime,
+        },
+        lastModified: new Date(),
+      });
+    },
+    [document, onDocumentChange]
+  );
+
+  const handleKeyDownCapture = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
+      if (e.key === 'k') {
+        e.preventDefault();
+        const selectionText = window.getSelection()?.toString() ?? '';
+        const text = selectionText || plainText;
+        const selection: TextSelection = { start: 0, end: text.length, text };
+        onAITrigger(selection);
+      }
+      if (e.key === 'e') {
+        e.preventDefault();
+        onOpenExport?.();
+      }
+      if (e.key === 'h') {
+        e.preventDefault();
+        onOpenVersionHistory?.();
+      }
+    },
+    [onAITrigger, onManualSave, onOpenExport, onOpenVersionHistory, plainText]
+  );
 
   return (
     <div
@@ -231,7 +205,7 @@ export function EditorCanvas({
         </div>
 
         {/* Editor surface */}
-        <div style={{
+        {/*<div style={{
           flex: 1,
           background: 'var(--md-sys-color-surface-container-lowest)',
           borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
@@ -266,9 +240,29 @@ export function EditorCanvas({
             }}
             aria-label="Document editor"
           />
-        </div>
+        </div>*/}
 
         {/* Meta bar */}
+        <div
+          data-testid="block-text-editor-container"
+          onKeyDownCapture={handleKeyDownCapture}
+          style={{
+            ...styles.blockEditor,
+            fontSize: `${fontSize}px`,
+          }}
+        >
+          <ReactBlockText
+            value={blockValue}
+            onChange={handleBlockChange}
+            onSave={onManualSave}
+            plugins={plugins}
+            textColor="#1f1f1f"
+            primaryColor="#6750a4"
+            style={{ fontFamily: 'var(--font-family-content)', fontSize: `${fontSize}px` }}
+            data-testid="block-text-editor"
+          />
+        </div>
+        {/* Document metadata bar (Req 4.1–4.5) */}
         <div style={styles.metaBar} aria-label="Document metadata">
           <button data-testid="font-size-decrease" aria-label="Decrease font size" onClick={handleDecreaseFontSize} style={styles.fontSizeBtn}>A−</button>
           <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
@@ -296,6 +290,17 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+  },
+  blockEditor: {
+    flex: 1,
+    width: '100%',
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    fontFamily: 'var(--font-family-content)',
+    lineHeight: 'var(--line-height-relaxed)',
+    color: 'var(--md-sys-color-on-background)',
+    caretColor: 'var(--md-sys-color-primary)',
   },
   metaBar: {
     display: 'flex',
