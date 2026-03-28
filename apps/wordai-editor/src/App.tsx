@@ -396,33 +396,6 @@ function App() {
         />
       </div>
 
-      <AuraSpherePanel
-        isOpen={isAIPanelOpen}
-        onClose={closeAIPanel}
-        selection={aiSelection}
-        documentId={document.id}
-        documentContext={aiContext}
-        onSuggestionSelect={handleSuggestionSelect}
-      />
-      <NegotiationPanel
-        isOpen={isNegotiationOpen}
-        suggestion={selectedSuggestion}
-        onAccept={handleNegotiationAccept}
-        onReject={closeNegotiation}
-        onClose={closeNegotiation}
-      />
-      <RenderDrawer
-        isOpen={isRenderDrawerOpen}
-        onClose={closeRenderDrawer}
-        documentId={document.id}
-        documentContent={document.content}
-      />
-      <VersionHistory
-        isOpen={isVersionHistoryOpen}
-        onClose={closeVersionHistory}
-        documentId={document.id}
-        onRestore={handleVersionRestore}
-      />
     </div>
   );
 }

@@ -204,44 +204,6 @@ export function EditorCanvas({
           </div>
         </div>
 
-        {/* Editor surface */}
-        {/*<div style={{
-          flex: 1,
-          background: 'var(--md-sys-color-surface-container-lowest)',
-          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-          boxShadow: 'var(--shadow-ambient)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          <textarea
-            ref={textareaRef}
-            className="editor-canvas"
-            value={localContent}
-            onChange={handleContentChange}
-            onKeyDown={handleKeyDown}
-            onMouseUp={handleSelectionChange}
-            onSelect={handleSelectionChange}
-            placeholder="Start writing..."
-            spellCheck
-            style={{
-              flex: 1,
-              width: '100%',
-              resize: 'none',
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              fontFamily: 'var(--font-family-content)',
-              fontSize: `${fontSize}px`,
-              lineHeight: '1.8',
-              color: 'var(--md-sys-color-on-surface)',
-              caretColor: 'var(--md-sys-color-primary)',
-              padding: '3rem',
-            }}
-            aria-label="Document editor"
-          />
-        </div>*/}
-
         {/* Meta bar */}
         <div
           data-testid="block-text-editor-container"
