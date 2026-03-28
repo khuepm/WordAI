@@ -1,312 +1,317 @@
 <!DOCTYPE html>
-
-<html class="light" lang="en"><head>
+<html class="light" lang="en">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WordAI Preferences | AI Engine</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "tertiary-fixed": "#ffdbc8",
-              "outline": "#767586",
-              "surface-container-low": "#f3f4f5",
-              "primary-fixed-dim": "#c1c1ff",
-              "surface-container-lowest": "#ffffff",
-              "surface-variant": "#e1e3e4",
-              "secondary-fixed-dim": "#c1c1ff",
-              "primary-fixed": "#e1e0ff",
-              "error": "#ba1a1a",
-              "on-secondary-container": "#474984",
-              "surface-tint": "#4849da",
-              "secondary-container": "#babbfe",
-              "surface-container-highest": "#e1e3e4",
-              "on-tertiary-fixed-variant": "#743500",
-              "on-tertiary-fixed": "#321300",
-              "background": "#f8f9fa",
-              "on-tertiary-container": "#fff6f3",
-              "on-primary": "#ffffff",
-              "on-secondary-fixed-variant": "#3f417b",
-              "on-secondary-fixed": "#12134d",
-              "surface-dim": "#d9dadb",
-              "surface-bright": "#f8f9fa",
-              "primary": "#4343d5",
-              "primary-container": "#5d5fef",
-              "on-primary-fixed-variant": "#2e2bc2",
-              "on-primary-container": "#faf7ff",
-              "surface-container-high": "#e7e8e9",
-              "surface": "#f8f9fa",
-              "inverse-on-surface": "#f0f1f2",
-              "on-secondary": "#ffffff",
-              "inverse-primary": "#c1c1ff",
-              "secondary": "#575995",
-              "error-container": "#ffdad6",
-              "tertiary": "#904400",
-              "on-primary-fixed": "#07006c",
-              "on-surface-variant": "#464555",
-              "on-error": "#ffffff",
-              "tertiary-fixed-dim": "#ffb689",
-              "secondary-fixed": "#e1e0ff",
-              "on-background": "#191c1d",
-              "on-tertiary": "#ffffff",
-              "inverse-surface": "#2e3132",
-              "on-error-container": "#93000a",
-              "surface-container": "#edeeef",
-              "on-surface": "#191c1d",
-              "outline-variant": "#c7c4d7",
-              "tertiary-container": "#b65700"
-            },
-            fontFamily: {
-              "headline": ["Manrope"],
-              "body": ["Newsreader"],
-              "label": ["Inter"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-          },
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary-fixed": "#ffdbc8", "outline": "#767586",
+          "surface-container-low": "#f3f4f5", "primary-fixed-dim": "#c1c1ff",
+          "surface-container-lowest": "#ffffff", "surface-variant": "#e1e3e4",
+          "secondary-fixed-dim": "#c1c1ff", "primary-fixed": "#e1e0ff",
+          "error": "#ba1a1a", "on-secondary-container": "#474984",
+          "surface-tint": "#4849da", "secondary-container": "#babbfe",
+          "surface-container-highest": "#e1e3e4", "on-tertiary-fixed-variant": "#743500",
+          "on-tertiary-fixed": "#321300", "background": "#f8f9fa",
+          "on-tertiary-container": "#fff6f3", "on-primary": "#ffffff",
+          "on-secondary-fixed-variant": "#3f417b", "on-secondary-fixed": "#12134d",
+          "surface-dim": "#d9dadb", "surface-bright": "#f8f9fa",
+          "primary": "#4343d5", "primary-container": "#5d5fef",
+          "on-primary-fixed-variant": "#2e2bc2", "on-primary-container": "#faf7ff",
+          "surface-container-high": "#e7e8e9", "surface": "#f8f9fa",
+          "inverse-on-surface": "#f0f1f2", "on-secondary": "#ffffff",
+          "inverse-primary": "#c1c1ff", "secondary": "#575995",
+          "error-container": "#ffdad6", "tertiary": "#904400",
+          "on-primary-fixed": "#07006c", "on-surface-variant": "#464555",
+          "on-error": "#ffffff", "tertiary-fixed-dim": "#ffb689",
+          "secondary-fixed": "#e1e0ff", "on-background": "#191c1d",
+          "on-tertiary": "#ffffff", "inverse-surface": "#2e3132",
+          "on-error-container": "#93000a", "surface-container": "#edeeef",
+          "on-surface": "#191c1d", "outline-variant": "#c7c4d7",
+          "tertiary-container": "#b65700"
         },
-      }
-    </script>
+        fontFamily: { "headline": ["Manrope"], "body": ["Newsreader"], "label": ["Inter"] },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+      },
+    },
+  }
+</script>
 <style>
-      .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-      .glass-morphism {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-      }
-      .aurasphere-glow {
-        box-shadow: 0 0 40px -5px rgba(67, 67, 213, 0.08);
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        background: #4343d5;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      input[type="range"]::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        background: #4343d5;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-    </style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .aurasphere-glow { box-shadow: 0 0 40px -5px rgba(67, 67, 213, 0.08); }
+  .editor-font { font-family: 'Newsreader', serif; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; background: #4343d5;
+    border-radius: 50%; cursor: pointer; border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(67,67,213,0.3);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; background: #4343d5;
+    border-radius: 50%; cursor: pointer; border: 2px solid white;
+  }
+</style>
 </head>
 <body class="bg-surface font-headline antialiased text-on-surface min-h-screen flex items-center justify-center p-6 md:p-12 overflow-hidden">
-<!-- Top Navigation Anchor (Inactive on Modal view but defined by JSON) -->
-<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 w-full max-w-[1920px] mx-auto shadow-sm shadow-indigo-500/5">
-<div class="flex items-center gap-8">
-<span class="text-xl font-bold tracking-tight text-zinc-900">WordAI</span>
-<nav class="hidden md:flex gap-6">
-<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Editor</a>
-<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Library</a>
-<a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Archive</a>
-</nav>
-</div>
-<div class="flex items-center gap-4">
-<div class="relative group">
-<span class="material-symbols-outlined text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2">search</span>
-<input class="bg-zinc-100/50 border-none rounded-md pl-10 pr-4 py-1.5 text-sm focus:ring-2 ring-indigo-500/20 w-48 transition-all group-hover:w-64" placeholder="Search..." type="text"/>
-</div>
-<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
-<span class="material-symbols-outlined">settings</span>
-</button>
-<button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600">
-<span class="material-symbols-outlined">account_circle</span>
-</button>
-</div>
+
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 max-w-[1920px] mx-auto shadow-sm shadow-indigo-500/5">
+  <div class="flex items-center gap-8">
+    <span class="text-xl font-bold tracking-tight text-zinc-900">WordAI</span>
+    <nav class="hidden md:flex gap-6">
+      <a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Editor</a>
+      <a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Library</a>
+      <a class="text-zinc-500 hover:text-zinc-800 transition-colors" href="#">Archive</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative group">
+      <span class="material-symbols-outlined text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2">search</span>
+      <input class="bg-zinc-100/50 border-none rounded-md pl-10 pr-4 py-1.5 text-sm focus:ring-2 ring-indigo-500/20 w-48 transition-all group-hover:w-64" placeholder="Search..." type="text"/>
+    </div>
+    <button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600"><span class="material-symbols-outlined">settings</span></button>
+    <button class="p-2 hover:bg-zinc-100 rounded-md transition-all text-zinc-600"><span class="material-symbols-outlined">account_circle</span></button>
+  </div>
 </header>
-<!-- Modal Background Shade -->
+
 <div class="fixed inset-0 bg-on-surface/5 backdrop-blur-sm z-40"></div>
-<!-- Main Preferences Modal -->
+
 <main class="relative z-50 w-full max-w-5xl h-[870px] bg-surface-container-lowest rounded-xl flex overflow-hidden aurasphere-glow ring-1 ring-outline-variant/10">
-<!-- Side Navigation (The Sidebar) -->
-<aside class="flex flex-col w-64 h-full py-6 px-4 gap-2 bg-zinc-50 border-r border-zinc-200/20">
-<div class="mb-8 px-2">
-<h1 class="text-lg font-black text-zinc-900 tracking-tight">Preferences</h1>
-<p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mt-1">System Configuration</p>
-</div>
-<nav class="flex-1 flex flex-col gap-1.5">
-<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
-<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
-                    General
-                </button>
-<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm border-r-4 border-indigo-500 scale-[1.02]">
-<span class="material-symbols-outlined text-[20px]" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
-                    AI Engine
-                </button>
-<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
-<span class="material-symbols-outlined text-[20px]" data-icon="format_size">format_size</span>
-                    Typography
-                </button>
-<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
-<span class="material-symbols-outlined text-[20px]" data-icon="security">security</span>
-                    Privacy
-                </button>
-</nav>
-<div class="mt-auto px-2">
-<div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
-<p class="text-xs font-semibold text-primary mb-1">AuraSphere Pro</p>
-<p class="text-[11px] text-zinc-500 leading-relaxed">Unlock larger context windows and exclusive models.</p>
-</div>
-</div>
-</aside>
-<!-- Content Area -->
-<section class="flex-1 flex flex-col overflow-hidden bg-white">
-<!-- Modal Header -->
-<header class="h-16 flex items-center justify-between px-8 border-b border-outline-variant/5">
-<div class="flex items-center gap-4">
-<h2 class="text-lg font-bold tracking-tight">AI Engine Settings</h2>
-<span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Active</span>
-</div>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">search</span>
-<input class="text-xs bg-surface-container-low border-none rounded-full py-2 pl-9 pr-4 w-48 focus:ring-1 ring-primary/20 transition-all" placeholder="Search setting..." type="text"/>
-</div>
-</header>
-<!-- Scrollable Content -->
-<div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-<!-- Hero Style Setting Group (Model Selection) -->
-<div class="space-y-4">
-<div class="flex items-center justify-between">
-<div>
-<h3 class="text-sm font-bold text-zinc-900">Default Model</h3>
-<p class="text-xs text-zinc-500">The primary intelligence engine for your document generation.</p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4">
-<label class="relative group cursor-pointer">
-<input checked="" class="peer hidden" name="model" type="radio"/>
-<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300">
-<div class="flex justify-between items-start mb-2">
-<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
-<div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-</div>
-<h4 class="text-sm font-bold text-zinc-900">Aura-4-Turbo</h4>
-<p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Optimized for speed and efficiency. Best for daily drafting.</p>
-</div>
-</label>
-<label class="relative group cursor-pointer">
-<input class="peer hidden" name="model" type="radio"/>
-<div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300">
-<div class="flex justify-between items-start mb-2">
-<span class="material-symbols-outlined text-zinc-400" data-icon="diamond">diamond</span>
-<div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-</div>
-<h4 class="text-sm font-bold text-zinc-900">Aura-Pro</h4>
-<p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Maximum reasoning power. Ideal for complex research.</p>
-</div>
-</label>
-</div>
-</div>
-<!-- Sliders Section -->
-<div class="space-y-8 bg-surface-container-low/50 p-6 rounded-2xl">
-<!-- Creativity Slider -->
-<div class="space-y-4">
-<div class="flex justify-between items-end">
-<div>
-<h3 class="text-sm font-bold text-zinc-900">AI Creativity Level</h3>
-<p class="text-xs text-zinc-500">Adjust the variance of the model's output.</p>
-</div>
-<span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">Medium-High</span>
-</div>
-<div class="relative pt-6 px-1">
-<input class="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer" max="100" min="0" type="range" value="75"/>
-<div class="flex justify-between mt-3 text-[10px] font-medium text-zinc-400 tracking-wider uppercase">
-<span>Precise</span>
-<span>Balanced</span>
-<span>Creative</span>
-</div>
-</div>
-</div>
-<!-- Context Window Slider -->
-<div class="space-y-4">
-<div class="flex justify-between items-end">
-<div>
-<h3 class="text-sm font-bold text-zinc-900">Context Window</h3>
-<p class="text-xs text-zinc-500">Maximum history the AI considers per interaction.</p>
-</div>
-<span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">16k Tokens</span>
-</div>
-<div class="relative pt-6 px-1">
-<input class="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer" max="32000" min="2000" step="2000" type="range" value="16000"/>
-<div class="flex justify-between mt-3 text-[10px] font-medium text-zinc-400 tracking-wider uppercase">
-<span>2k</span>
-<span>16k</span>
-<span>32k</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Dropdowns and Toggles -->
-<div class="grid grid-cols-2 gap-8">
-<div class="space-y-2">
-<label class="text-sm font-bold text-zinc-900">Response Language</label>
-<div class="relative">
-<select class="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm appearance-none focus:ring-2 ring-primary/20">
-<option value="auto">Auto (Detect Language)</option>
-<option value="en">English (Global)</option>
-<option value="vi">Vietnamese (Tiếng Việt)</option>
-</select>
-<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">unfold_more</span>
-</div>
-<p class="text-[10px] text-zinc-400 italic">Overrides document language settings for AI responses.</p>
-</div>
-<div class="space-y-4">
-<label class="text-sm font-bold text-zinc-900">Knowledge Integration</label>
-<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-xl">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-primary text-xl" data-icon="cloud_sync">cloud_sync</span>
-<span class="text-xs font-medium">Real-time Web Access</span>
-</div>
-<button class="w-10 h-5 bg-primary rounded-full relative transition-colors">
-<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
-</button>
-</div>
-</div>
-</div>
-<!-- Visual Asset / Informational -->
-<div class="relative h-32 rounded-2xl overflow-hidden group">
-<div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-container opacity-90"></div>
-<img alt="Abstract flowing liquid gradient" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay" data-alt="smooth liquid gradient flowing from deep violet to cobalt blue with soft iridescent glow and micrograin texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAYR3dCvRc5hmiXgA96XCy3Wpts38li_I-MZriFWxB-1x-q-yGWHOHE6VE7NiyzHNzEse0zuu9faLy00YdpDU2SWMtZ4E8NH-HUIEuBvqYpH6V8Y28mzo0F2udrSpqcoAZE-_1-eyLQXka1d4d8KG9-_-Unvo8G-VGMwi4sp4CtFZnBJzk49LyYbOXgsKv1QmB7lQLMPbJlIAwxs3b0fMx68yXGojFSUGwe1k_rVaSSQB5PgTv7baSpDxxRUWN-k7wM_TRR5H9Rxo"/>
-<div class="relative h-full flex items-center justify-between px-8 text-white">
-<div class="max-w-[60%]">
-<h4 class="text-sm font-extrabold tracking-tight">Optimizing AuraSphere</h4>
-<p class="text-[11px] opacity-80 mt-1 leading-relaxed">The AI Engine adapts its reasoning based on your typography choices and document structure.</p>
-</div>
-<button class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/30 transition-all">View Analytics</button>
-</div>
-</div>
-</div>
-<!-- Modal Footer -->
-<footer class="h-20 flex items-center justify-between px-8 bg-zinc-50 border-t border-outline-variant/10">
-<button class="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase tracking-widest">
-                    Restore Defaults
-                </button>
-<div class="flex gap-3">
-<button class="px-6 py-2.5 text-xs font-bold text-zinc-600 hover:bg-zinc-200 transition-all rounded-lg">
-                        Cancel
-                    </button>
-<button class="px-8 py-2.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary-container shadow-lg shadow-primary/20 transition-all rounded-lg">
-                        Apply Changes
-                    </button>
-</div>
-</footer>
-</section>
+
+  <aside class="flex flex-col w-64 h-full py-6 px-4 gap-2 bg-zinc-50 border-r border-zinc-200/20">
+    <div class="mb-8 px-2">
+      <h1 class="text-lg font-black text-zinc-900 tracking-tight">Preferences</h1>
+      <p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mt-1">System Configuration</p>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1.5">
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+        <span class="material-symbols-outlined text-[20px]">settings</span>General
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-white text-indigo-600 shadow-sm border-r-4 border-indigo-500 scale-[1.02]">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">psychology</span>AI Engine
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+        <span class="material-symbols-outlined text-[20px]">format_size</span>Typography
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-zinc-500 hover:bg-zinc-100 hover:translate-x-1">
+        <span class="material-symbols-outlined text-[20px]">security</span>Privacy
+      </button>
+    </nav>
+    <div class="mt-auto px-2">
+      <div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
+        <p class="text-xs font-semibold text-primary mb-1">AuraSphere Pro</p>
+        <p class="text-[11px] text-zinc-500 leading-relaxed">Unlock larger context windows and exclusive models.</p>
+      </div>
+    </div>
+  </aside>
+
+  <section class="flex-1 flex flex-col overflow-hidden bg-white">
+
+    <header class="h-16 flex items-center justify-between px-8 border-b border-outline-variant/5">
+      <div class="flex items-center gap-4">
+        <h2 class="text-lg font-bold tracking-tight text-on-surface">AI Engine Settings</h2>
+        <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Active</span>
+      </div>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">search</span>
+        <input class="text-xs bg-surface-container-low border-none rounded-full py-2 pl-9 pr-4 w-48 focus:ring-1 ring-primary/20 transition-all" placeholder="Search preference..." type="text"/>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+
+      <div>
+        <span class="text-[10px] font-bold tracking-widest text-primary uppercase mb-2 block">Intelligence Core</span>
+        <h3 class="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Cognitive Engine</h3>
+        <p class="text-on-surface-variant mt-4 max-w-2xl editor-font text-lg italic opacity-80">"Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-zinc-900">Connect your agent</h3>
+            <p class="text-xs text-zinc-500">The primary intelligence engine for your document generation.</p>
+          </div>
+          <span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">Claude Active</span>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <label class="relative group cursor-pointer">
+            <input class="peer hidden" name="agent" type="radio" value="codex"/>
+            <div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300 h-full">
+              <div class="flex justify-between items-start mb-3">
+                <div class="w-9 h-9 rounded-lg bg-zinc-200/70 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <span class="material-symbols-outlined text-zinc-400 group-hover:text-primary transition-colors text-[20px]">terminal</span>
+                </div>
+                <div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity mt-1"></div>
+              </div>
+              <h4 class="text-sm font-bold text-zinc-900">Codex</h4>
+              <p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Advanced code generation and logic.</p>
+            </div>
+          </label>
+          <label class="relative group cursor-pointer">
+            <input checked class="peer hidden" name="agent" type="radio" value="claude"/>
+            <div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300 h-full">
+              <div class="flex justify-between items-start mb-3">
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">neurology</span>
+                </div>
+                <div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity mt-1"></div>
+              </div>
+              <h4 class="text-sm font-bold text-zinc-900">Claude Agent</h4>
+              <p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Nuanced reasoning and long context.</p>
+            </div>
+          </label>
+          <label class="relative group cursor-pointer">
+            <input class="peer hidden" name="agent" type="radio" value="gemini"/>
+            <div class="p-4 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300 h-full">
+              <div class="flex justify-between items-start mb-3">
+                <div class="w-9 h-9 rounded-lg bg-zinc-200/70 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <span class="material-symbols-outlined text-zinc-400 group-hover:text-primary transition-colors text-[20px]">token</span>
+                </div>
+                <div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity mt-1"></div>
+              </div>
+              <h4 class="text-sm font-bold text-zinc-900">Gemini CLI</h4>
+              <p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">High-performance multimodal tasks.</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-zinc-900">Aura Models</h3>
+          <span class="text-[10px] font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded uppercase tracking-wider">Pro Required for Aura-Pro</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="relative group cursor-pointer">
+            <input checked class="peer hidden" name="model" type="radio" value="aura-turbo"/>
+            <div class="p-5 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                </div>
+                <div class="w-2 h-2 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity mt-1"></div>
+              </div>
+              <h4 class="text-sm font-bold text-zinc-900">Aura-4-Turbo</h4>
+              <p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Optimized for speed and efficiency. Best for daily drafting.</p>
+              <div class="mt-3 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Available</span>
+              </div>
+            </div>
+          </label>
+          <label class="relative group cursor-pointer">
+            <input class="peer hidden" name="model" type="radio" value="aura-pro"/>
+            <div class="p-5 rounded-xl border-2 border-transparent bg-surface-container-low peer-checked:bg-primary/5 peer-checked:border-primary/40 transition-all duration-300 opacity-60 group-hover:opacity-80">
+              <div class="flex justify-between items-start mb-3">
+                <div class="w-9 h-9 rounded-lg bg-zinc-200/70 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-zinc-400 text-[20px]">diamond</span>
+                </div>
+                <span class="text-[9px] font-black text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Pro</span>
+              </div>
+              <h4 class="text-sm font-bold text-zinc-900">Aura-Pro</h4>
+              <p class="text-[11px] text-zinc-500 mt-1 leading-relaxed">Maximum reasoning power. Ideal for complex research.</p>
+              <div class="mt-3 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Upgrade Required</span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="space-y-8 bg-surface-container-low/50 p-6 rounded-2xl border border-outline-variant/5">
+        <div class="space-y-3">
+          <div class="flex justify-between items-end">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-900">AI Creativity Level</h3>
+              <p class="text-xs text-zinc-500">Adjust the variance of the model's output.</p>
+            </div>
+            <span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">Medium-High</span>
+          </div>
+          <div class="px-1">
+            <input class="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer" max="100" min="0" type="range" value="75"/>
+            <div class="flex justify-between mt-2 text-[10px] font-medium text-zinc-400 tracking-wider uppercase">
+              <span>Precise</span><span>Balanced</span><span>Creative</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-outline-variant/10"></div>
+        <div class="space-y-3">
+          <div class="flex justify-between items-end">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-900">Context Window</h3>
+              <p class="text-xs text-zinc-500">Maximum history the AI considers per interaction.</p>
+            </div>
+            <span class="text-[10px] font-bold text-primary bg-primary-container/20 px-2 py-1 rounded">16k Tokens</span>
+          </div>
+          <div class="px-1">
+            <input class="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer" max="32000" min="2000" step="2000" type="range" value="16000"/>
+            <div class="flex justify-between mt-2 text-[10px] font-medium text-zinc-400 tracking-wider uppercase">
+              <span>2k</span><span>16k</span><span>32k</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-zinc-900">Response Language</label>
+          <div class="relative">
+            <select class="w-full bg-surface-container-low border-none rounded-xl py-3 px-4 text-sm appearance-none focus:ring-2 ring-primary/20">
+              <option value="auto">Auto (Detect Language)</option>
+              <option value="en">English (Global)</option>
+              <option value="vi">Vietnamese (Tieng Viet)</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none text-[18px]">unfold_more</span>
+          </div>
+          <p class="text-[10px] text-zinc-400 italic">Overrides document language settings for AI responses.</p>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-zinc-900">Knowledge Integration</label>
+          <div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">cloud_sync</span>
+              <div>
+                <span class="text-xs font-semibold text-zinc-800 block">Real-time Web Access</span>
+                <span class="text-[10px] text-zinc-400">Live data retrieval</span>
+              </div>
+            </div>
+            <button class="w-10 h-5 bg-primary rounded-full relative transition-colors flex-shrink-0">
+              <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full shadow-sm"></div>
+            </button>
+          </div>
+          <p class="text-[10px] text-zinc-400 italic">Allows the AI to fetch current information during generation.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="h-20 flex items-center justify-between px-8 bg-zinc-50 border-t border-outline-variant/10 flex-shrink-0">
+      <button class="text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase tracking-widest">Restore Defaults</button>
+      <div class="flex gap-3">
+        <button class="px-6 py-2.5 text-xs font-bold text-zinc-600 hover:bg-zinc-200 transition-all rounded-lg">Cancel</button>
+        <button class="px-8 py-2.5 text-xs font-bold bg-primary text-on-primary hover:bg-primary-container shadow-lg shadow-primary/20 transition-all rounded-lg flex items-center gap-2">
+          Apply Changes
+          <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+        </button>
+      </div>
+    </footer>
+
+  </section>
 </main>
-<!-- Contextual "AuraSphere" Float (Decorative Brand Element) -->
+
 <div class="fixed bottom-12 right-12 w-32 h-32 bg-primary/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
 <div class="fixed top-12 left-12 w-48 h-48 bg-indigo-500/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
-</body></html>
+
+</body>
+</html>

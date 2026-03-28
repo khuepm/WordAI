@@ -185,41 +185,132 @@ function GeneralTab() {
 
 // ─── Tab: AI Engine ──────────────────────────────────────────────────────────
 
+function AgentIconBox({ icon, active, fill }: { icon: string; active: boolean; fill?: boolean }) {
+  return (
+    <div style={{
+      width: '36px', height: '36px', borderRadius: '0.5rem', flexShrink: 0,
+      background: active ? 'rgba(67,67,213,0.1)' : 'rgba(212,212,216,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'background 0.15s',
+    }}>
+      <span className="material-symbols-outlined" style={{
+        fontSize: '20px', color: active ? '#4343d5' : '#a1a1aa',
+        fontVariationSettings: fill ? "'FILL' 1" : "'FILL' 0",
+      }}>{icon}</span>
+    </div>
+  );
+}
+
 function AIEngineTab() {
+  const [selectedAgent, setSelectedAgent] = useState<string>('claude');
+  const [selectedModel, setSelectedModel] = useState<string>('aura-turbo');
+
+  const agents = [
+    { id: 'codex', icon: 'terminal', label: 'Codex', desc: 'Advanced code generation and logic.' },
+    { id: 'claude', icon: 'neurology', label: 'Claude Agent', desc: 'Nuanced reasoning and long context.', fill: true },
+    { id: 'gemini', icon: 'token', label: 'Gemini CLI', desc: 'High-performance multimodal tasks.' },
+  ];
+
+  const models = [
+    { id: 'aura-turbo', icon: 'auto_awesome', label: 'Aura-4-Turbo', desc: 'Optimized for speed and efficiency. Best for daily drafting.', status: 'Available', statusColor: '#10b981', pro: false },
+    { id: 'aura-pro', icon: 'diamond', label: 'Aura-Pro', desc: 'Maximum reasoning power. Ideal for complex research.', status: 'Upgrade Required', statusColor: '#a1a1aa', pro: true },
+  ];
+
+  const sliders = [
+    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'] },
+    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'] },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-      {/* Default Model */}
+
+      {/* Intro */}
       <div>
-        <SectionHeader label="Default Model" description="The primary intelligence engine for your document generation." />
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Intelligence Core</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Cognitive Engine</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8, margin: '1rem 0 0' }}>
+          "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."
+        </p>
+      </div>
+
+      {/* Connect Agent */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div>
+            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Connect your agent</h3>
+            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>The primary intelligence engine for your document generation.</p>
+          </div>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>Claude Active</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+          {agents.map(a => {
+            const active = selectedAgent === a.id;
+            return (
+              <label key={a.id} style={{ cursor: 'pointer' }}>
+                <input type="radio" name="pref-agent" checked={active} onChange={() => setSelectedAgent(a.id)} style={{ display: 'none' }} />
+                <div style={{
+                  padding: '1rem', borderRadius: '0.75rem', height: '100%', boxSizing: 'border-box',
+                  background: active ? 'rgba(67,67,213,0.05)' : '#f3f4f5',
+                  border: active ? '2px solid rgba(67,67,213,0.4)' : '2px solid transparent',
+                  transition: 'all 0.2s',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <AgentIconBox icon={a.icon} active={active} fill={a.fill} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
+                  </div>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 4px', color: '#18181b' }}>{a.label}</h4>
+                  <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5, margin: 0 }}>{a.desc}</p>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Aura Models */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Aura Models</h3>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro Required for Aura-Pro</span>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          {[
-            { name: 'Aura-4-Turbo', icon: 'auto_awesome', desc: 'Optimized for speed and efficiency. Best for daily drafting.', active: true },
-            { name: 'Aura-Pro', icon: 'diamond', desc: 'Maximum reasoning power. Ideal for complex research.', active: false },
-          ].map(m => (
-            <label key={m.name} style={{ cursor: 'pointer' }}>
-              <input type="radio" name="pref-model" defaultChecked={m.active} style={{ display: 'none' }} />
-              <div style={{
-                padding: '1rem', borderRadius: '0.75rem',
-                background: m.active ? 'rgba(67,67,213,0.05)' : '#f3f4f5',
-                border: m.active ? '2px solid rgba(67,67,213,0.4)' : '2px solid transparent',
-              }}>
-                <span className="material-symbols-outlined" style={{ color: m.active ? '#4343d5' : '#a1a1aa', fontSize: '24px' }}>{m.icon}</span>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0.5rem 0 0.25rem' }}>{m.name}</h4>
-                <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5, margin: 0 }}>{m.desc}</p>
-              </div>
-            </label>
-          ))}
+          {models.map(m => {
+            const active = selectedModel === m.id;
+            return (
+              <label key={m.id} style={{ cursor: m.pro ? 'not-allowed' : 'pointer' }}>
+                <input type="radio" name="pref-model" checked={active} onChange={() => !m.pro && setSelectedModel(m.id)} style={{ display: 'none' }} />
+                <div style={{
+                  padding: '1.25rem', borderRadius: '0.75rem',
+                  background: active ? 'rgba(67,67,213,0.05)' : '#f3f4f5',
+                  border: active ? '2px solid rgba(67,67,213,0.4)' : '2px solid transparent',
+                  opacity: m.pro ? 0.6 : 1, transition: 'all 0.2s',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <AgentIconBox icon={m.icon} active={active && !m.pro} fill={!m.pro} />
+                    {m.pro
+                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>
+                      : <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
+                    }
+                  </div>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 4px', color: '#18181b' }}>{m.label}</h4>
+                  <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5, margin: '0 0 0.75rem' }}>{m.desc}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.statusColor }} />
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: m.statusColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.status}</span>
+                  </div>
+                </div>
+              </label>
+            );
+          })}
         </div>
       </div>
 
       {/* Sliders */}
-      <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {[
-          { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'] },
-          { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'] },
-        ].map(s => (
+      <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {sliders.map((s, i) => (
           <div key={s.label}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+            {i > 0 && <div style={{ borderTop: '1px solid rgba(199,196,215,0.2)', marginBottom: '1.5rem' }} />}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
                 <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{s.desc}</p>
@@ -236,39 +327,35 @@ function AIEngineTab() {
       </div>
 
       {/* Language + Knowledge */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
         <div>
           <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Response Language</label>
           <div style={{ position: 'relative' }}>
-            <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none' }}>
+            <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
               <option>Auto (Detect Language)</option>
               <option>English (Global)</option>
               <option>Vietnamese (Tiếng Việt)</option>
             </select>
-            <span className="material-symbols-outlined" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', pointerEvents: 'none', fontSize: '20px' }}>unfold_more</span>
+            <span className="material-symbols-outlined" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', pointerEvents: 'none', fontSize: '18px' }}>unfold_more</span>
           </div>
           <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Overrides document language settings for AI responses.</p>
         </div>
         <div>
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>Knowledge Integration</label>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Knowledge Integration</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '20px' }}>cloud_sync</span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Real-time Web Access</span>
+              <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>cloud_sync</span>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>Real-time Web Access</span>
+                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>Live data retrieval</span>
+              </div>
             </div>
             <Toggle checked={true} />
           </div>
+          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Allows the AI to fetch current information during generation.</p>
         </div>
       </div>
 
-      {/* Banner */}
-      <div style={{ borderRadius: '1rem', overflow: 'hidden', background: 'linear-gradient(to right, #4343d5, #5d5fef)', padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff', margin: '0 0 4px' }}>Optimizing AuraSphere</h4>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: 0 }}>The AI Engine adapts its reasoning based on your typography choices and document structure.</p>
-        </div>
-        <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>View Analytics</button>
-      </div>
     </div>
   );
 }
