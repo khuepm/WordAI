@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppStateProvider } from './services/stateManager';
+import { PreferencesProvider } from './services/preferences';
 import App from './App';
 
 // ─── Tauri mock ───────────────────────────────────────────────────────────────
@@ -38,7 +39,9 @@ function makeRawDocument(overrides: Record<string, unknown> = {}) {
 function renderApp() {
   return render(
     <AppStateProvider>
-      <App />
+      <PreferencesProvider>
+        <App />
+      </PreferencesProvider>
     </AppStateProvider>
   );
 }

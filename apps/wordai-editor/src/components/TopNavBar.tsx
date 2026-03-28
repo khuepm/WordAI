@@ -8,9 +8,10 @@ interface TopNavBarProps {
   hasUnsavedChanges: boolean;
   onNew: () => void;
   onSave: () => void;
+  onOpenPreferences: () => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences }: TopNavBarProps) {
   return (
     <>
       <header
@@ -126,6 +127,9 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave }: T
               justifyContent: 'center',
               color: 'var(--md-sys-color-on-surface-variant)',
             }}
+            onClick={onOpenPreferences}
+            title="Open preferences"
+            data-testid="settings-button"
           >
             <span className="material-symbols-outlined">settings</span>
           </button>

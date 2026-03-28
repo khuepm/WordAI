@@ -13,6 +13,7 @@ const defaultProps = {
   hasUnsavedChanges: false,
   onNew: vi.fn(),
   onSave: vi.fn(),
+  onOpenPreferences: vi.fn(),
 };
 
 beforeEach(() => {
@@ -57,5 +58,13 @@ describe('TopNavBar - actions', () => {
     render(<TopNavBar {...defaultProps} onSave={onSave} />);
     await user.click(screen.getByTestId('save-button'));
     expect(onSave).toHaveBeenCalledOnce();
+  });
+
+  it('clicking settings opens preferences', async () => {
+    const onOpenPreferences = vi.fn();
+    const user = userEvent.setup();
+    render(<TopNavBar {...defaultProps} onOpenPreferences={onOpenPreferences} />);
+    await user.click(screen.getByTestId('settings-button'));
+    expect(onOpenPreferences).toHaveBeenCalledOnce();
   });
 });

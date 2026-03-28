@@ -3,7 +3,7 @@
  * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
@@ -14,13 +14,13 @@ import { TopNavBar } from './components/TopNavBar';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
+import { usePreferences } from './services/preferences';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
 import { ensureBlockValue, extractPlainText, replaceTextInBlockValue } from './utils/blockText';
+import PreferencesDialog from './components/PreferencesDialog';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
-const FONT_SIZE_KEY = 'wordai_font_size';
-const DEFAULT_FONT_SIZE = 18;
 
 function App() {
   const {
@@ -40,15 +40,18 @@ function App() {
     setAiServiceStatus,
   } = useAppState();
 
-  const [fontSize, setFontSize] = useState<number>(() => {
-    const stored = localStorage.getItem(FONT_SIZE_KEY);
-    return stored ? Number(stored) : DEFAULT_FONT_SIZE;
-  });
+  const { preferences, updateEditor } = usePreferences();
 
   const handleFontSizeChange = useCallback((size: number) => {
-    setFontSize(size);
-    localStorage.setItem(FONT_SIZE_KEY, String(size));
-  }, []);
+    const clamped = Math.min(28, Math.max(12, size));
+    updateEditor({ fontSize: clamped });
+  }, [updateEditor]);
+
+  const fontSize = useMemo(() => preferences.editor.fontSize, [preferences.editor.fontSize]);
+
+  const [isPreferencesOpen, setPreferencesOpen] = useState(false);
+  const openPreferences = useCallback(() => setPreferencesOpen(true), []);
+  const closePreferences = useCallback(() => setPreferencesOpen(false), []);
 
   const {
     document,
@@ -222,6 +225,7 @@ function App() {
         hasUnsavedChanges={hasUnsavedChanges}
         onNew={handleNew}
         onSave={triggerSave}
+        onOpenPreferences={openPreferences}
       />
       {/* AI service unavailable banner (Req 25.5) */}
       {aiServiceAvailable === false && (
@@ -266,8 +270,8 @@ function App() {
               Retry
             </button>
             <button
-              data-testid="ai-service-retry-button"
-              onClick={checkAIHealth}
+              data-testid="open-preferences-banner"
+              onClick={openPreferences}
               style={{
                 background: 'var(--md-sys-color-error)',
                 color: 'var(--md-sys-color-on-error)',
@@ -336,6 +340,7 @@ function App() {
           <span className="material-symbols-outlined">history</span>
         </button>
         <button
+          onClick={openPreferences}
           style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
           title="Settings"
         >
@@ -394,6 +399,7 @@ function App() {
           documentId={document.id}
           onRestore={handleVersionRestore}
         />
+        <PreferencesDialog isOpen={isPreferencesOpen} onClose={closePreferences} />
       </div>
 
     </div>
