@@ -187,41 +187,32 @@ export function NegotiationPanel({
       >
         {/* Header */}
         <div style={styles.header}>
-          <span style={styles.title}>Review Suggestion</span>
-          <button
-            style={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Close negotiation panel"
-          >
-            ✕
+          <span style={styles.title}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>compare_arrows</span>
+            So sánh đề xuất AI
+          </span>
+          <button style={styles.closeBtn} onClick={onClose} aria-label="Close negotiation panel">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
           </button>
         </div>
 
-        {/* Explanation */}
-        {suggestion.explanation && (
-          <p style={styles.explanation}>{suggestion.explanation}</p>
-        )}
-
-        {/* Text comparison (Req 8.2, 8.3, 8.4) */}
+        {/* Text comparison */}
         <div style={styles.comparisonRow}>
           {/* Original */}
-          <div style={styles.comparisonCol}>
-            <div style={styles.colLabel}>Original</div>
-            <div
-              data-testid="original-text"
-              style={styles.textBox}
-            >
+          <div style={{ ...styles.comparisonCol, background: 'var(--md-sys-color-surface-container)' }}>
+            <div style={styles.colLabel}>Bản gốc</div>
+            <div data-testid="original-text" style={styles.textBox}>
               <OriginalDiff tokens={diffTokens} />
             </div>
           </div>
 
-          {/* Suggested / Edited */}
-          <div style={styles.comparisonCol}>
-            <div style={styles.colLabel}>Suggested</div>
-            <div
-              data-testid="suggested-text"
-              style={styles.textBox}
-            >
+          {/* Suggested */}
+          <div style={{ ...styles.comparisonCol, background: '#f1f8f1', borderLeft: '1px solid rgba(199,196,215,0.1)' }}>
+            <div style={{ ...styles.colLabel, color: '#2d5a27' }}>
+              Bản AI đề xuất
+              <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#2d5a27', marginLeft: '4px', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+            </div>
+            <div data-testid="suggested-text" style={{ ...styles.textBox, color: '#1e3a1a' }}>
               {isEditMode ? (
                 <textarea
                   data-testid="edit-textarea"
@@ -237,29 +228,17 @@ export function NegotiationPanel({
           </div>
         </div>
 
-        {/* Action buttons */}
+        {/* Action footer */}
         <div style={styles.actions}>
-          <button
-            data-testid="accept-button"
-            style={{ ...styles.btn, ...styles.btnAccept }}
-            onClick={handleAccept}
-          >
-            Accept
-          </button>
-          <button
-            data-testid="edit-button"
-            style={{ ...styles.btn, ...styles.btnEdit }}
-            onClick={handleToggleEdit}
-          >
-            {isEditMode ? 'Preview' : 'Edit'}
-          </button>
-          <button
-            data-testid="reject-button"
-            style={{ ...styles.btn, ...styles.btnReject }}
-            onClick={handleReject}
-          >
-            Reject
-          </button>
+          {suggestion.explanation && (
+            <p style={{ ...styles.explanation, flex: 1 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>info</span>
+              {suggestion.explanation}
+            </p>
+          )}
+          <button data-testid="reject-button" style={{ ...styles.btn, ...styles.btnReject }} onClick={handleReject}>Hủy bỏ</button>
+          <button data-testid="edit-button" style={{ ...styles.btn, ...styles.btnEdit }} onClick={handleToggleEdit}>{isEditMode ? 'Preview' : 'Yêu cầu lại'}</button>
+          <button data-testid="accept-button" style={{ ...styles.btn, ...styles.btnAccept }} onClick={handleAccept}>Chấp nhận</button>
         </div>
       </div>
     </div>
@@ -273,128 +252,145 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'fixed',
     inset: 0,
     zIndex: 200,
-    background: 'rgba(0, 0, 0, 0.35)',
+    background: 'rgba(25, 28, 29, 0.1)',
     backdropFilter: 'blur(4px)',
     WebkitBackdropFilter: 'blur(4px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: '1rem',
   },
   modal: {
-    background: 'rgba(254, 247, 255, 0.75)',
-    backdropFilter: 'blur(var(--glass-blur))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur))',
-    border: '1px solid var(--glass-border)',
-    boxShadow: 'var(--shadow-ambient-strong)',
-    borderRadius: 'var(--radius-xl)',
-    padding: 'var(--spacing-lg)',
-    width: '680px',
+    background: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(199, 196, 215, 0.2)',
+    boxShadow: '0 40px 60px -5px rgba(0,0,0,0.1)',
+    borderRadius: '1rem',
+    width: '700px',
     maxWidth: '90vw',
+    height: '400px',
     maxHeight: '80vh',
-    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
     fontFamily: 'var(--font-family-ui)',
-    // Fade-in animation (Req 20.3)
     animation: 'negotiation-fade-in 200ms ease-out',
-    opacity: 1,
-    transition: 'opacity 200ms ease-out',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 'var(--spacing-sm)',
+    padding: '1rem 1.5rem',
+    background: 'rgba(243, 244, 245, 0.5)',
+    borderBottom: '1px solid rgba(199, 196, 215, 0.1)',
+    flexShrink: 0,
   },
   title: {
     fontSize: 'var(--font-size-base)',
-    fontWeight: 600,
+    fontWeight: 700,
     color: 'var(--md-sys-color-on-surface)',
     fontFamily: 'var(--font-family-ui)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
   },
   closeBtn: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
     color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-base)',
-    padding: 'var(--spacing-xs)',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '4px',
     borderRadius: 'var(--radius-sm)',
-    lineHeight: 1,
   },
   explanation: {
-    margin: '0 0 var(--spacing-md)',
-    fontSize: 'var(--font-size-sm)',
+    margin: '0',
+    fontSize: 'var(--font-size-xs)',
     color: 'var(--md-sys-color-on-surface-variant)',
     fontFamily: 'var(--font-family-ui)',
+    fontStyle: 'italic',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
   },
   comparisonRow: {
     display: 'flex',
-    gap: 'var(--spacing-md)',
-    marginBottom: 'var(--spacing-md)',
+    flex: 1,
+    overflow: 'hidden',
   },
   comparisonCol: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: 'var(--spacing-xs)',
+    overflow: 'hidden',
   },
   colLabel: {
-    fontSize: 'var(--font-size-xs)',
-    fontWeight: 600,
+    fontSize: '0.6rem',
+    fontWeight: 700,
     color: 'var(--md-sys-color-on-surface-variant)',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    fontFamily: 'var(--font-family-ui)',
+    letterSpacing: '0.12em',
+    fontFamily: 'var(--font-family-label)',
+    opacity: 0.6,
+    padding: '1rem 1.5rem 0.5rem',
   },
   textBox: {
-    background: 'rgba(255, 255, 255, 0.5)',
-    border: '1px solid var(--md-sys-color-outline-variant)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm)',
+    flex: 1,
+    padding: '0.5rem 1.5rem 1.5rem',
     fontSize: 'var(--font-size-sm)',
     color: 'var(--md-sys-color-on-surface)',
     fontFamily: 'var(--font-family-content)',
-    lineHeight: 'var(--line-height-relaxed)',
-    minHeight: '80px',
+    lineHeight: '1.8',
+    overflowY: 'auto',
     wordBreak: 'break-word',
   },
   editTextarea: {
     width: '100%',
-    minHeight: '80px',
+    height: '100%',
     border: 'none',
     outline: 'none',
     background: 'transparent',
     fontFamily: 'var(--font-family-content)',
     fontSize: 'var(--font-size-sm)',
     color: 'var(--md-sys-color-on-surface)',
-    lineHeight: 'var(--line-height-relaxed)',
-    resize: 'vertical',
+    lineHeight: '1.8',
+    resize: 'none',
     boxSizing: 'border-box',
   },
   actions: {
     display: 'flex',
     gap: 'var(--spacing-sm)',
     justifyContent: 'flex-end',
+    alignItems: 'center',
+    padding: '1rem 1.5rem',
+    borderTop: '1px solid rgba(199, 196, 215, 0.1)',
+    background: 'var(--md-sys-color-surface-container-lowest)',
+    flexShrink: 0,
   },
   btn: {
     border: 'none',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-xs) var(--spacing-md)',
+    borderRadius: 'var(--radius-lg)',
+    padding: '8px 16px',
     cursor: 'pointer',
     fontFamily: 'var(--font-family-ui)',
     fontSize: 'var(--font-size-sm)',
-    fontWeight: 500,
+    fontWeight: 600,
     transition: 'opacity var(--transition-fast)',
   },
   btnAccept: {
     background: 'var(--md-sys-color-primary)',
     color: 'var(--md-sys-color-on-primary)',
+    padding: '8px 24px',
+    boxShadow: '0 4px 12px rgba(67,67,213,0.2)',
   },
   btnEdit: {
-    background: 'var(--md-sys-color-secondary-container)',
-    color: 'var(--md-sys-color-on-secondary-container)',
+    background: 'transparent',
+    color: 'var(--md-sys-color-primary)',
   },
   btnReject: {
-    background: 'var(--md-sys-color-surface-variant)',
+    background: 'transparent',
     color: 'var(--md-sys-color-on-surface-variant)',
   },
 };

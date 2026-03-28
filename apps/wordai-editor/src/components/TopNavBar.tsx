@@ -12,102 +12,144 @@ interface TopNavBarProps {
 
 export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave }: TopNavBarProps) {
   return (
-    <div
-      data-testid="top-nav-bar"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '48px',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 var(--spacing-lg)',
-        background: 'rgba(254, 247, 255, 0.82)',
-        backdropFilter: `blur(var(--glass-blur))`,
-        WebkitBackdropFilter: `blur(var(--glass-blur))`,
-        borderBottom: '1px solid var(--glass-border)',
-        boxShadow: 'var(--shadow-ambient)',
-        fontFamily: 'var(--font-family-ui)',
-      }}
-    >
-      {/* Left: App title */}
-      <span
-        data-testid="app-title"
+    <>
+      <header
+        data-testid="top-nav-bar"
         style={{
-          fontWeight: 700,
-          fontSize: 'var(--font-size-base)',
-          color: 'var(--md-sys-color-primary)',
-          letterSpacing: '0.02em',
-          minWidth: '80px',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 'var(--topnav-height)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 2rem',
+          background: 'var(--md-sys-color-surface)',
+          fontFamily: 'var(--font-family-ui)',
         }}
       >
-        WordAI
-      </span>
-
-      {/* Center: Document title */}
-      <span
-        data-testid="document-title"
-        style={{
-          fontSize: 'var(--font-size-sm)',
-          color: 'var(--md-sys-color-on-surface-variant)',
-          fontWeight: 500,
-          flex: 1,
-          textAlign: 'center',
-        }}
-      >
-        {documentTitle}
-        {hasUnsavedChanges && (
+        {/* Left: Logo + nav */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <span
-            data-testid="unsaved-indicator"
-            style={{ marginLeft: '4px', color: 'var(--md-sys-color-primary)' }}
-            aria-label="unsaved changes"
+            data-testid="app-title"
+            style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.01em' }}
           >
-            •
+            WordAI
           </span>
-        )}
-      </span>
+          <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <a
+              href="#"
+              style={{
+                color: 'var(--md-sys-color-primary)',
+                fontWeight: 600,
+                fontSize: 'var(--font-size-sm)',
+                textDecoration: 'none',
+                borderBottom: '2px solid var(--md-sys-color-primary)',
+                paddingBottom: '2px',
+              }}
+            >
+              Drafts
+            </a>
+            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>Archive</a>
+            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>Library</a>
+          </nav>
+        </div>
 
-      {/* Right: Menu buttons */}
-      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', minWidth: '80px', justifyContent: 'flex-end' }}>
-        <button
-          data-testid="new-button"
-          onClick={onNew}
+        {/* Center: doc title */}
+        <span
+          data-testid="document-title"
           style={{
-            background: 'transparent',
-            border: '1px solid var(--md-sys-color-outline-variant)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '4px 12px',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-family-ui)',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
             fontSize: 'var(--font-size-sm)',
             color: 'var(--md-sys-color-on-surface-variant)',
-            transition: 'var(--transition-fast)',
+            fontWeight: 500,
           }}
         >
-          New
-        </button>
-        <button
-          data-testid="save-button"
-          onClick={onSave}
-          style={{
-            background: 'var(--md-sys-color-primary)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            padding: '4px 12px',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-family-ui)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--md-sys-color-on-primary)',
-            transition: 'var(--transition-fast)',
-          }}
-        >
-          Save
-        </button>
-      </div>
-    </div>
+          {documentTitle}
+          {hasUnsavedChanges && (
+            <span data-testid="unsaved-indicator" style={{ marginLeft: '4px', color: 'var(--md-sys-color-primary)' }} aria-label="unsaved changes">•</span>
+          )}
+        </span>
+
+        {/* Right: actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            data-testid="save-button"
+            onClick={onSave}
+            style={{
+              background: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-on-primary)',
+              border: 'none',
+              borderRadius: 'var(--radius-lg)',
+              padding: '6px 16px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-ui)',
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 600,
+            }}
+          >
+            Render
+          </button>
+          <button
+            data-testid="new-button"
+            onClick={onNew}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--md-sys-color-on-surface-variant)',
+            }}
+            title="New document"
+          >
+            <span className="material-symbols-outlined">add</span>
+          </button>
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--md-sys-color-on-surface-variant)',
+            }}
+          >
+            <span className="material-symbols-outlined">settings</span>
+          </button>
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--md-sys-color-on-surface-variant)',
+            }}
+          >
+            <span className="material-symbols-outlined">account_circle</span>
+          </button>
+        </div>
+      </header>
+      {/* Divider */}
+      <div style={{ position: 'fixed', top: 'var(--topnav-height)', left: 0, right: 0, height: '1px', background: 'var(--md-sys-color-surface-container)', zIndex: 50 }} />
+    </>
   );
 }
 

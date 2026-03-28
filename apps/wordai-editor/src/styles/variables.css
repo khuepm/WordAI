@@ -1,63 +1,72 @@
-/* Material Design 3 Color System - The Ethereal Editor Theme */
+/* Material Design 3 Color System - WordAI Design Token (matches ui/aurasphere_assistant_desktop) */
 :root {
-  /* Primary Colors */
-  --md-sys-color-primary: #6750A4;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #EADDFF;
-  --md-sys-color-on-primary-container: #21005D;
+  /* Primary - #4343d5 indigo */
+  --md-sys-color-primary: #4343d5;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #5d5fef;
+  --md-sys-color-on-primary-container: #faf7ff;
+  --md-sys-color-primary-fixed: #e1e0ff;
+  --md-sys-color-primary-fixed-dim: #c1c1ff;
 
-  /* Secondary Colors */
-  --md-sys-color-secondary: #625B71;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #E8DEF8;
-  --md-sys-color-on-secondary-container: #1D192B;
+  /* Secondary */
+  --md-sys-color-secondary: #575995;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #babbfe;
+  --md-sys-color-on-secondary-container: #474984;
 
-  /* Tertiary Colors */
-  --md-sys-color-tertiary: #7D5260;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FFD8E4;
-  --md-sys-color-on-tertiary-container: #31111D;
+  /* Surface */
+  --md-sys-color-surface: #f8f9fa;
+  --md-sys-color-on-surface: #191c1d;
+  --md-sys-color-surface-variant: #e1e3e4;
+  --md-sys-color-on-surface-variant: #464555;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f3f4f5;
+  --md-sys-color-surface-container: #edeeef;
+  --md-sys-color-surface-container-high: #e7e8e9;
+  --md-sys-color-surface-container-highest: #e1e3e4;
+  --md-sys-color-surface-dim: #d9dadb;
+  --md-sys-color-surface-bright: #f8f9fa;
 
-  /* Surface Colors */
-  --md-sys-color-surface: #FEF7FF;
-  --md-sys-color-on-surface: #1D1B20;
-  --md-sys-color-surface-variant: #E7E0EC;
-  --md-sys-color-on-surface-variant: #49454F;
+  /* Background */
+  --md-sys-color-background: #f8f9fa;
+  --md-sys-color-on-background: #191c1d;
 
-  /* Background Colors */
-  --md-sys-color-background: #FEF7FF;
-  --md-sys-color-on-background: #1D1B20;
+  /* Error */
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
 
-  /* Error Colors */
-  --md-sys-color-error: #B3261E;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #F9DEDC;
-  --md-sys-color-on-error-container: #410E0B;
+  /* Outline */
+  --md-sys-color-outline: #767586;
+  --md-sys-color-outline-variant: #c7c4d7;
 
-  /* Outline Colors */
-  --md-sys-color-outline: #79747E;
-  --md-sys-color-outline-variant: #CAC4D0;
+  /* Inverse */
+  --md-sys-color-inverse-surface: #2e3132;
+  --md-sys-color-inverse-on-surface: #f0f1f2;
+  --md-sys-color-inverse-primary: #c1c1ff;
 
-  /* Glassmorphism Effects */
-  --glass-blur: 24px;
+  /* Glassmorphism */
+  --glass-blur: 20px;
   --glass-blur-strong: 40px;
-  --glass-opacity: 0.82;
+  --glass-opacity: 0.80;
   --glass-opacity-light: 0.5;
-  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-border: rgba(199, 196, 215, 0.15);
 
-  /* Typography Scale */
+  /* Typography */
   --font-family-content: 'Newsreader', serif;
   --font-family-ui: 'Manrope', sans-serif;
+  --font-family-label: 'Inter', sans-serif;
 
   /* Font Sizes */
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
 
   /* Line Heights */
   --line-height-tight: 1.25;
@@ -65,31 +74,36 @@
   --line-height-relaxed: 1.6;
   --line-height-loose: 1.8;
 
-  /* Spacing System (8px base) */
-  --spacing-xs: 0.25rem;   /* 4px */
-  --spacing-sm: 0.5rem;    /* 8px */
-  --spacing-md: 1rem;      /* 16px */
-  --spacing-lg: 1.5rem;    /* 24px */
-  --spacing-xl: 2rem;      /* 32px */
-  --spacing-2xl: 3rem;     /* 48px */
-  --spacing-3xl: 4rem;     /* 64px */
+  /* Spacing (8px base) */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
 
   /* Border Radius */
-  --radius-sm: 0.25rem;    /* 4px */
-  --radius-md: 0.5rem;     /* 8px */
-  --radius-lg: 1rem;       /* 16px */
-  --radius-xl: 1.5rem;     /* 24px */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 
   /* Shadows */
-  --shadow-ambient: 0 2px 12px rgba(0, 0, 0, 0.10);
-  --shadow-ambient-strong: 0 8px 32px rgba(0, 0, 0, 0.16);
-  --shadow-glow: 0 0 24px rgba(103, 80, 164, 0.35);
+  --shadow-ambient: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-ambient-strong: 0 40px 60px -5px rgba(67, 67, 213, 0.08);
+  --shadow-glow: 0 0 24px rgba(67, 67, 213, 0.25);
 
-  /* Selection Highlight (Req 3.3) */
-  --selection-bg: rgba(234, 221, 255, 0.6); /* primary-container at 60% opacity */
+  /* Selection */
+  --selection-bg: rgba(193, 193, 255, 0.4);
 
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 300ms ease-in-out;
   --transition-slow: 500ms ease-in-out;
+
+  /* Layout */
+  --topnav-height: 64px;
+  --left-sidebar-width: 64px;
+  --right-panel-width: 360px;
 }

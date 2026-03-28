@@ -307,14 +307,47 @@ export function AuraSpherePanel({
     >
       {/* Header */}
       <div style={panelStyles.header}>
-        <span style={panelStyles.title}>AuraSphere</span>
-        <button
-          style={panelStyles.closeBtn}
-          onClick={onClose}
-          aria-label="Close AI panel"
-        >
-          ✕
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%',
+            background: 'var(--md-sys-color-primary-container)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-on-primary-container)', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          </div>
+          <div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>AuraSphere</div>
+            <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-family-label)', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#5a5a5a', opacity: 0.7 }}>AI Writing Partner</div>
+          </div>
+          <button
+            style={{ ...panelStyles.closeBtn, marginLeft: 'auto' }}
+            onClick={onClose}
+            aria-label="Close AI panel"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        {/* Tabs */}
+        <div style={{ display: 'flex', background: 'var(--md-sys-color-surface-container)', borderRadius: 'var(--radius-md)', padding: '4px', gap: '2px' }}>
+          {['Assistant', 'Analysis', 'History'].map((tab) => (
+            <button key={tab} style={{
+              flex: 1,
+              padding: '6px 0',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              background: tab === 'Assistant' ? 'rgba(255,255,255,0.5)' : 'transparent',
+              color: tab === 'Assistant' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+              fontFamily: 'var(--font-family-label)',
+            }}>
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Suggestions area */}
@@ -375,28 +408,58 @@ export function AuraSpherePanel({
       )}
 
       {/* Chat input (Req 23.1) */}
-      <div style={panelStyles.chatInputRow}>
-        <input
-          ref={chatInputRef}
-          type="text"
-          value={chatInput}
-          onChange={(e) => setChatInput(e.target.value)}
-          onKeyDown={handleChatKeyDown}
-          placeholder="Ask AuraSphere…"
-          style={panelStyles.chatInput}
-          aria-label="Chat input"
-          data-testid="chat-input"
-          disabled={isLoading}
-        />
-        <button
-          style={panelStyles.sendBtn}
-          onClick={handleSendChat}
-          disabled={isLoading || !chatInput.trim()}
-          aria-label="Send message"
-          data-testid="send-button"
-        >
-          ↑
-        </button>
+      <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid rgba(199,196,215,0.1)', flexShrink: 0 }}>
+        <div style={{ position: 'relative' }}>
+          <textarea
+            ref={chatInputRef as unknown as React.RefObject<HTMLTextAreaElement>}
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={handleChatKeyDown as unknown as React.KeyboardEventHandler<HTMLTextAreaElement>}
+            placeholder="Ask AuraSphere… (e.g. @Document)"
+            style={{
+              width: '100%',
+              background: 'var(--md-sys-color-surface-container-low)',
+              border: 'none',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1rem 3rem 1rem 1rem',
+              fontSize: 'var(--font-size-sm)',
+              fontFamily: 'var(--font-family-label)',
+              color: 'var(--md-sys-color-on-surface)',
+              resize: 'none',
+              minHeight: '80px',
+              outline: 'none',
+            }}
+            aria-label="Chat input"
+            data-testid="chat-input"
+            disabled={isLoading}
+          />
+          <button
+            style={{
+              position: 'absolute',
+              right: '0.75rem',
+              bottom: '0.75rem',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-on-primary)',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={handleSendChat}
+            disabled={isLoading || !chatInput.trim()}
+            aria-label="Send message"
+            data-testid="send-button"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>north</span>
+          </button>
+        </div>
+        <p style={{ fontSize: '0.6rem', textAlign: 'center', marginTop: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'var(--font-family-label)' }}>
+          Press Cmd + K to trigger AI
+        </p>
       </div>
     </div>
   );
@@ -407,22 +470,20 @@ export function AuraSpherePanel({
 const panelStyles: Record<string, React.CSSProperties> = {
   panel: {
     position: 'fixed',
-    top: 0,
+    top: 'var(--topnav-height)',
     right: 0,
-    height: '100vh',
-    width: '360px',
+    bottom: 0,
+    width: 'var(--right-panel-width)',
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'var(--font-family-ui)',
-    // Glassmorphism (Req 18.1, 18.2, 18.3, 18.4)
-    background: 'rgba(254, 247, 255, 0.75)',
-    backdropFilter: 'blur(var(--glass-blur))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur))',
-    borderLeft: '1px solid var(--glass-border)',
+    background: 'rgba(255, 255, 255, 0.7)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderLeft: '1px solid rgba(199, 196, 215, 0.15)',
     boxShadow: 'var(--shadow-ambient-strong)',
-    // Slide animation (Req 20.1, 20.2)
     transition: 'transform var(--transition-normal), opacity var(--transition-normal)',
-    zIndex: 100,
+    zIndex: 40,
     overflow: 'hidden',
   },
   panelOpen: {
@@ -436,11 +497,8 @@ const panelStyles: Record<string, React.CSSProperties> = {
     pointerEvents: 'none',
   },
   header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 'var(--spacing-md) var(--spacing-lg)',
-    borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+    padding: 'var(--spacing-lg)',
+    borderBottom: '1px solid rgba(199, 196, 215, 0.1)',
     flexShrink: 0,
   },
   title: {
@@ -459,6 +517,8 @@ const panelStyles: Record<string, React.CSSProperties> = {
     padding: 'var(--spacing-xs)',
     borderRadius: 'var(--radius-sm)',
     lineHeight: 1,
+    display: 'flex',
+    alignItems: 'center',
   },
   suggestionsArea: {
     flex: 1,

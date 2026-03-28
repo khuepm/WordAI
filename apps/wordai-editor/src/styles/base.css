@@ -1,18 +1,14 @@
-/* Base Styles - The Ethereal Editor */
+/* Base Styles - WordAI Ethereal Editor */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
-
-/* Reset and Base Styles */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -28,126 +24,62 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism Base Classes */
-.glass {
-  background: rgba(255, 255, 255, var(--glass-opacity));
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-ambient);
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  font-size: 20px;
+  line-height: 1;
 }
 
-.glass-strong {
-  background: rgba(255, 255, 255, var(--glass-opacity-light));
-  backdrop-filter: blur(var(--glass-blur-strong));
-  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-ambient-strong);
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-/* Tonal Shifts (instead of hard borders) */
-.tonal-shift {
-  background: linear-gradient(
-    135deg,
-    rgba(103, 80, 164, 0.05) 0%,
-    rgba(98, 91, 113, 0.03) 100%
-  );
-}
-
-/* Typography Classes */
-.text-content {
-  font-family: var(--font-family-content);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-relaxed);
-}
-
-.text-ui {
-  font-family: var(--font-family-ui);
-}
-
-/* Ambient Shadows */
-.shadow-ambient {
-  box-shadow: var(--shadow-ambient);
-}
-
-.shadow-ambient-strong {
-  box-shadow: var(--shadow-ambient-strong);
-}
-
-.shadow-glow {
-  box-shadow: var(--shadow-glow);
-}
-
-/* Smooth Transitions */
-.transition-fast {
-  transition: all var(--transition-fast);
-}
-
-.transition-normal {
-  transition: all var(--transition-normal);
-}
-
-.transition-slow {
-  transition: all var(--transition-slow);
-}
-
-/* Focus States */
+/* Focus */
 :focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 2px;
 }
 
-/* Selection Styles (Req 3.3) */
+/* Selection */
 ::selection {
-  background-color: var(--selection-bg, rgba(234, 221, 255, 0.6));
-  color: var(--md-sys-color-on-primary-container);
+  background-color: var(--selection-bg);
+  color: var(--md-sys-color-on-background);
 }
 
-.editor-canvas::selection {
-  background-color: var(--selection-bg, rgba(234, 221, 255, 0.6));
-  color: var(--md-sys-color-on-primary-container);
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline-variant);
-  border-radius: var(--radius-lg);
+  background: var(--md-sys-color-surface-container);
+  border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--md-sys-color-outline);
+  background: var(--md-sys-color-outline-variant);
 }
 
-/* Spinner animation for AuraSpherePanel loading indicator */
+/* Animations */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Staggered fade-in for suggestion cards (Req 20.5) */
 @keyframes card-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* EditorCanvas width adjustment when AI panel is open (Req 5.5) */
+@keyframes negotiation-fade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Editor canvas layout */
 .editor-canvas-wrapper {
   transition: padding-right var(--transition-normal);
 }
 .editor-canvas-wrapper.ai-panel-open {
-  padding-right: 376px; /* panel width (360) + 16px gap */
+  padding-right: calc(var(--right-panel-width) + 16px);
 }

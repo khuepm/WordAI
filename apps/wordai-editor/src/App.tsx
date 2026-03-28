@@ -224,13 +224,14 @@ function App() {
           data-testid="ai-service-banner"
           style={{
             position: 'fixed',
-            top: 0,
+            top: 'var(--topnav-height)',
             left: 0,
             right: 0,
             zIndex: 200,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            textAlign: 'center',
             padding: 'var(--spacing-xs) var(--spacing-lg)',
             background: 'var(--md-sys-color-error-container)',
             color: 'var(--md-sys-color-on-error-container)',
@@ -241,26 +242,113 @@ function App() {
           role="alert"
         >
           <span>AI service unavailable. Editing continues normally.</span>
-          <button
-            data-testid="ai-service-retry-button"
-            onClick={checkAIHealth}
-            style={{
-              background: 'var(--md-sys-color-error)',
-              color: 'var(--md-sys-color-on-error)',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              padding: 'var(--spacing-xs) var(--spacing-md)',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-family-ui)',
-              fontSize: 'var(--font-size-sm)',
-              marginLeft: 'var(--spacing-md)',
-            }}
-          >
-            Retry
-          </button>
+          <div>
+            <button
+              data-testid="ai-service-retry-button"
+              onClick={checkAIHealth}
+              style={{
+                background: 'var(--md-sys-color-error)',
+                color: 'var(--md-sys-color-on-error)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                padding: 'var(--spacing-xs) var(--spacing-md)',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-sm)',
+                marginLeft: 'var(--spacing-md)',
+              }}
+            >
+              Retry
+            </button>
+            <button
+              data-testid="ai-service-retry-button"
+              onClick={checkAIHealth}
+              style={{
+                background: 'var(--md-sys-color-error)',
+                color: 'var(--md-sys-color-on-error)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                padding: 'var(--spacing-xs) var(--spacing-md)',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-sm)',
+                marginLeft: 'var(--spacing-md)',
+              }}
+            >
+              Preferences
+            </button>
+          </div>
         </div>
       )}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', paddingTop: '48px', position: 'relative' }}>
+
+      {/* Left sidebar */}
+      <aside style={{
+        position: 'fixed',
+        left: 0,
+        top: 'var(--topnav-height)',
+        bottom: 0,
+        width: 'var(--left-sidebar-width)',
+        background: 'rgba(237, 238, 239, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRight: '1px solid rgba(199, 196, 215, 0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingTop: '1.5rem',
+        gap: '1.5rem',
+        zIndex: 40,
+      }}>
+        <button
+          onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
+          style={{
+            padding: '0.75rem',
+            background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
+            border: 'none',
+            borderRadius: '0.75rem',
+            cursor: 'pointer',
+            color: isAIPanelOpen ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
+          }}
+          title="AuraSphere AI"
+        >
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+        </button>
+        <button
+          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          title="Analytics"
+        >
+          <span className="material-symbols-outlined">analytics</span>
+        </button>
+        <button
+          onClick={openVersionHistory}
+          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          title="Version History"
+        >
+          <span className="material-symbols-outlined">history</span>
+        </button>
+        <button
+          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          title="Settings"
+        >
+          <span className="material-symbols-outlined">tune</span>
+        </button>
+      </aside>
+
+      {/* Main content */}
+      <div style={{
+        display: 'flex',
+        flex: 1,
+        overflow: 'hidden',
+        paddingTop: 'var(--topnav-height)',
+        paddingLeft: 'var(--left-sidebar-width)',
+        paddingRight: isAIPanelOpen ? 'var(--right-panel-width)' : '0',
+        transition: 'padding-right var(--transition-normal)',
+        position: 'relative',
+      }}>
         <EditorCanvas
           document={document}
           onDocumentChange={handleDocumentChange}
@@ -274,34 +362,35 @@ function App() {
           fontSize={fontSize}
           onFontSizeChange={handleFontSizeChange}
         />
-        <AuraSpherePanel
-          isOpen={isAIPanelOpen}
-          onClose={closeAIPanel}
-          selection={aiSelection}
-          documentId={document.id}
-          documentContext={aiContext}
-          onSuggestionSelect={handleSuggestionSelect}
-        />
-        <NegotiationPanel
-          isOpen={isNegotiationOpen}
-          suggestion={selectedSuggestion}
-          onAccept={handleNegotiationAccept}
-          onReject={closeNegotiation}
-          onClose={closeNegotiation}
-        />
-        <RenderDrawer
-          isOpen={isRenderDrawerOpen}
-          onClose={closeRenderDrawer}
-          documentId={document.id}
-          documentContent={document.content}
-        />
-        <VersionHistory
-          isOpen={isVersionHistoryOpen}
-          onClose={closeVersionHistory}
-          documentId={document.id}
-          onRestore={handleVersionRestore}
-        />
       </div>
+
+      <AuraSpherePanel
+        isOpen={isAIPanelOpen}
+        onClose={closeAIPanel}
+        selection={aiSelection}
+        documentId={document.id}
+        documentContext={aiContext}
+        onSuggestionSelect={handleSuggestionSelect}
+      />
+      <NegotiationPanel
+        isOpen={isNegotiationOpen}
+        suggestion={selectedSuggestion}
+        onAccept={handleNegotiationAccept}
+        onReject={closeNegotiation}
+        onClose={closeNegotiation}
+      />
+      <RenderDrawer
+        isOpen={isRenderDrawerOpen}
+        onClose={closeRenderDrawer}
+        documentId={document.id}
+        documentContent={document.content}
+      />
+      <VersionHistory
+        isOpen={isVersionHistoryOpen}
+        onClose={closeVersionHistory}
+        documentId={document.id}
+        onRestore={handleVersionRestore}
+      />
     </div>
   );
 }

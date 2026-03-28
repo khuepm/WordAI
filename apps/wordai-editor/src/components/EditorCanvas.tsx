@@ -178,8 +178,13 @@ export function EditorCanvas({
 
   return (
     <div
-      className={`editor-canvas-wrapper${isAIPanelOpen ? ' ai-panel-open' : ''}`}
-      style={styles.wrapper}
+      style={{
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '3rem 2rem 2rem',
+        overflow: 'hidden',
+      }}
     >
       {saveError && (
         <div style={styles.errorBanner} role="alert" aria-live="assertive">
@@ -187,32 +192,87 @@ export function EditorCanvas({
         </div>
       )}
       <div style={styles.contentColumn}>
-        <textarea
-          ref={textareaRef}
-          className="editor-canvas"
-          value={localContent}
-          onChange={handleContentChange}
-          onKeyDown={handleKeyDown}
-          onMouseUp={handleSelectionChange}
-          onSelect={handleSelectionChange}
-          placeholder="Start writing..."
-          spellCheck
-          style={{ ...styles.textarea, fontSize: `${fontSize}px` }}
-          aria-label="Document editor"
-        />
-        {/* Document metadata bar (Req 4.1–4.5) */}
+        {/* Document header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{
+            fontFamily: 'var(--font-family-content)',
+            fontSize: '2.25rem',
+            fontWeight: 300,
+            color: 'var(--md-sys-color-on-surface)',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2,
+            marginBottom: '0.75rem',
+          }}>
+            {document.title}
+          </h1>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontFamily: 'var(--font-family-label)',
+            fontSize: '0.7rem',
+            color: 'var(--md-sys-color-on-surface-variant)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.12em',
+            opacity: 0.6,
+          }}>
+            <span>Edited {relativeTime}</span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+            <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+            <span>{readingTime} min read</span>
+            {hasUnsavedChanges && (
+              <>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+                <span style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>Unsaved</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Editor surface */}
+        <div style={{
+          flex: 1,
+          background: 'var(--md-sys-color-surface-container-lowest)',
+          borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+          boxShadow: 'var(--shadow-ambient)',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <textarea
+            ref={textareaRef}
+            className="editor-canvas"
+            value={localContent}
+            onChange={handleContentChange}
+            onKeyDown={handleKeyDown}
+            onMouseUp={handleSelectionChange}
+            onSelect={handleSelectionChange}
+            placeholder="Start writing..."
+            spellCheck
+            style={{
+              flex: 1,
+              width: '100%',
+              resize: 'none',
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontFamily: 'var(--font-family-content)',
+              fontSize: `${fontSize}px`,
+              lineHeight: '1.8',
+              color: 'var(--md-sys-color-on-surface)',
+              caretColor: 'var(--md-sys-color-primary)',
+              padding: '3rem',
+            }}
+            aria-label="Document editor"
+          />
+        </div>
+
+        {/* Meta bar */}
         <div style={styles.metaBar} aria-label="Document metadata">
-          <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
-          <span style={styles.metaSep}>·</span>
-          <span>{readingTime} min read</span>
-          <span style={styles.metaSep}>·</span>
-          <span>Edited {relativeTime}</span>
-          {hasUnsavedChanges && (
-            <>
-              <span style={styles.metaSep}>·</span>
-              <span style={styles.unsavedIndicator} aria-label="Unsaved changes">Unsaved changes</span>
-            </>
-          )}
+          <button data-testid="font-size-decrease" aria-label="Decrease font size" onClick={handleDecreaseFontSize} style={styles.fontSizeBtn}>A−</button>
+          <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
+          <button data-testid="font-size-increase" aria-label="Increase font size" onClick={handleIncreaseFontSize} style={styles.fontSizeBtn}>A+</button>
           {tags.length > 0 && (
             <>
               <span style={styles.metaSep}>·</span>
@@ -223,20 +283,6 @@ export function EditorCanvas({
               </span>
             </>
           )}
-          <span style={styles.metaSep}>·</span>
-          <button
-            data-testid="font-size-decrease"
-            aria-label="Decrease font size"
-            onClick={handleDecreaseFontSize}
-            style={styles.fontSizeBtn}
-          >A−</button>
-          <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
-          <button
-            data-testid="font-size-increase"
-            aria-label="Increase font size"
-            onClick={handleIncreaseFontSize}
-            style={styles.fontSizeBtn}
-          >A+</button>
         </div>
       </div>
     </div>
@@ -244,33 +290,12 @@ export function EditorCanvas({
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    padding: '2rem',
-    transition: 'all var(--transition-normal)',
-    overflow: 'hidden',
-  },
   contentColumn: {
     width: '100%',
-    maxWidth: '720px',
+    maxWidth: '820px',
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-  },
-  textarea: {
-    flex: 1,
-    width: '100%',
-    resize: 'none',
-    border: 'none',
-    outline: 'none',
-    background: 'transparent',
-    fontFamily: 'var(--font-family-content)',
-    fontSize: 'var(--font-size-lg)',
-    lineHeight: 'var(--line-height-relaxed)',
-    color: 'var(--md-sys-color-on-background)',
-    caretColor: 'var(--md-sys-color-primary)',
   },
   metaBar: {
     display: 'flex',
@@ -278,20 +303,14 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
     gap: '0.25rem',
     padding: '0.5rem 0',
-    fontFamily: 'var(--font-family-ui)',
+    fontFamily: 'var(--font-family-label)',
     fontSize: 'var(--font-size-xs)',
     color: 'var(--md-sys-color-on-surface-variant)',
     opacity: 0.6,
     userSelect: 'none',
   },
-  metaSep: {
-    opacity: 0.5,
-  },
-  tagList: {
-    display: 'flex',
-    gap: '0.25rem',
-    flexWrap: 'wrap',
-  },
+  metaSep: { opacity: 0.5 },
+  tagList: { display: 'flex', gap: '0.25rem', flexWrap: 'wrap' },
   tag: {
     background: 'var(--md-sys-color-surface-variant)',
     color: 'var(--md-sys-color-on-surface-variant)',
@@ -300,8 +319,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 'var(--font-size-xs)',
   },
   errorBanner: {
-    background: 'var(--md-sys-color-error-container, #ffdad6)',
-    color: 'var(--md-sys-color-error, #ba1a1a)',
+    background: 'var(--md-sys-color-error-container)',
+    color: 'var(--md-sys-color-error)',
     padding: '0.5rem 1rem',
     borderRadius: 'var(--radius-sm)',
     fontFamily: 'var(--font-family-ui)',
