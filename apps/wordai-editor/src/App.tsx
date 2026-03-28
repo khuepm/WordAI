@@ -47,6 +47,7 @@ function App() {
   });
 
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -228,7 +229,7 @@ function App() {
         onOpenPreferences={() => setIsPreferencesOpen(true)}
       />
       {/* AI service unavailable banner (Req 25.5) */}
-      {aiServiceAvailable === false && (
+      {aiServiceAvailable === false && !bannerDismissed && (
         <div
           data-testid="ai-service-banner"
           style={{
@@ -254,7 +255,7 @@ function App() {
           <div>
             <button
               data-testid="ai-service-retry-button"
-              onClick={checkAIHealth}
+              onClick={() => { setBannerDismissed(false); checkAIHealth(); }}
               style={{
                 background: 'var(--md-sys-color-error)',
                 color: 'var(--md-sys-color-on-error)',
@@ -285,6 +286,25 @@ function App() {
               }}
             >
               Preferences
+            </button>
+            <button
+              data-testid="ai-service-close-button"
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Close"
+              style={{
+                background: 'transparent',
+                color: 'var(--md-sys-color-on-error-container)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                padding: 'var(--spacing-xs)',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-md)',
+                marginLeft: 'var(--spacing-md)',
+                lineHeight: 1,
+              }}
+            >
+              ✕
             </button>
           </div>
         </div>

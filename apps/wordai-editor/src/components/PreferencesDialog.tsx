@@ -25,7 +25,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
     <aside style={{
       display: 'flex', flexDirection: 'column', width: '256px', height: '100%',
       padding: '1.5rem 1rem', gap: '0.375rem',
-      background: '#fafafa', borderRight: '1px solid rgba(226,232,240,0.5)',
+      background: '#fafafa', boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
     }}>
       <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
@@ -57,7 +57,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
           );
         })}
         {isSearching && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(226,232,240,0.5)' }}>
+          <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
             <button style={{
               display: 'flex', alignItems: 'center', gap: '0.75rem',
               padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
@@ -118,7 +118,7 @@ function SettingRow({ icon, label, children }: { icon: string; label: string; ch
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '1.25rem', background: 'rgba(243,244,245,0.5)',
-      borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)',
+      borderRadius: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '24px' }}>{icon}</span>
@@ -181,9 +181,9 @@ function GeneralTab() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Every</span>
             <input type="number" defaultValue={5} style={{
-              width: '64px', height: '32px', borderRadius: '0.5rem',
-              border: '1px solid rgba(199,196,215,0.3)', padding: '0 0.75rem',
-              fontSize: '0.75rem', background: '#ffffff',
+              width: '64px', height: '32px', borderRadius: '0.75rem',
+              border: 'none', padding: '0 0.75rem',
+              fontSize: '0.75rem', background: '#f4f4f5',
             }} />
             <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>minutes</span>
           </div>
@@ -328,7 +328,7 @@ function AIEngineTab() {
       <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {sliders.map((s, i) => (
           <div key={s.label}>
-            {i > 0 && <div style={{ borderTop: '1px solid rgba(199,196,215,0.2)', marginBottom: '1.5rem' }} />}
+            {i > 0 && <div style={{ marginBottom: '1.5rem' }} />}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
@@ -472,7 +472,7 @@ function TypographyTab() {
       </div>
 
       {/* Preview */}
-      <div style={{ padding: '1.5rem', background: 'rgba(243,244,245,0.5)', borderRadius: '1rem', border: '1px dashed rgba(199,196,215,0.4)' }}>
+      <div style={{ padding: '1.5rem', background: 'rgba(243,244,245,0.5)', borderRadius: '1rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Real-time Preview</h4>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#ffffff', padding: '2px 8px', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>16pt / 1.15 LH / INTER</span>
@@ -517,7 +517,7 @@ function PrivacyTab() {
         <SectionHeader label="Regional Data Infrastructure" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Singapore - active */}
-          <div style={{ padding: '1.25rem', borderRadius: '1rem', background: '#f3f4f5', border: '1px solid rgba(67,67,213,0.2)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ padding: '1.25rem', borderRadius: '1rem', background: 'rgba(67,67,213,0.08)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.5)' }}>
@@ -684,16 +684,16 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <button onClick={onClose} style={{
           padding: '0.625rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: '#52525b',
-          background: 'none', border: 'none', borderRadius: '0.5rem', cursor: 'pointer',
+          background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer',
           fontFamily: 'inherit',
         }}>
           Cancel
         </button>
         <button onClick={onClose} style={{
           padding: '0.625rem 2rem', fontSize: '0.75rem', fontWeight: 700,
-          background: '#4343d5', color: '#ffffff', border: 'none', borderRadius: '0.5rem',
+          background: '#4343d5', color: '#ffffff', border: 'none', borderRadius: '0.75rem',
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
-          boxShadow: '0 4px 12px rgba(67,67,213,0.2)', fontFamily: 'inherit',
+          boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)', transition: 'all 0.2s', fontFamily: 'inherit',
         }}>
           Apply Changes
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_right_alt</span>
@@ -739,10 +739,9 @@ export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
       }}>
         <div style={{
           width: '100%', maxWidth: '900px', height: '870px',
-          background: '#ffffff', borderRadius: '0.75rem',
+          background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
           display: 'flex', overflow: 'hidden',
           boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
-          outline: '1px solid rgba(199,196,215,0.1)',
           pointerEvents: 'all',
         }}>
           <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
