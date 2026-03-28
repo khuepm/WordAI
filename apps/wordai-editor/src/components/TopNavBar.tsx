@@ -8,9 +8,10 @@ interface TopNavBarProps {
   hasUnsavedChanges: boolean;
   onNew: () => void;
   onSave: () => void;
+  onOpenPreferences?: () => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences }: TopNavBarProps) {
   return (
     <>
       <header
@@ -114,6 +115,8 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave }: T
             <span className="material-symbols-outlined">add</span>
           </button>
           <button
+            onClick={onOpenPreferences}
+            title="Preferences"
             style={{
               background: 'none',
               border: 'none',

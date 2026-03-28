@@ -11,6 +11,7 @@ import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
+import { PreferencesDialog } from './components/PreferencesDialog';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
@@ -44,6 +45,8 @@ function App() {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
     return stored ? Number(stored) : DEFAULT_FONT_SIZE;
   });
+
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -222,6 +225,7 @@ function App() {
         hasUnsavedChanges={hasUnsavedChanges}
         onNew={handleNew}
         onSave={triggerSave}
+        onOpenPreferences={() => setIsPreferencesOpen(true)}
       />
       {/* AI service unavailable banner (Req 25.5) */}
       {aiServiceAvailable === false && (
@@ -266,8 +270,8 @@ function App() {
               Retry
             </button>
             <button
-              data-testid="ai-service-retry-button"
-              onClick={checkAIHealth}
+              data-testid="ai-service-preferences-button"
+              onClick={() => setIsPreferencesOpen(true)}
               style={{
                 background: 'var(--md-sys-color-error)',
                 color: 'var(--md-sys-color-on-error)',
@@ -396,6 +400,10 @@ function App() {
         />
       </div>
 
+      <PreferencesDialog
+        isOpen={isPreferencesOpen}
+        onClose={() => setIsPreferencesOpen(false)}
+      />
     </div>
   );
 }
