@@ -52,9 +52,12 @@ fn read_default_json(app: &tauri::AppHandle) -> Result<Value, IPCError> {
 /// Recurses into nested objects.
 /// Req 8.2
 pub fn merge_with_defaults(user_prefs: &mut Value, defaults: &Value) {
-    if let (Some(user_map), Some(default_map)) = (user_prefs.as_object_mut(), defaults.as_object()) {
+    if let (Some(user_map), Some(default_map)) = (user_prefs.as_object_mut(), defaults.as_object())
+    {
         for (key, default_val) in default_map {
-            let entry = user_map.entry(key.clone()).or_insert_with(|| default_val.clone());
+            let entry = user_map
+                .entry(key.clone())
+                .or_insert_with(|| default_val.clone());
             // Recurse if both sides are objects
             if entry.is_object() && default_val.is_object() {
                 merge_with_defaults(entry, default_val);
@@ -64,6 +67,25 @@ pub fn merge_with_defaults(user_prefs: &mut Value, defaults: &Value) {
 }
 
 // ── Core logic (pure, no AppHandle) ──────────────────────────────────────────
+
+/// Validate that user_id contains only safe characters to prevent path traversal.
+/// Allows alphanumerics, underscores, and hyphens only.
+fn validate_user_id(user_id: &str) -> Result<(), IPCError> {
+    if user_id.is_empty()
+        || !user_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+    {
+        return Err(IPCError {
+            code: "INVALID_USER_ID".to_string(),
+            message: format!(
+                "Invalid user_id '{}': only alphanumerics, underscores, and hyphens are allowed",
+                user_id
+            ),
+        });
+    }
+    Ok(())
+}
 
 /// Read user preferences from `user_{user_id}.json`.
 /// Returns merged result with defaults for any missing keys.
@@ -124,10 +146,8 @@ fn save_preferences_inner(
 /// Load preferences for the given user, merging with defaults for missing keys.
 /// Req 7.1, 7.2
 #[tauri::command]
-pub fn load_preferences(
-    app: tauri::AppHandle,
-    user_id: String,
-) -> Result<Value, IPCError> {
+pub fn load_preferences(app: tauri::AppHandle, user_id: String) -> Result<Value, IPCError> {
+    validate_user_id(&user_id)?;
     let dir = prefs_dir(&app)?;
     let defaults = read_default_json(&app)?;
     load_preferences_inner(&dir, &defaults, &user_id)
@@ -141,6 +161,7 @@ pub fn save_preferences(
     user_id: String,
     preferences: Value,
 ) -> Result<(), IPCError> {
+    validate_user_id(&user_id)?;
     let dir = prefs_dir(&app)?;
     save_preferences_inner(&dir, &user_id, &preferences)
 }
@@ -155,6 +176,7 @@ pub fn reset_preferences(
     user_id: String,
     group: Option<String>,
 ) -> Result<Value, IPCError> {
+    validate_user_id(&user_id)?;
     let dir = prefs_dir(&app)?;
     let defaults = read_default_json(&app)?;
 
@@ -303,7 +325,8 @@ mod tests {
     fn save_then_load_round_trips() {
         let dir = temp_dir();
         let prefs_path = dir.path().to_path_buf();
-        let prefs = json!({ "general": { "theme": "light" }, "privacy": { "analyticsEnabled": true } });
+        let prefs =
+            json!({ "general": { "theme": "light" }, "privacy": { "analyticsEnabled": true } });
 
         save_preferences_inner(&prefs_path, "roundtrip", &prefs).unwrap();
         let defaults = json!({});

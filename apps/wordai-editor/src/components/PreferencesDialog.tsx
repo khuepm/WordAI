@@ -272,8 +272,8 @@ function AIEngineTab() {
   ];
 
   const sliders = [
-    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'] },
-    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'] },
+    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'], settingId: 'ai-engine.creativity' },
+    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
   ];
 
   return (
@@ -362,9 +362,8 @@ function AIEngineTab() {
 
       {/* Sliders */}
       <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {sliders.map((s, i) => (
-          <div key={s.label} data-setting-id={i === 0 ? 'ai-engine.creativity' : 'ai-engine.contextWindowTokens'}>
-            {i > 0 && <div style={{ marginBottom: '1.5rem' }} />}
+        {sliders.map((s) => (
+          <div key={s.label} data-setting-id={s.settingId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
@@ -619,7 +618,18 @@ function PrivacyTab() {
           <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
         </div>
       </div>
-      <div data-setting-id="privacy.localProcessingOnly" style={{ display: 'none' }} />
+      <div data-setting-id="privacy.localProcessingOnly" style={{ padding: '1.25rem 1.5rem', borderRadius: '1rem', border: '1px solid #e0e0e0', backgroundColor: '#fafafa', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>Local processing only</h3>
+          <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#555' }}>
+            When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.
+          </p>
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#333', cursor: 'pointer' }}>
+          <input type="checkbox" style={{ width: '14px', height: '14px' }} />
+          <span>Prefer on-device processing only</span>
+        </label>
+      </div>
     </div>
   );
 }
@@ -747,10 +757,19 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!isOpen || !initialTab) return;
+    if (activeTab !== initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab, activeTab]);
+
+  useEffect(() => {
     if (!targetSettingId || !isOpen) return;
     const timer = setTimeout(() => {
       const el = document.querySelector(`[data-setting-id="${targetSettingId}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+        (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [targetSettingId, isOpen]);

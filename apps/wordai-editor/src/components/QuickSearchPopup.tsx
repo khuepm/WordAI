@@ -68,7 +68,19 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
-      } else if (e.key === 'ArrowDown') {
+        return;
+      }
+
+      const isNavigationKey =
+        e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter';
+
+      if (isNavigationKey && results.length === 0) {
+        // No results to navigate or select; just prevent default behavior.
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
         setHighlightIndex((i) => Math.min(i + 1, results.length - 1));
       } else if (e.key === 'ArrowUp') {

@@ -61,7 +61,7 @@ const initialState: AppState = {
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 type Action =
-  | { type: 'SET_DOCUMENT'; payload: { document: Document; filePath: string } }
+  | { type: 'SET_DOCUMENT'; payload: { document: Document; filePath: string; isFilePersisted?: boolean } }
   | { type: 'UPDATE_DOCUMENT'; payload: Document }
   | { type: 'OPEN_AI_PANEL'; payload: TextSelection }
   | { type: 'CLOSE_AI_PANEL' }
@@ -87,7 +87,7 @@ function appReducer(state: AppState, action: Action): AppState {
         document: action.payload.document,
         filePath: action.payload.filePath,
         hasUnsavedChanges: false,
-        isFilePersisted: false,
+        isFilePersisted: action.payload.isFilePersisted ?? false,
       };
 
     case 'UPDATE_DOCUMENT':
@@ -172,7 +172,7 @@ function appReducer(state: AppState, action: Action): AppState {
 interface AppContextValue {
   state: AppState;
   // Document actions
-  setDocument: (document: Document, filePath: string) => void;
+  setDocument: (document: Document, filePath: string, isFilePersisted?: boolean) => void;
   updateDocument: (document: Document) => void;
   markSaved: (document: Document) => void;
   setSaveError: (err: IPCError | null) => void;
@@ -197,8 +197,8 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  const setDocument = useCallback((document: Document, filePath: string) => {
-    dispatch({ type: 'SET_DOCUMENT', payload: { document, filePath } });
+  const setDocument = useCallback((document: Document, filePath: string, isFilePersisted?: boolean) => {
+    dispatch({ type: 'SET_DOCUMENT', payload: { document, filePath, isFilePersisted } });
   }, []);
 
   const updateDocument = useCallback((document: Document) => {

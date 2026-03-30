@@ -63,13 +63,9 @@ function App() {
 
   // Cmd+Shift+P / Ctrl+Shift+P opens Quick Search (Req 1.1, 1.2)
   useEffect(() => {
-    console.log('[QuickSearch] typeof window:', typeof window);
-    console.log('[QuickSearch] registering keydown listener on window');
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('[QuickSearch] keydown:', e.key, 'meta:', e.metaKey, 'ctrl:', e.ctrlKey, 'shift:', e.shiftKey);
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        console.log('[QuickSearch] opening popup');
         setIsQuickSearchOpen(true);
       }
     };
@@ -125,7 +121,7 @@ function App() {
         }
       }
       if (!cancelled) {
-        setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
+        setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, true);
         localStorage.setItem(LAST_PATH_KEY, path);
       }
     }
@@ -161,8 +157,7 @@ function App() {
 
   const handleSaveSuccess = useCallback((doc: Document) => {
     markSaved(doc);
-    markFilePersisted();
-  }, [markSaved, markFilePersisted]);
+  }, [markSaved]);
 
   const handleSaveError = useCallback(() => {
     // saveError is surfaced via useAutoSave return value and stored in state
@@ -202,7 +197,7 @@ function App() {
   const handleNew = useCallback(async () => {
     const doc = await createDocument();
     const path = getDocumentPath(doc.id);
-    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
+    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, true);
     localStorage.setItem(LAST_PATH_KEY, path);
   }, [setDocument]);
 

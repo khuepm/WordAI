@@ -115,17 +115,17 @@ const handlers: Record<string, (args: any) => unknown> = {
   },
 
   load_preferences({ userId }: { userId: string }) {
-    return preferencesStore[userId] ?? defaultPreferences;
+    return JSON.parse(JSON.stringify(preferencesStore[userId] ?? defaultPreferences));
   },
 
   save_preferences({ userId, preferences }: { userId: string; preferences: Preferences }) {
-    preferencesStore[userId] = preferences;
+    preferencesStore[userId] = JSON.parse(JSON.stringify(preferences));
     return null;
   },
 
   reset_preferences({ userId }: { userId: string }) {
     delete preferencesStore[userId];
-    return defaultPreferences;
+    return JSON.parse(JSON.stringify(defaultPreferences));
   },
 };
 
