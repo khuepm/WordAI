@@ -40,14 +40,6 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri build
 
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-app-${{ github.ref_name }}
-          path: |
-            apps/wordai-editor/src-tauri/target/release/bundle/dmg/*.dmg
-            apps/wordai-editor/src-tauri/target/release/bundle/macos/*.app
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
