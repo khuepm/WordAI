@@ -23,18 +23,10 @@ export interface AuraSpherePanelProps {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ConnectionState = 'provider_selection' | 'plan_selection' | 'redirecting' | 'connected';
 type TabState = 'Assistant' | 'Analysis' | 'History';
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
-function Spinner() {
-  return (
-    <div className="w-16 h-16 rounded-full border border-dashed border-primary animate-[spin_4s_linear_infinite] flex items-center justify-center">
-      <div className="w-4 h-4 bg-primary rounded-full blur-[4px] animate-[pulse_2s_infinite_alternate]" />
-    </div>
-  );
-}
 
 function SuggestionCard({ suggestion, isFocused, onSelect, onDismiss, animationIndex }: { suggestion: AISuggestion; isFocused: boolean; onSelect: (s: AISuggestion) => void; onDismiss: (id: string) => void; animationIndex: number; }) {
   const [dismissed, setDismissed] = useState(false);
@@ -96,10 +88,6 @@ export function AuraSpherePanel({
   documentContext,
   onSuggestionSelect,
 }: AuraSpherePanelProps) {
-  // Connection Flow State
-  const [connectionState, setConnectionState] = useState<ConnectionState>('provider_selection');
-  const [selectedProvider, setSelectedProvider] = useState<string>('');
-  
   // App State
   const [activeTab, setActiveTab] = useState<TabState>('Assistant');
   
@@ -109,9 +97,6 @@ export function AuraSpherePanel({
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [focusedCardIndex, setFocusedCardIndex] = useState<number>(-1);
-
-  const [connectionMessage, setConnectionMessage] = useState('PLEASE CHECK BROWSER...');
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
@@ -121,13 +106,13 @@ export function AuraSpherePanel({
   }, [chatHistory]);
 
   useEffect(() => {
-    if (isOpen && connectionState === 'connected' && activeTab === 'Assistant') {
+    if (isOpen && activeTab === 'Assistant') {
       setTimeout(() => chatInputRef.current?.focus(), 320);
     }
-  }, [isOpen, connectionState, activeTab]);
+  }, [isOpen, activeTab]);
 
   useEffect(() => {
-    if (!isOpen || connectionState !== 'connected') return;
+    if (!isOpen) return;
     if (!selection?.text && !documentContext) return;
 
     const req: AIRequest = { documentId, selectedText: selection?.text, context: documentContext };
@@ -145,7 +130,7 @@ export function AuraSpherePanel({
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setIsLoading(false));
-  }, [isOpen, connectionState, documentId, documentContext, selection]);
+  }, [isOpen, documentId, documentContext, selection]);
 
   const handleDismiss = useCallback((id: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
@@ -188,23 +173,6 @@ export function AuraSpherePanel({
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
-  // Connection logic
-  const handleProviderSelect = () => {
-    if (selectedProvider === 'boongai') {
-      setConnectionState('plan_selection');
-    } else if (selectedProvider === 'gemini') {
-      initiateAuthFlow();
-    }
-  };
-
-  const initiateAuthFlow = () => {
-    setConnectionState('redirecting');
-    setConnectionMessage('DEEP LINK RECEIVED. VERIFYING TOKEN...');
-    setTimeout(() => {
-      setConnectionState('connected');
-    }, 2500);
-  };
-
   if (!isOpen) {
     return (
       <aside className="fixed right-0 top-16 bottom-0 w-[360px] bg-white/70 backdrop-blur-[20px] border-l border-outline-variant/15 flex flex-col z-40 shadow-[0_40px_60px_-5px_rgba(67,67,213,0.08)] transform translate-x-full opacity-0 pointer-events-none transition-all duration-300" aria-hidden="true"></aside>
@@ -222,21 +190,20 @@ export function AuraSpherePanel({
               <span className="material-symbols-outlined text-on-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-primary m-0">AuraSphere {connectionState !== 'connected' && ': Mono'}</h2>
+              <h2 className="text-lg font-bold text-primary m-0">AuraSphere Assistant</h2>
               <p className="text-[10px] font-label uppercase tracking-widest text-[#5a5a5a] opacity-70 m-0 leading-tight">AI Writing Partner</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Connection Status Indicator */}
-            <div className={`w-2 h-2 rounded-full transition-all duration-400 ${connectionState === 'connected' ? 'bg-[#4CAF50] shadow-[0_0_10px_#4CAF50]' : 'bg-[#444444]'}`} />
+            <div className="w-2 h-2 rounded-full bg-[#4CAF50] shadow-[0_0_10px_#4CAF50] transition-all duration-400" />
             <button className="bg-transparent border-none cursor-pointer text-on-surface-variant flex items-center hover:bg-surface-variant/50 p-1 rounded" onClick={onClose} aria-label="Close AI panel">
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
         </div>
         
-        {connectionState === 'connected' && (
-          <div className="flex bg-surface-container rounded-lg p-1 gap-0.5">
+        <div className="flex bg-surface-container rounded-lg p-1 gap-0.5">
             {(['Assistant', 'Analysis', 'History'] as TabState[]).map(tab => (
               <button
                 key={tab}
@@ -247,81 +214,11 @@ export function AuraSpherePanel({
               </button>
             ))}
           </div>
-        )}
       </div>
 
       {/* Dynamic Body based on Connection State & Tab */}
       <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col">
-        {connectionState === 'provider_selection' && (
-          <div className="p-8 flex flex-col gap-4 animate-[fade-in-step_0.5s_forwards] h-full">
-            <div>
-              <h2 className="text-lg font-medium m-0 mb-1">Intelligence Provider</h2>
-              <p className="text-[13px] text-[#777] m-0 mb-5 leading-normal">Select the AI logic engine for your active workspace.</p>
-            </div>
-            <div className="relative mb-6">
-              <select
-                className="w-full appearance-none bg-surface border border-outline-variant p-3.5 rounded-lg text-sm transition-colors focus:border-primary focus:outline-none"
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value)}
-              >
-                <option value="" disabled>Select an AI Provider...</option>
-                <option value="gemini">Google Gemini</option>
-                <option value="boongai">BoongAI Network</option>
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#777] text-xs">▼</div>
-            </div>
-            {selectedProvider && (
-              <div className="mt-auto flex flex-col gap-3">
-                <p className="text-[11px] text-[#777] m-0 text-center">
-                  {selectedProvider === 'boongai' ? 'Requires BoongAI pricing tier configuration.' : 'AuraSphere will open your browser to securely log in.'}
-                </p>
-                <button
-                  className={`w-full p-3.5 rounded-md font-bold text-xs uppercase tracking-wider cursor-pointer border-none transition-all hover:-translate-y-0.5 active:scale-95 ${selectedProvider === 'gemini' ? 'bg-[#4285F4] text-white' : 'bg-[#1a1a1a] text-white'}`}
-                  onClick={handleProviderSelect}
-                >
-                  {selectedProvider === 'boongai' ? 'Select Plan' : 'Login With Google'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {connectionState === 'plan_selection' && (
-          <div className="p-8 flex flex-col gap-4 animate-[fade-in-step_0.5s_forwards] h-full">
-            <div>
-              <h2 className="text-lg font-medium m-0 mb-1">Workspace Tier</h2>
-              <p className="text-[13px] text-[#777] m-0 mb-5 leading-normal">Select your BoongAI capability tier.</p>
-            </div>
-            
-            <div className="bg-surface border border-primary p-4 rounded-lg cursor-pointer transition-all bg-primary/5">
-              <h3 className="m-0 mb-1 text-[13px] font-bold uppercase tracking-wider font-headline">Pro Tier</h3>
-              <p className="m-0 text-xs text-[#777]">Standard processing limits.</p>
-            </div>
-            <div className="bg-surface border border-outline-variant p-4 rounded-lg cursor-pointer transition-all hover:border-primary/50">
-              <h3 className="m-0 mb-1 text-[13px] font-bold uppercase tracking-wider font-headline">Ultra Tier</h3>
-              <p className="m-0 text-xs text-[#777]">Uncapped capabilities.</p>
-            </div>
-
-            <button
-              className="mt-auto w-full p-3.5 rounded-md font-bold text-xs uppercase tracking-wider cursor-pointer border-none transition-all hover:-translate-y-0.5 active:scale-95 bg-primary text-white"
-              onClick={initiateAuthFlow}
-            >
-              Connect to BoongAI
-            </button>
-          </div>
-        )}
-
-        {connectionState === 'redirecting' && (
-          <div className="flex flex-col items-center justify-center h-full gap-8 text-center p-8 animate-[fade-in-step_0.5s_forwards]">
-            <Spinner />
-            <div>
-              <h3 className="uppercase tracking-[1.5px] text-xs font-bold text-primary mb-2 font-mono">AWAITING AUTHORIZATION</h3>
-              <p className="uppercase tracking-[1.5px] text-[10px] font-medium text-[#777] m-0 font-mono">{connectionMessage}</p>
-            </div>
-          </div>
-        )}
-
-        {connectionState === 'connected' && activeTab === 'Assistant' && (
+        {activeTab === 'Assistant' && (
           <>
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-3">
               {isLoading && (
@@ -349,7 +246,7 @@ export function AuraSpherePanel({
                 <SuggestionCard
                   key={s.id}
                   suggestion={s}
-                  isFocused={focusedCardIndex === idx}
+                  isFocused={false}
                   onSelect={onSuggestionSelect}
                   onDismiss={handleDismiss}
                   animationIndex={idx}
@@ -402,7 +299,7 @@ export function AuraSpherePanel({
           </>
         )}
 
-        {connectionState === 'connected' && activeTab === 'Analysis' && (
+        {activeTab === 'Analysis' && (
           <div className="flex-1 p-6 space-y-8 animate-[fade-in-step_0.3s_forwards]">
             {/* Tone Analysis Section */}
             <section>
@@ -466,7 +363,7 @@ export function AuraSpherePanel({
           </div>
         )}
 
-        {connectionState === 'connected' && activeTab === 'History' && (
+        {activeTab === 'History' && (
           <div className="flex-1 p-6 space-y-6 animate-[fade-in-step_0.3s_forwards]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs uppercase tracking-[0.2em] font-black text-slate-400 m-0">Activity History</h3>
