@@ -106,23 +106,38 @@ function App() {
         if (savedPath) {
           doc = await loadDocument(savedPath);
           path = savedPath;
+          const persisted = !!savedPath;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         } else {
           doc = await createDocument();
           path = getDocumentPath(doc.id);
+          // Newly created docs are not yet persisted; keep auto-save disabled until first save.
+          const persisted = false;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         }
       } catch {
         // Always fall back to a new document — never stay stuck on loading
         try {
           doc = await createDocument();
           path = getDocumentPath(doc.id);
+          const persisted = false;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         } catch (e) {
           console.error('Failed to create document:', e);
           return;
         }
-      }
-      if (!cancelled) {
-        setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, true);
-        localStorage.setItem(LAST_PATH_KEY, path);
       }
     }
     init();
@@ -197,7 +212,7 @@ function App() {
   const handleNew = useCallback(async () => {
     const doc = await createDocument();
     const path = getDocumentPath(doc.id);
-    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, true);
+    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, false);
     localStorage.setItem(LAST_PATH_KEY, path);
   }, [setDocument]);
 
