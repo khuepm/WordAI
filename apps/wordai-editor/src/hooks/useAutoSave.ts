@@ -82,7 +82,10 @@ export function useAutoSave(
     setHasUnsavedChanges(true);
   }, [document.content]);
 
-  // Debounced auto-save (Req 2.1, 2.2, 2.4)
+  // Reset saveError when disabled (e.g. file not yet persisted)
+  useEffect(() => {
+    if (!enabled) setSaveError(null);
+  }, [enabled]);
   useEffect(() => {
     if (!filePath || !enabled) return;
     const timerId = setTimeout(() => performSave(document, filePath), DEBOUNCE_DELAY_MS);

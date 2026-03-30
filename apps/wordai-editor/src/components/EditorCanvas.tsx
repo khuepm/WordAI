@@ -160,7 +160,7 @@ export function EditorCanvas({
         overflow: 'hidden',
       }}
     >
-      {saveError && (
+      {saveError && saveError.message && (
         <div style={styles.errorBanner} role="alert" aria-live="assertive">
           Save failed: {saveError.message}. Retrying...
         </div>
