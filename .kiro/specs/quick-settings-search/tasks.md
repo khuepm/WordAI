@@ -43,19 +43,19 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Add `pub mod preferences_store;` and wire commands into `invoke_handler`
     - _Requirements: 7.1, 7.3, 7.4_
 
-  - [-] 2.4 Write unit tests for PreferencesStore in Rust
+  - [x] 2.4 Write unit tests for PreferencesStore in Rust
     - Test `load_preferences` returns defaults when file missing
     - Test `save_preferences` then `load_preferences` round-trips correctly
     - Test `reset_preferences` with group resets only that group
     - _Requirements: 7.2, 7.5, 7.6_
 
-- [ ] 3. Create PreferencesService frontend
-  - [~] 3.1 Create `src/services/preferencesService.ts` with `loadPreferences`, `savePreferences`, `resetPreferences` functions
+- [-] 3. Create PreferencesService frontend
+  - [x] 3.1 Create `src/services/preferencesService.ts` with `loadPreferences`, `savePreferences`, `resetPreferences` functions
     - Each function calls the corresponding Tauri IPC command via `invoke`
     - Add mock handlers for `load_preferences`, `save_preferences`, `reset_preferences` in `src/mocks/tauri.ts`
     - _Requirements: 6.1, 7.1, 7.3, 7.4_
 
-  - [~] 3.2 Write unit tests for PreferencesService
+  - [-] 3.2 Write unit tests for PreferencesService
     - Test that each function calls the correct IPC command with correct args
     - Test error propagation when IPC returns an error
     - _Requirements: 7.7_
