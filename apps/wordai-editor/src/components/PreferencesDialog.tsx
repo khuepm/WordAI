@@ -198,6 +198,41 @@ function GeneralTab() {
           <Toggle checked={false} />
         </SettingRow>
       </div>
+
+      {/* Interface Language */}
+      <div>
+        <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
+        <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+          <select style={{ 
+            width: '100%', 
+            background: 'rgba(243,244,245,0.5)', 
+            border: 'none', 
+            borderRadius: '1rem', 
+            padding: '1.25rem', 
+            fontSize: '0.875rem', 
+            fontWeight: 500,
+            appearance: 'none', 
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+          }}>
+            <option>English (US)</option>
+            <option>Vietnamese (Tiếng Việt)</option>
+            <option>Japanese (日本語)</option>
+            <option>French (Français)</option>
+            <option>German (Deutsch)</option>
+          </select>
+          <span className="material-symbols-outlined" style={{ 
+            position: 'absolute', 
+            right: '1.25rem', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            color: '#4343d5', 
+            pointerEvents: 'none', 
+            fontSize: '20px' 
+          }}>unfold_more</span>
+        </div>
+      </div>
     </div>
   );
 }
