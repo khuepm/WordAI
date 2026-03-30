@@ -21,6 +21,8 @@ export interface AppState {
   document: Document | null;
   /** Absolute file path for the current document */
   filePath: string;
+  /** True once the document has been successfully saved to disk at least once */
+  isFilePersisted: boolean;
 
   // UI flags (Req 17.2–17.5)
   isAIPanelOpen: boolean;
@@ -44,6 +46,7 @@ export interface AppState {
 const initialState: AppState = {
   document: null,
   filePath: '',
+  isFilePersisted: false,
   isAIPanelOpen: false,
   isNegotiationOpen: false,
   isRenderDrawerOpen: false,
@@ -71,7 +74,8 @@ type Action =
   | { type: 'MARK_UNSAVED' }
   | { type: 'MARK_SAVED'; payload: Document }
   | { type: 'SET_SAVE_ERROR'; payload: IPCError | null }
-  | { type: 'SET_AI_SERVICE_STATUS'; payload: boolean | null };
+  | { type: 'SET_AI_SERVICE_STATUS'; payload: boolean | null }
+  | { type: 'MARK_FILE_PERSISTED' };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
@@ -83,6 +87,7 @@ function appReducer(state: AppState, action: Action): AppState {
         document: action.payload.document,
         filePath: action.payload.filePath,
         hasUnsavedChanges: false,
+        isFilePersisted: false,
       };
 
     case 'UPDATE_DOCUMENT':
@@ -142,7 +147,11 @@ function appReducer(state: AppState, action: Action): AppState {
         document: action.payload,
         hasUnsavedChanges: false,
         saveError: null,
+        isFilePersisted: true,
       };
+
+    case 'MARK_FILE_PERSISTED':
+      return { ...state, isFilePersisted: true };
 
     case 'MARK_UNSAVED':
       return { ...state, hasUnsavedChanges: true };
@@ -178,6 +187,7 @@ interface AppContextValue {
   closeVersionHistory: () => void;
   // AI service connectivity (Req 25.4, 25.5)
   setAiServiceStatus: (available: boolean | null) => void;
+  markFilePersisted: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -239,6 +249,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_AI_SERVICE_STATUS', payload: available });
   }, []);
 
+  const markFilePersisted = useCallback(() => {
+    dispatch({ type: 'MARK_FILE_PERSISTED' });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -256,6 +270,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         openVersionHistory,
         closeVersionHistory,
         setAiServiceStatus,
+        markFilePersisted,
       }}
     >
       {children}

@@ -42,6 +42,7 @@ function App() {
     openVersionHistory,
     closeVersionHistory,
     setAiServiceStatus,
+    markFilePersisted,
   } = useAppState();
 
   const [fontSize, setFontSize] = useState<number>(() => {
@@ -86,6 +87,7 @@ function App() {
   const {
     document,
     filePath,
+    isFilePersisted,
     isAIPanelOpen,
     isNegotiationOpen,
     isRenderDrawerOpen,
@@ -159,7 +161,8 @@ function App() {
 
   const handleSaveSuccess = useCallback((doc: Document) => {
     markSaved(doc);
-  }, [markSaved]);
+    markFilePersisted();
+  }, [markSaved, markFilePersisted]);
 
   const handleSaveError = useCallback(() => {
     // saveError is surfaced via useAutoSave return value and stored in state
@@ -205,9 +208,10 @@ function App() {
 
   const { saveError: autoSaveError, triggerSave } = useAutoSave(
     document ?? ({} as Document),
-    filePath,
+    document && filePath ? filePath : '',
     handleSaveSuccess,
-    handleSaveError
+    handleSaveError,
+    isFilePersisted
   );
 
   // Sync auto-save error into global state

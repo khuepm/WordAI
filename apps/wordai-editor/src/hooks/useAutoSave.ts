@@ -33,7 +33,8 @@ export function useAutoSave(
   document: Document,
   filePath: string,
   onSaveSuccess: (doc: Document) => void,
-  onSaveError: (err: IPCError) => void
+  onSaveError: (err: IPCError) => void,
+  enabled = true
 ): AutoSaveState {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -83,19 +84,19 @@ export function useAutoSave(
 
   // Debounced auto-save (Req 2.1, 2.2, 2.4)
   useEffect(() => {
-    if (!filePath) return;
+    if (!filePath || !enabled) return;
     const timerId = setTimeout(() => performSave(document, filePath), DEBOUNCE_DELAY_MS);
     return () => clearTimeout(timerId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [document.content, filePath, performSave]);
+  }, [document.content, filePath, performSave, enabled]);
 
   // Retry after 5 seconds on error (Req 2.5)
   useEffect(() => {
-    if (!saveError || !filePath) return;
+    if (!saveError || !filePath || !enabled) return;
     const retryId = setTimeout(() => performSave(document, filePath), RETRY_DELAY_MS);
     return () => clearTimeout(retryId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveError, filePath, performSave]);
+  }, [saveError, filePath, performSave, enabled]);
 
   return { isSaving, lastSaved, saveError, hasUnsavedChanges, triggerSave };
 }
