@@ -27,23 +27,23 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - **Property 2: Every `id` follows the `"tab.settingName"` format and `tab` field matches the prefix**
     - **Validates: Requirements 5.6**
 
-- [ ] 2. Create Rust PreferencesStore backend
-  - [~] 2.1 Create `src-tauri/src/preferences_store.rs` with load/save/reset logic
+- [x] 2. Create Rust PreferencesStore backend
+  - [x] 2.1 Create `src-tauri/src/preferences_store.rs` with load/save/reset logic
     - Implement `load_preferences(user_id)` — reads `user_{userId}.json`, merges with `default.json` for missing keys
     - Implement `save_preferences(user_id, preferences)` — writes `user_{userId}.json`
     - Implement `reset_preferences(user_id, group)` — resets one group or all to `default.json` values
     - Return descriptive `IPCError` on any file I/O failure
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [~] 2.2 Create `public/preferences/default.json` with all default preference values
+  - [x] 2.2 Create `public/preferences/default.json` with all default preference values
     - Must include all keys matching `defaultPreferences` in `src/types/preferences.ts`
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [~] 2.3 Register `load_preferences`, `save_preferences`, `reset_preferences` commands in `src-tauri/src/lib.rs`
+  - [x] 2.3 Register `load_preferences`, `save_preferences`, `reset_preferences` commands in `src-tauri/src/lib.rs`
     - Add `pub mod preferences_store;` and wire commands into `invoke_handler`
     - _Requirements: 7.1, 7.3, 7.4_
 
-  - [~] 2.4 Write unit tests for PreferencesStore in Rust
+  - [-] 2.4 Write unit tests for PreferencesStore in Rust
     - Test `load_preferences` returns defaults when file missing
     - Test `save_preferences` then `load_preferences` round-trips correctly
     - Test `reset_preferences` with group resets only that group
