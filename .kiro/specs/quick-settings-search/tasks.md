@@ -6,7 +6,7 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
 
 ## Tasks
 
-- [-] 1. Define TypeScript types and SettingRegistry
+- [x] 1. Define TypeScript types and SettingRegistry
   - [x] 1.1 Create `src/types/preferences.ts` with `Preferences`, `SettingEntry`, `Tab` union type, and `defaultPreferences` object
     - Define `Tab = 'general' | 'ai-engine' | 'typography' | 'privacy'`
     - Define `SettingEntry` interface with fields: `id`, `label`, `description`, `tab`, `keywords`, `type`, `defaultValue`
@@ -14,7 +14,7 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Export `defaultPreferences` constant with all default values
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [-] 1.2 Create `src/data/settingRegistry.ts` with the flat `SETTING_REGISTRY` array
+  - [x] 1.2 Create `src/data/settingRegistry.ts` with the flat `SETTING_REGISTRY` array
     - Add entries for General tab: `theme`, `autoSave`, `focusMode`, `language`
     - Add entries for AI Engine tab: `agent`, `model`, `creativity`, `contextWindowTokens`, `responseLanguage`, `webAccess`
     - Add entries for Typography tab: `fontFamily`, `fontSize`, `lineSpacing`, `smartQuotes`, `autoCapitalize`, `ligatures`
@@ -22,7 +22,7 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Each entry must have `id` in `"tab.settingName"` format
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-  - [~] 1.3 Write property test for SettingRegistry completeness
+  - [x] 1.3 Write property test for SettingRegistry completeness
     - **Property 1: Every SettingEntry has all required fields non-empty**
     - **Property 2: Every `id` follows the `"tab.settingName"` format and `tab` field matches the prefix**
     - **Validates: Requirements 5.6**
