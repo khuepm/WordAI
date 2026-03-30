@@ -63,7 +63,7 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
 - [x] 4. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 5. Implement QuickSearchPopup component
+- [x] 5. Implement QuickSearchPopup component
   - [x] 5.1 Create `src/components/QuickSearchPopup.tsx` with search input, filtered results list, and keyboard navigation
     - Render as a centered overlay modal with a backdrop
     - Auto-focus the search input on open
@@ -76,7 +76,7 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Call `onSelect(entry)` on `Enter` or result click
     - _Requirements: 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.3, 3.4, 3.5, 4.4_
 
-  - [-] 5.2 Write property test for search filtering
+  - [x] 5.2 Write property test for search filtering
     - **Property 3: For any non-empty query string, every result item contains the query in label, description, or at least one keyword (case-insensitive)**
     - **Property 4: When query is empty, result count equals total SETTING_REGISTRY length**
     - **Validates: Requirements 2.2, 2.3, 2.4**
@@ -89,13 +89,13 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Test Enter on highlighted item calls onSelect
     - _Requirements: 1.3, 1.4, 3.4, 3.5, 4.1, 4.2_
 
-- [ ] 6. Wire keyboard shortcut and navigation into App.tsx and PreferencesDialog
-  - [~] 6.1 Add `isQuickSearchOpen` state and `Cmd+Shift+P` / `Ctrl+Shift+P` global keydown listener in `App.tsx`
+- [-] 6. Wire keyboard shortcut and navigation into App.tsx and PreferencesDialog
+  - [x] 6.1 Add `isQuickSearchOpen` state and `Cmd+Shift+P` / `Ctrl+Shift+P` global keydown listener in `App.tsx`
     - Register listener in a `useEffect`, clean up on unmount
     - Pass `isQuickSearchOpen`, `onClose`, and `onSelect` props to `QuickSearchPopup`
     - _Requirements: 1.1, 1.2_
 
-  - [~] 6.2 Handle `onSelect` in `App.tsx`: close popup, open `PreferencesDialog` on the correct tab, pass `targetSettingId`
+  - [-] 6.2 Handle `onSelect` in `App.tsx`: close popup, open `PreferencesDialog` on the correct tab, pass `targetSettingId`
     - Add `initialTab` and `targetSettingId` props to `PreferencesDialog`
     - _Requirements: 4.1, 4.2_
 
