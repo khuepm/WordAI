@@ -12,6 +12,7 @@ import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { PreferencesDialog } from './components/PreferencesDialog';
+import { Tooltip } from './components/Tooltip';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
@@ -310,7 +311,6 @@ function App() {
         </div>
       )}
 
-      {/* Left sidebar */}
       <aside style={{
         position: 'fixed',
         left: 0,
@@ -328,43 +328,48 @@ function App() {
         gap: '1.5rem',
         zIndex: 40,
       }}>
-        <button
-          onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
-          style={{
-            padding: '0.75rem',
-            background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
-            border: 'none',
-            borderRadius: '0.75rem',
-            cursor: 'pointer',
-            color: isAIPanelOpen ? 'var(--md-sys-color-primary)' : '#5a5a5a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
-          }}
-          title="AuraSphere AI"
-        >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-        </button>
-        <button
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Analytics"
-        >
-          <span className="material-symbols-outlined">analytics</span>
-        </button>
-        <button
-          onClick={openVersionHistory}
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Version History"
-        >
-          <span className="material-symbols-outlined">history</span>
-        </button>
-        <button
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Settings"
-        >
-          <span className="material-symbols-outlined">tune</span>
-        </button>
+        <Tooltip text="AuraSphere AI">
+          <button
+            onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
+            style={{
+              padding: '0.75rem',
+              background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
+              border: 'none',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              color: isAIPanelOpen ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Analytics">
+          <button
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">analytics</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Version History">
+          <button
+            onClick={openVersionHistory}
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">history</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Settings">
+          <button
+            onClick={() => setIsPreferencesOpen(true)}
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">tune</span>
+          </button>
+        </Tooltip>
       </aside>
 
       {/* Main content */}
