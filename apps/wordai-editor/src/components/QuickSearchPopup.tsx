@@ -53,11 +53,13 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
     setHighlightIndex(0);
   }, [query]);
 
-  // Scroll highlighted item into view
+  // Scroll highlighted item into view (scrollIntoView may not exist in test environments)
   useEffect(() => {
     if (listRef.current) {
       const item = listRef.current.children[highlightIndex] as HTMLElement | undefined;
-      item?.scrollIntoView({ block: 'nearest' });
+      if (item && typeof item.scrollIntoView === 'function') {
+        item.scrollIntoView({ block: 'nearest' });
+      }
     }
   }, [highlightIndex]);
 
