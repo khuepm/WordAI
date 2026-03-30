@@ -49,22 +49,22 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Test `reset_preferences` with group resets only that group
     - _Requirements: 7.2, 7.5, 7.6_
 
-- [-] 3. Create PreferencesService frontend
+- [x] 3. Create PreferencesService frontend
   - [x] 3.1 Create `src/services/preferencesService.ts` with `loadPreferences`, `savePreferences`, `resetPreferences` functions
     - Each function calls the corresponding Tauri IPC command via `invoke`
     - Add mock handlers for `load_preferences`, `save_preferences`, `reset_preferences` in `src/mocks/tauri.ts`
     - _Requirements: 6.1, 7.1, 7.3, 7.4_
 
-  - [-] 3.2 Write unit tests for PreferencesService
+  - [x] 3.2 Write unit tests for PreferencesService
     - Test that each function calls the correct IPC command with correct args
     - Test error propagation when IPC returns an error
     - _Requirements: 7.7_
 
-- [~] 4. Checkpoint — Ensure all tests pass
+- [x] 4. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement QuickSearchPopup component
-  - [~] 5.1 Create `src/components/QuickSearchPopup.tsx` with search input, filtered results list, and keyboard navigation
+- [-] 5. Implement QuickSearchPopup component
+  - [x] 5.1 Create `src/components/QuickSearchPopup.tsx` with search input, filtered results list, and keyboard navigation
     - Render as a centered overlay modal with a backdrop
     - Auto-focus the search input on open
     - Filter `SETTING_REGISTRY` by `label`, `description`, and `keywords` (case-insensitive, real-time)
@@ -76,12 +76,12 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Call `onSelect(entry)` on `Enter` or result click
     - _Requirements: 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.3, 3.4, 3.5, 4.4_
 
-  - [~] 5.2 Write property test for search filtering
+  - [-] 5.2 Write property test for search filtering
     - **Property 3: For any non-empty query string, every result item contains the query in label, description, or at least one keyword (case-insensitive)**
     - **Property 4: When query is empty, result count equals total SETTING_REGISTRY length**
     - **Validates: Requirements 2.2, 2.3, 2.4**
 
-  - [~] 5.3 Write unit tests for QuickSearchPopup
+  - [x] 5.3 Write unit tests for QuickSearchPopup
     - Test Escape closes the popup
     - Test backdrop click closes the popup
     - Test "No settings found" renders when no matches
