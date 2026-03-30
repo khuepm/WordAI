@@ -89,27 +89,27 @@ Implement a Command Palette-style popup (`QuickSearch_Popup`) triggered by `Cmd+
     - Test Enter on highlighted item calls onSelect
     - _Requirements: 1.3, 1.4, 3.4, 3.5, 4.1, 4.2_
 
-- [-] 6. Wire keyboard shortcut and navigation into App.tsx and PreferencesDialog
+- [x] 6. Wire keyboard shortcut and navigation into App.tsx and PreferencesDialog
   - [x] 6.1 Add `isQuickSearchOpen` state and `Cmd+Shift+P` / `Ctrl+Shift+P` global keydown listener in `App.tsx`
     - Register listener in a `useEffect`, clean up on unmount
     - Pass `isQuickSearchOpen`, `onClose`, and `onSelect` props to `QuickSearchPopup`
     - _Requirements: 1.1, 1.2_
 
-  - [-] 6.2 Handle `onSelect` in `App.tsx`: close popup, open `PreferencesDialog` on the correct tab, pass `targetSettingId`
+  - [x] 6.2 Handle `onSelect` in `App.tsx`: close popup, open `PreferencesDialog` on the correct tab, pass `targetSettingId`
     - Add `initialTab` and `targetSettingId` props to `PreferencesDialog`
     - _Requirements: 4.1, 4.2_
 
-  - [~] 6.3 In `PreferencesDialog`, scroll to the target setting within 300ms of opening
+  - [x] 6.3 In `PreferencesDialog`, scroll to the target setting within 300ms of opening
     - Add `data-setting-id` attributes to each setting row in all four tab components
     - On mount (or when `targetSettingId` changes), use `scrollIntoView` with a short delay
     - _Requirements: 4.3_
 
-  - [~] 6.4 Write unit tests for keyboard shortcut activation
+  - [x] 6.4 Write unit tests for keyboard shortcut activation
     - Test that `Cmd+Shift+P` fires and sets `isQuickSearchOpen` to true
     - Test that `Ctrl+Shift+P` fires and sets `isQuickSearchOpen` to true
     - _Requirements: 1.1, 1.2_
 
-- [~] 7. Final checkpoint — Ensure all tests pass
+- [x] 7. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
