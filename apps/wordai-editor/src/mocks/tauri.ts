@@ -5,9 +5,14 @@
  */
 
 import type { Document, DocumentSnapshot } from '../types/document';
+import { defaultPreferences } from '../types/preferences';
+import type { Preferences } from '../types/preferences';
 
 // In-memory version history store
 const versionHistory: Record<string, DocumentSnapshot[]> = {};
+
+// In-memory preferences store keyed by userId
+const preferencesStore: Record<string, Preferences> = {};
 
 // In-memory document store (backed by localStorage for persistence)
 function storageKey(path: string) {
@@ -107,6 +112,20 @@ const handlers: Record<string, (args: any) => unknown> = {
   export_to_pdf() {
     console.warn('[mock] export_to_pdf is a no-op in browser dev mode');
     return null;
+  },
+
+  load_preferences({ userId }: { userId: string }) {
+    return JSON.parse(JSON.stringify(preferencesStore[userId] ?? defaultPreferences));
+  },
+
+  save_preferences({ userId, preferences }: { userId: string; preferences: Preferences }) {
+    preferencesStore[userId] = JSON.parse(JSON.stringify(preferences));
+    return null;
+  },
+
+  reset_preferences({ userId }: { userId: string }) {
+    delete preferencesStore[userId];
+    return JSON.parse(JSON.stringify(defaultPreferences));
   },
 };
 

@@ -2,13 +2,14 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState } from 'react';
-
-type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy';
+import { useState, useEffect } from 'react';
+import type { Tab } from '../types/preferences';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: Tab;
+  targetSettingId?: string;
 }
 
 // ─── Sidebar ────────────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ function GeneralTab() {
       </div>
 
       {/* Interface Mode */}
-      <div>
+      <div data-setting-id="general.theme">
         <SectionHeader label="Interface Mode" description="Adjust the visual appearance of the editor shell." />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
           {themes.map((theme, i) => (
@@ -175,7 +176,7 @@ function GeneralTab() {
       </div>
 
       {/* Auto-Save */}
-      <div>
+      <div data-setting-id="general.autoSave">
         <SectionHeader label="Auto-Save" description="Automatically backup your progress to the cloud library as you write." />
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
@@ -192,7 +193,7 @@ function GeneralTab() {
       </div>
 
       {/* Focus Mode */}
-      <div>
+      <div data-setting-id="general.focusMode">
         <SectionHeader label="Focus Mode" description="Automatically hide toolbars and secondary panels when you begin typing." />
         <SettingRow icon="visibility_off" label="Enable distraction-free shell">
           <Toggle checked={false} />
@@ -200,18 +201,18 @@ function GeneralTab() {
       </div>
 
       {/* Interface Language */}
-      <div>
+      <div data-setting-id="general.language">
         <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
         <div style={{ position: 'relative', marginTop: '0.5rem' }}>
-          <select style={{ 
-            width: '100%', 
-            background: 'rgba(243,244,245,0.5)', 
-            border: 'none', 
-            borderRadius: '1rem', 
-            padding: '1.25rem', 
-            fontSize: '0.875rem', 
+          <select style={{
+            width: '100%',
+            background: 'rgba(243,244,245,0.5)',
+            border: 'none',
+            borderRadius: '1rem',
+            padding: '1.25rem',
+            fontSize: '0.875rem',
             fontWeight: 500,
-            appearance: 'none', 
+            appearance: 'none',
             fontFamily: 'inherit',
             cursor: 'pointer',
             boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
@@ -222,14 +223,14 @@ function GeneralTab() {
             <option>French (Français)</option>
             <option>German (Deutsch)</option>
           </select>
-          <span className="material-symbols-outlined" style={{ 
-            position: 'absolute', 
-            right: '1.25rem', 
-            top: '50%', 
-            transform: 'translateY(-50%)', 
-            color: '#4343d5', 
-            pointerEvents: 'none', 
-            fontSize: '20px' 
+          <span className="material-symbols-outlined" style={{
+            position: 'absolute',
+            right: '1.25rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#4343d5',
+            pointerEvents: 'none',
+            fontSize: '20px'
           }}>unfold_more</span>
         </div>
       </div>
@@ -271,8 +272,8 @@ function AIEngineTab() {
   ];
 
   const sliders = [
-    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'] },
-    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'] },
+    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'], settingId: 'ai-engine.creativity' },
+    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
   ];
 
   return (
@@ -288,7 +289,7 @@ function AIEngineTab() {
       </div>
 
       {/* Connect Agent */}
-      <div>
+      <div data-setting-id="ai-engine.agent">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Connect your agent</h3>
@@ -322,7 +323,7 @@ function AIEngineTab() {
       </div>
 
       {/* Aura Models */}
-      <div>
+      <div data-setting-id="ai-engine.model">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Aura Models</h3>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro Required for Aura-Pro</span>
@@ -361,9 +362,8 @@ function AIEngineTab() {
 
       {/* Sliders */}
       <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {sliders.map((s, i) => (
-          <div key={s.label}>
-            {i > 0 && <div style={{ marginBottom: '1.5rem' }} />}
+        {sliders.map((s) => (
+          <div key={s.label} data-setting-id={s.settingId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
@@ -382,7 +382,7 @@ function AIEngineTab() {
 
       {/* Language + Knowledge */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div>
+        <div data-setting-id="ai-engine.responseLanguage">
           <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Response Language</label>
           <div style={{ position: 'relative' }}>
             <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
@@ -394,7 +394,7 @@ function AIEngineTab() {
           </div>
           <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Overrides document language settings for AI responses.</p>
         </div>
-        <div>
+        <div data-setting-id="ai-engine.webAccess">
           <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Knowledge Integration</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -425,9 +425,9 @@ function TypographyTab() {
   ];
 
   const smartFeatures = [
-    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true },
-    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false },
-    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true },
+    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true, settingId: 'typography.smartQuotes' },
+    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false, settingId: 'typography.autoCapitalize' },
+    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true, settingId: 'typography.ligatures' },
   ];
 
   return (
@@ -438,7 +438,7 @@ function TypographyTab() {
       </div>
 
       {/* Font Family */}
-      <div>
+      <div data-setting-id="typography.fontFamily">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Standard Font</h3>
@@ -465,10 +465,10 @@ function TypographyTab() {
       {/* Font Size + Line Spacing */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
         {[
-          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.' },
-          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.' },
+          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.', settingId: 'typography.fontSize' },
+          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.', settingId: 'typography.lineSpacing' },
         ].map(group => (
-          <div key={group.label}>
+          <div key={group.label} data-setting-id={group.settingId}>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{group.label}</h3>
             <div style={{ display: 'flex', background: '#f3f4f5', padding: '6px', borderRadius: '0.75rem', gap: '4px' }}>
               {group.options.map((opt, i) => (
@@ -492,7 +492,7 @@ function TypographyTab() {
         <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>Smart Formatting</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
           {smartFeatures.map(f => (
-            <div key={f.label} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
+            <div key={f.label} data-setting-id={f.settingId} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
               <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
                 <span className="material-symbols-outlined" style={{ color: f.on ? '#4343d5' : '#a1a1aa', fontSize: '20px' }}>{f.icon}</span>
                 <div>
@@ -537,7 +537,7 @@ function PrivacyTab() {
       </div>
 
       {/* AI Training */}
-      <div>
+      <div data-setting-id="privacy.allowAITraining">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
           <SectionHeader label="AI Model Training" description="Anonymized snippets help improve the engine. We never store personal identifiers." />
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>Recommended</span>
@@ -548,7 +548,7 @@ function PrivacyTab() {
       </div>
 
       {/* Regional Infrastructure */}
-      <div>
+      <div data-setting-id="privacy.analyticsEnabled">
         <SectionHeader label="Regional Data Infrastructure" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Singapore - active */}
@@ -598,7 +598,7 @@ function PrivacyTab() {
       </div>
 
       {/* Encryption Banner */}
-      <div style={{ borderRadius: '1rem', overflow: 'hidden', position: 'relative', height: '144px' }}>
+      <div data-setting-id="privacy.crashReports" style={{ borderRadius: '1rem', overflow: 'hidden', position: 'relative', height: '144px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #4849da, #5d5fef)', opacity: 0.9 }} />
         <img
           src="/gradient-banner.png"
@@ -618,6 +618,18 @@ function PrivacyTab() {
           <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
         </div>
       </div>
+      <div data-setting-id="privacy.localProcessingOnly" style={{ padding: '1.25rem 1.5rem', borderRadius: '1rem', border: '1px solid #e0e0e0', backgroundColor: '#fafafa', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>Local processing only</h3>
+          <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#555' }}>
+            When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.
+          </p>
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#333', cursor: 'pointer' }}>
+          <input type="checkbox" style={{ width: '14px', height: '14px' }} />
+          <span>Prefer on-device processing only</span>
+        </label>
+      </div>
     </div>
   );
 }
@@ -630,7 +642,7 @@ function SearchResultsTab({ query }: { query: string }) {
       <div style={{ marginBottom: '2rem' }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Showing results for "{query}"</h3>
       </div>
-      
+
       <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
         {/* Result 1 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
@@ -740,9 +752,27 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
-export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('general');
+export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId }: PreferencesDialogProps) {
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!isOpen || !initialTab) return;
+    if (activeTab !== initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab, activeTab]);
+
+  useEffect(() => {
+    if (!targetSettingId || !isOpen) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-setting-id="${targetSettingId}"]`);
+      if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+        (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [targetSettingId, isOpen]);
 
   if (!isOpen) return null;
 
