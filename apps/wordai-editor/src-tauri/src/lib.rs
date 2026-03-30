@@ -3,6 +3,7 @@ pub mod document_store;
 pub mod file_manager;
 pub mod models;
 pub mod pdf_export;
+pub mod preferences_store;
 
 use models::{AISuggestion, Document, DocumentSnapshot, IPCError};
 use pdf_export::PDFExportOptions;
@@ -131,6 +132,9 @@ pub fn run() {
             check_ai_health,
             export_to_pdf,
             get_version_history,
+            preferences_store::load_preferences,
+            preferences_store::save_preferences,
+            preferences_store::reset_preferences,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
