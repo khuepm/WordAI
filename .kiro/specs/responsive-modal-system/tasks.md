@@ -13,14 +13,14 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
   - _Requirements: 5.1, 5.2_
 
 - [-] 2. Tạo hook `useViewportSize`
-  - [-] 2.1 Tạo file `apps/wordai-editor/src/hooks/useViewportSize.ts`
+  - [x] 2.1 Tạo file `apps/wordai-editor/src/hooks/useViewportSize.ts`
     - Export interface `ViewportSize { width: number; height: number }`
     - Export constant `MODAL_BREAKPOINTS = { COLLAPSE_SIDEBAR: 720, STACK_LAYOUT: 480 }`
     - Implement `useViewportSize()`: subscribe `window.resize` với debounce ~16ms, trả về `{ width, height }`, cleanup on unmount
     - Fallback `{ width: 1024, height: 768 }` khi `window` không khả dụng
     - _Requirements: 3.4_
 
-  - [ ] 2.2 Viết unit tests cho `useViewportSize`
+  - [-] 2.2 Viết unit tests cho `useViewportSize`
     - Test initial value từ `window.innerWidth/innerHeight`
     - Test cleanup listener khi unmount
     - Test fallback values khi `window` không khả dụng
