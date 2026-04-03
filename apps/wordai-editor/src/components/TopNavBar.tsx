@@ -3,15 +3,19 @@
  * Requirements: 18.1, 19.2
  */
 
+import { UserAvatar } from './UserAvatar';
+
 interface TopNavBarProps {
   documentTitle: string;
   hasUnsavedChanges: boolean;
   onNew: () => void;
   onSave: () => void;
   onOpenPreferences?: () => void;
+  /** Authenticated user's display name; omit for anonymous/guest. */
+  userName?: string;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName }: TopNavBarProps) {
   return (
     <>
       <header
@@ -132,22 +136,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          <button
-            style={{
-              background: 'none',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--md-sys-color-on-surface-variant)',
-            }}
-          >
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
+          <UserAvatar name={userName} size={32} />
         </div>
       </header>
       {/* Divider */}
