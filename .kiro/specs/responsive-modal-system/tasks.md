@@ -51,7 +51,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
 - [x] 4. Checkpoint — Đảm bảo tests pass cho QuickSearchPopup
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 5. Tạo `CollapsedSidebar` sub-component trong `PreferencesDialog`
+- [x] 5. Tạo `CollapsedSidebar` sub-component trong `PreferencesDialog`
   - [x] 5.1 Thêm `CollapsedSidebar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
     - Interface `CollapsedSidebarProps { activeTab, onTabChange, isSearching, onClearSearch }`
     - Render icon-only buttons với `width: var(--modal-sidebar-collapsed-width, 64px)`
@@ -59,7 +59,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tích hợp `Tooltip` component hiện có để hiển thị tên tab khi hover
     - _Requirements: 3.1, 4.5, 6.1_
 
-  - [~] 5.2 Viết property test cho collapsed sidebar (Property 3)
+  - [x] 5.2 Viết property test cho collapsed sidebar (Property 3)
     - **Property 3: Collapsed sidebar layout and accessibility**
     - **Validates: Requirements 3.1, 6.1**
     - `fc.integer({ min: 200, max: 719 })` → verify sidebar collapsed + aria-label đầy đủ

@@ -97,7 +97,7 @@ interface CollapsedSidebarProps {
   onClearSearch: () => void;
 }
 
-function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
+export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
   const items: { id: Tab; icon: string; label: string }[] = [
     { id: 'general', icon: 'settings', label: 'General' },
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
