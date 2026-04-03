@@ -1,18 +1,70 @@
 /**
  * Property-based tests for PreferencesDialog responsive layout
- * Validates: Requirements 3.1, 6.1, 3.2, 6.2
+ * Validates: Requirements 1.1, 1.2, 3.1, 6.1, 3.2, 6.2
  */
 
+// Feature: responsive-modal-system, Property 1: PreferencesDialog size constraints
 // Feature: responsive-modal-system, Property 3: Collapsed sidebar layout and accessibility
 // Feature: responsive-modal-system, Property 4: Stacked layout and ARIA roles
 
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import * as fc from 'fast-check';
 import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
-import { CollapsedSidebar, HorizontalTabBar } from './PreferencesDialog';
-import { MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
+import { CollapsedSidebar, HorizontalTabBar, PreferencesDialog } from './PreferencesDialog';
+import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 import type { Tab } from '../types/preferences';
+
+vi.mock('../hooks/useViewportSize', () => ({
+  useViewportSize: vi.fn(),
+  MODAL_BREAKPOINTS: { COLLAPSE_SIDEBAR: 720, STACK_LAYOUT: 480 },
+}));
+
+vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
+
+// ---------------------------------------------------------------------------
+// Property 1: PreferencesDialog size constraints
+// Validates: Requirements 1.1, 1.2
+// ---------------------------------------------------------------------------
+
+describe('Property 1: PreferencesDialog size constraints', () => {
+  // Feature: responsive-modal-system, Property 1: PreferencesDialog size constraints
+  it('for any viewport size, modal container has correct CSS variable references for maxWidth and maxHeight', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 200, max: 2560 }), // viewport width
+        fc.integer({ min: 200, max: 1440 }), // viewport height
+        (vw, vh) => {
+          vi.mocked(useViewportSize).mockReturnValue({ width: vw, height: vh });
+
+          const { unmount, container } = render(
+            createElement(PreferencesDialog, {
+              isOpen: true,
+              onClose: () => { },
+            })
+          );
+
+          // Find the inner modal container div (has maxWidth + maxHeight CSS variables)
+          const modalContainer = container.querySelector<HTMLElement>(
+            '[style*="modal-max-width-preferences"]'
+          );
+          expect(modalContainer).not.toBeNull();
+
+          const style = modalContainer!.style;
+          expect(style.maxWidth).toContain(
+            'var(--modal-max-width-preferences, min(900px, calc(100vw - 48px)))'
+          );
+          expect(style.maxHeight).toContain(
+            'var(--modal-max-height-preferences, min(680px, calc(100vh - 80px)))'
+          );
+
+          unmount();
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Property 3: Collapsed sidebar layout and accessibility

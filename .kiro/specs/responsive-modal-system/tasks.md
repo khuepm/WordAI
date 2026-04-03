@@ -101,7 +101,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - `repeat(2, 1fr)` (model, language+knowledge) → `repeat(auto-fit, minmax(200px, 1fr))`
     - _Requirements: 3.5, 3.6_
 
-  - [~] 7.4 Viết property test cho PreferencesDialog size constraints (Property 1)
+  - [x] 7.4 Viết property test cho PreferencesDialog size constraints (Property 1)
     - **Property 1: PreferencesDialog size constraints**
     - **Validates: Requirements 1.1, 1.2**
     - `fc.integer({ min: 200, max: 2560 })` × `fc.integer({ min: 200, max: 1440 })` → verify maxWidth + maxHeight
