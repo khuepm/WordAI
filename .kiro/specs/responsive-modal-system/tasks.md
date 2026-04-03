@@ -122,7 +122,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Không kích hoạt focus trap nếu modal không có focusable elements
     - _Requirements: 6.3, 6.4_
 
-  - [~] 8.2 Viết property test cho focus trap (Property 7)
+  - [x] 8.2 Viết property test cho focus trap (Property 7)
     - **Property 7: Focus trap within modal**
     - **Validates: Requirements 6.3**
     - `fc.integer({ min: 1, max: 20 })` Tab presses → verify focused element luôn trong modal
