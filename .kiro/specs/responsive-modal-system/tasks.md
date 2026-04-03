@@ -32,7 +32,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Thay `maxHeight: 8 * 64` bằng `maxHeight: 'min(512px, calc(100vh - 200px))'`
     - _Requirements: 1.3, 2.4_
 
-  - [~] 3.2 Viết property test cho QuickSearchPopup width constraint (Property 2)
+  - [x] 3.2 Viết property test cho QuickSearchPopup width constraint (Property 2)
     - **Property 2: QuickSearchPopup width constraint**
     - **Validates: Requirements 1.3**
     - Cài `fast-check` nếu chưa có: `npm install --save-dev fast-check`
