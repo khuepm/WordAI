@@ -106,4 +106,13 @@
   --topnav-height: 64px;
   --left-sidebar-width: 64px;
   --right-panel-width: 360px;
+
+  /* Modal System */
+  --modal-max-width-preferences: min(900px, calc(100vw - 48px));
+  --modal-max-height-preferences: min(680px, calc(100vh - 80px));
+  --modal-max-width-popup: min(560px, calc(100vw - 32px));
+  --modal-sidebar-width: 256px;
+  --modal-sidebar-collapsed-width: 64px;
+  --modal-breakpoint-collapse: 720px;
+  --modal-breakpoint-stack: 480px;
 }
