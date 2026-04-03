@@ -26,7 +26,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Test fallback values khi `window` không khả dụng
     - _Requirements: 3.4_
 
-- [~] 3. Cập nhật `QuickSearchPopup` để dùng CSS variables
+- [x] 3. Cập nhật `QuickSearchPopup` để dùng CSS variables
   - [x] 3.1 Sửa `apps/wordai-editor/src/components/QuickSearchPopup.tsx`
     - Thay `width: 560` bằng `maxWidth: 'var(--modal-max-width-popup, min(560px, calc(100vw - 32px)))'`
     - Thay `maxHeight: 8 * 64` bằng `maxHeight: 'min(512px, calc(100vh - 200px))'`
@@ -41,7 +41,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 2: QuickSearchPopup width constraint`
     - _Requirements: 1.3_
 
-  - [~] 3.3 Viết property test cho QuickSearchPopup results height (Property 6)
+  - [x] 3.3 Viết property test cho QuickSearchPopup results height (Property 6)
     - **Property 6: QuickSearchPopup results list height constraint**
     - **Validates: Requirements 2.4**
     - `fc.integer({ min: 300, max: 1440 })` → verify `maxHeight = min(512, vh - 200)`

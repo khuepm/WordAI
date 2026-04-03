@@ -115,3 +115,46 @@ describe('Property 4: Empty query returns the full registry', () => {
     expect(filterSettings('   ').length).toBe(SETTING_REGISTRY.length);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Property 6: QuickSearchPopup results list height constraint
+// Feature: responsive-modal-system, Property 6: QuickSearchPopup results list height constraint
+// Validates: Requirements 2.4
+// ---------------------------------------------------------------------------
+
+describe('Property 6: QuickSearchPopup results list height constraint', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('results container maxHeight style uses min(512px, calc(100vh - 200px)) for any viewport height', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 300, max: 1440 }),
+        (vh) => {
+          vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(vh);
+
+          const { unmount } = render(
+            createElement(QuickSearchPopup, {
+              isOpen: true,
+              onClose: () => {},
+              onSelect: () => {},
+            })
+          );
+
+          // Find the results container div (the div wrapping the results list with maxHeight style)
+          const dialog = screen.getByRole('dialog');
+          const resultsContainer = dialog.querySelector<HTMLElement>('[style*="maxHeight"], [style*="max-height"]');
+
+          const maxHeight = resultsContainer?.style.maxHeight ?? '';
+
+          unmount();
+
+          // jsdom does not evaluate CSS, so verify the exact style string
+          expect(maxHeight).toBe('min(512px, calc(100vh - 200px))');
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
