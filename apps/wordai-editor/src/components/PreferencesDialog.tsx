@@ -990,6 +990,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
     <>
       {/* Backdrop */}
       <div
+        aria-hidden="true"
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 900,
@@ -1004,7 +1005,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
         pointerEvents: 'none',
       }}>
         <div style={{
-          width: '100%', maxWidth: '900px', height: '870px',
+          width: '100%', maxWidth: 'var(--modal-max-width-preferences, min(900px, calc(100vw - 48px)))', maxHeight: 'var(--modal-max-height-preferences, min(680px, calc(100vh - 80px)))',
           background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
           display: 'flex', flexDirection: isStacked ? 'column' : 'row', overflow: 'hidden',
           boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
@@ -1017,7 +1018,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
           ) : (
             <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
           )}
-          <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff' }}>
+          <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff', minWidth: 0 }}>
             {/* Content header */}
             <header style={{
               height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -1058,7 +1059,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
               </div>
             </header>
             {/* Scrollable content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
               {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
             </div>
             <DialogFooter onClose={onClose} />

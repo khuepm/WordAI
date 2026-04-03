@@ -88,7 +88,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Render `CollapsedSidebar` khi `isCollapsed && !isStacked`, `HorizontalTabBar` khi `isStacked`
     - _Requirements: 3.1, 3.2, 3.4_
 
-  - [~] 7.2 Cập nhật kích thước modal dùng CSS variables
+  - [x] 7.2 Cập nhật kích thước modal dùng CSS variables
     - Thay hardcode `width`/`height` bằng `maxWidth: 'var(--modal-max-width-preferences, ...)'` và `maxHeight: 'var(--modal-max-height-preferences, ...)'`
     - Đảm bảo `Content_Area` có `overflow-y: auto`, `height: '100%'`, và `minWidth: 0` trên flex children
     - Đảm bảo `Overlay` có `position: fixed`, `inset: 0`, `aria-hidden="true"`
