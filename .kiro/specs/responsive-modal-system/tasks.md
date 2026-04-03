@@ -115,7 +115,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 5: State preservation across resize`
     - _Requirements: 4.1, 4.2_
 
-- [~] 8. Triển khai focus trap và accessibility
+- [x] 8. Triển khai focus trap và accessibility
   - [x] 8.1 Thêm focus trap vào `PreferencesDialog`
     - Khi dialog mở, đặt focus vào phần tử đầu tiên có thể tương tác
     - Xử lý Tab/Shift+Tab để giữ focus trong modal (focus trap)
@@ -129,7 +129,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 7: Focus trap within modal`
     - _Requirements: 6.3_
 
-  - [~] 8.3 Viết unit tests cho accessibility
+  - [x] 8.3 Viết unit tests cho accessibility
     - Test `Overlay` có `aria-hidden="true"`
     - Test focus được đặt vào phần tử đầu tiên khi dialog mở
     - Test tooltip hiển thị tên đầy đủ khi hover vào collapsed sidebar icon
