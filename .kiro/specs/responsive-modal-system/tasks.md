@@ -135,7 +135,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Test tooltip hiển thị tên đầy đủ khi hover vào collapsed sidebar icon
     - _Requirements: 4.5, 6.4, 6.5_
 
-- [~] 9. Final checkpoint — Đảm bảo toàn bộ tests pass
+- [x] 9. Final checkpoint — Đảm bảo toàn bộ tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
