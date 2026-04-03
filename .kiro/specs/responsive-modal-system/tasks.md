@@ -95,7 +95,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Đảm bảo modal được căn giữa bằng `alignItems: 'center'`, `justifyContent: 'center'`
     - _Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 4.3, 4.4, 5.2_
 
-  - [~] 7.3 Cập nhật grid layouts bên trong `Content_Area` sang `auto-fit/minmax`
+  - [x] 7.3 Cập nhật grid layouts bên trong `Content_Area` sang `auto-fit/minmax`
     - `repeat(4, 1fr)` (theme) → `repeat(auto-fit, minmax(120px, 1fr))`
     - `repeat(3, 1fr)` (agent) → `repeat(auto-fit, minmax(140px, 1fr))`
     - `repeat(2, 1fr)` (model, language+knowledge) → `repeat(auto-fit, minmax(200px, 1fr))`
