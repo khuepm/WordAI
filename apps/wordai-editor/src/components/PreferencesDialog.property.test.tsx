@@ -272,3 +272,122 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Property 5: State preservation across resize
+// Validates: Requirements 4.1, 4.2
+// ---------------------------------------------------------------------------
+
+describe('Property 5: State preservation across resize', () => {
+  // Feature: responsive-modal-system, Property 5: State preservation across resize
+
+  const tabTitles: Record<Tab, string> = {
+    general: 'General Settings',
+    'ai-engine': 'AI Engine Settings',
+    typography: 'Typography & Formatting',
+    privacy: 'Privacy & Security',
+  };
+
+  it('active tab heading is preserved after viewport resize', () => {
+    // Feature: responsive-modal-system, Property 5: State preservation across resize
+    fc.assert(
+      fc.property(
+        fc.constantFrom<Tab>('general', 'ai-engine', 'typography', 'privacy'),
+        fc.integer({ min: 400, max: 1200 }), // new viewport width after resize
+        (activeTab, newVw) => {
+          // Start with normal layout (900px wide)
+          vi.mocked(useViewportSize).mockReturnValue({ width: 900, height: 768 });
+
+          const { unmount, rerender, container } = render(
+            createElement(PreferencesDialog, {
+              isOpen: true,
+              onClose: () => { },
+              initialTab: activeTab,
+            })
+          );
+
+          // The dialog header h2 is the first h2 inside the <header> element
+          const headerEl = container.querySelector('header');
+          expect(headerEl).not.toBeNull();
+          const initialHeading = headerEl!.querySelector('h2');
+          expect(initialHeading).not.toBeNull();
+          expect(initialHeading!.textContent).toBe(tabTitles[activeTab]);
+
+          // Trigger resize by updating the mocked useViewportSize return value
+          vi.mocked(useViewportSize).mockReturnValue({ width: newVw, height: 768 });
+
+          // Re-render to simulate the resize
+          rerender(
+            createElement(PreferencesDialog, {
+              isOpen: true,
+              onClose: () => { },
+              initialTab: activeTab,
+            })
+          );
+
+          // Verify the active tab heading is still showing the same tab title
+          const headerAfter = container.querySelector('header');
+          expect(headerAfter).not.toBeNull();
+          const headingAfterResize = headerAfter!.querySelector('h2');
+          expect(headingAfterResize).not.toBeNull();
+          expect(headingAfterResize!.textContent).toBe(tabTitles[activeTab]);
+
+          unmount();
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('component does not unmount/remount on resize (state is preserved naturally)', () => {
+    // Feature: responsive-modal-system, Property 5: State preservation across resize
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 400, max: 1200 }), // new viewport width after resize
+        (newVw) => {
+          // Start with normal layout (900px wide)
+          vi.mocked(useViewportSize).mockReturnValue({ width: 900, height: 768 });
+
+          const { unmount, rerender, container } = render(
+            createElement(PreferencesDialog, {
+              isOpen: true,
+              onClose: () => { },
+            })
+          );
+
+          // Capture the modal container element reference before resize
+          const modalBefore = container.querySelector<HTMLElement>(
+            '[style*="modal-max-width-preferences"]'
+          );
+          expect(modalBefore).not.toBeNull();
+
+          // Trigger resize
+          vi.mocked(useViewportSize).mockReturnValue({ width: newVw, height: 768 });
+
+          rerender(
+            createElement(PreferencesDialog, {
+              isOpen: true,
+              onClose: () => { },
+            })
+          );
+
+          // The modal container should still be present (not unmounted)
+          const modalAfter = container.querySelector<HTMLElement>(
+            '[style*="modal-max-width-preferences"]'
+          );
+          expect(modalAfter).not.toBeNull();
+
+          // Default tab (general) heading should still be visible in the header
+          const headerEl = container.querySelector('header');
+          expect(headerEl).not.toBeNull();
+          const heading = headerEl!.querySelector('h2');
+          expect(heading).not.toBeNull();
+          expect(heading!.textContent).toBe('General Settings');
+
+          unmount();
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});

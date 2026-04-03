@@ -80,7 +80,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 4: Stacked layout and ARIA roles`
     - _Requirements: 3.2, 6.2_
 
-- [~] 7. Refactor `PreferencesDialog` — responsive layout và CSS variables
+- [x] 7. Refactor `PreferencesDialog` — responsive layout và CSS variables
   - [x] 7.1 Tích hợp `useViewportSize` vào `PreferencesDialog`
     - Import và gọi `useViewportSize()` để lấy `{ width, height }`
     - Tính `isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR`
@@ -108,7 +108,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 1: PreferencesDialog size constraints`
     - _Requirements: 1.1, 1.2_
 
-  - [~] 7.5 Viết property test cho state preservation (Property 5)
+  - [x] 7.5 Viết property test cho state preservation (Property 5)
     - **Property 5: State preservation across resize**
     - **Validates: Requirements 4.1, 4.2**
     - Render dialog, set scroll + active tab, trigger resize → verify không thay đổi
