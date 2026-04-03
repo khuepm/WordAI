@@ -2,7 +2,7 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
@@ -975,6 +975,43 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
     return () => clearTimeout(timer);
   }, [targetSettingId, isOpen]);
 
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap: focus first element when dialog opens
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+    const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
+  }, [isOpen]);
+
+  // Focus trap: handle Tab/Shift+Tab
+  const handleFocusTrap = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab' || !modalRef.current) return;
+    const focusable = Array.from(
+      modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(el => !el.hasAttribute('disabled'));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   const tabContent: Record<Tab, React.ReactNode> = {
@@ -1004,13 +1041,16 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
         padding: '1.5rem',
         pointerEvents: 'none',
       }}>
-        <div style={{
-          width: '100%', maxWidth: 'var(--modal-max-width-preferences, min(900px, calc(100vw - 48px)))', maxHeight: 'var(--modal-max-height-preferences, min(680px, calc(100vh - 80px)))',
-          background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
-          display: 'flex', flexDirection: isStacked ? 'column' : 'row', overflow: 'hidden',
-          boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
-          pointerEvents: 'all',
-        }}>
+        <div
+          ref={modalRef}
+          onKeyDown={handleFocusTrap}
+          style={{
+            width: '100%', maxWidth: 'var(--modal-max-width-preferences, min(900px, calc(100vw - 48px)))', maxHeight: 'var(--modal-max-height-preferences, min(680px, calc(100vh - 80px)))',
+            background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
+            display: 'flex', flexDirection: isStacked ? 'column' : 'row', overflow: 'hidden',
+            boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
+            pointerEvents: 'all',
+          }}>
           {isStacked ? (
             <HorizontalTabBar activeTab={activeTab} onTabChange={setActiveTab} />
           ) : isCollapsed ? (

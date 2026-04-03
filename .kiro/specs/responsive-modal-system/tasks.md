@@ -116,7 +116,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - _Requirements: 4.1, 4.2_
 
 - [~] 8. Triển khai focus trap và accessibility
-  - [~] 8.1 Thêm focus trap vào `PreferencesDialog`
+  - [x] 8.1 Thêm focus trap vào `PreferencesDialog`
     - Khi dialog mở, đặt focus vào phần tử đầu tiên có thể tương tác
     - Xử lý Tab/Shift+Tab để giữ focus trong modal (focus trap)
     - Không kích hoạt focus trap nếu modal không có focusable elements
