@@ -66,14 +66,14 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 3: Collapsed sidebar layout and accessibility`
     - _Requirements: 3.1, 6.1_
 
-- [~] 6. Tạo `HorizontalTabBar` sub-component trong `PreferencesDialog`
+- [x] 6. Tạo `HorizontalTabBar` sub-component trong `PreferencesDialog`
   - [x] 6.1 Thêm `HorizontalTabBar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
     - Interface `HorizontalTabBarProps { activeTab, onTabChange }`
     - `role="tablist"` trên container, mỗi tab có `role="tab"` và `aria-selected`
     - Hiển thị ở trên cùng khi layout stacked
     - _Requirements: 3.2, 6.2_
 
-  - [~] 6.2 Viết property test cho stacked layout và ARIA roles (Property 4)
+  - [x] 6.2 Viết property test cho stacked layout và ARIA roles (Property 4)
     - **Property 4: Stacked layout and ARIA roles**
     - **Validates: Requirements 3.2, 6.2**
     - `fc.integer({ min: 200, max: 479 })` + `fc.constantFrom(...)` → verify tablist/tab roles + aria-selected
