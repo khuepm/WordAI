@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Tab } from '../types/preferences';
+import { Tooltip } from './Tooltip';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -83,6 +84,129 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
           <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>Unlock larger context windows and exclusive models.</p>
         </div>
       </div>
+    </aside>
+  );
+}
+
+// ─── CollapsedSidebar ────────────────────────────────────────────────────────
+
+interface CollapsedSidebarProps {
+  activeTab: Tab;
+  onTabChange: (t: Tab) => void;
+  isSearching: boolean;
+  onClearSearch: () => void;
+}
+
+function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
+  const items: { id: Tab; icon: string; label: string }[] = [
+    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
+    { id: 'typography', icon: 'format_size', label: 'Typography' },
+    { id: 'privacy', icon: 'security', label: 'Privacy' },
+  ];
+
+  return (
+    <aside style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: 'var(--modal-sidebar-collapsed-width, 64px)',
+      height: '100%',
+      padding: '1.5rem 0',
+      gap: '0.375rem',
+      background: '#fafafa',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
+      flexShrink: 0,
+    }}>
+      {/* Header indicator */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#4343d5', fontVariationSettings: "'FILL' 1" }}>
+          settings
+        </span>
+      </div>
+
+      {/* Tab buttons */}
+      <nav style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1 }}>
+        {items.map(({ id, icon, label }) => {
+          const active = activeTab === id && !isSearching;
+          return (
+            <Tooltip key={id} text={label} position="right">
+              <button
+                aria-label={label}
+                onClick={() => { onTabChange(id); onClearSearch(); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: active ? '#ffffff' : 'transparent',
+                  color: active ? '#4f46e5' : '#71717a',
+                  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transform: active ? 'scale(1.05)' : 'none',
+                  transition: 'all 0.15s',
+                  outline: active ? '2px solid rgba(79,70,229,0.2)' : 'none',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{
+                  fontSize: '20px',
+                  fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                }}>{icon}</span>
+              </button>
+            </Tooltip>
+          );
+        })}
+
+        {/* Search state */}
+        {isSearching && (
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <Tooltip text="Search Results" position="right">
+              <button
+                aria-label="Search Results"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'rgba(67,67,213,0.05)',
+                  color: '#4343d5',
+                  outline: '2px solid rgba(67,67,213,0.2)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
+              </button>
+            </Tooltip>
+            <Tooltip text="Clear search" position="right">
+              <button
+                aria-label="Clear search"
+                onClick={onClearSearch}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  color: '#a1a1aa',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+              </button>
+            </Tooltip>
+          </div>
+        )}
+      </nav>
     </aside>
   );
 }

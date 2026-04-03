@@ -52,7 +52,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
   - Ensure all tests pass, ask the user if questions arise.
 
 - [~] 5. Tạo `CollapsedSidebar` sub-component trong `PreferencesDialog`
-  - [~] 5.1 Thêm `CollapsedSidebar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
+  - [x] 5.1 Thêm `CollapsedSidebar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
     - Interface `CollapsedSidebarProps { activeTab, onTabChange, isSearching, onClearSearch }`
     - Render icon-only buttons với `width: var(--modal-sidebar-collapsed-width, 64px)`
     - Mỗi button có `aria-label` chứa tên đầy đủ của tab
