@@ -211,6 +211,78 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
   );
 }
 
+// ─── HorizontalTabBar ───────────────────────────────────────────────────────
+
+export interface HorizontalTabBarProps {
+  activeTab: Tab;
+  onTabChange: (t: Tab) => void;
+}
+
+export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarProps) {
+  const items: { id: Tab; icon: string; label: string }[] = [
+    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
+    { id: 'typography', icon: 'format_size', label: 'Typography' },
+    { id: 'privacy', icon: 'security', label: 'Privacy' },
+  ];
+
+  return (
+    <div
+      role="tablist"
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '4px',
+        padding: '8px 16px',
+        borderBottom: '1px solid rgba(199,196,215,0.15)',
+        background: '#fafafa',
+        overflowX: 'auto',
+      }}
+    >
+      {items.map(({ id, icon, label }) => {
+        const active = activeTab === id;
+        return (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onTabChange(id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              background: active ? '#ffffff' : 'transparent',
+              color: active ? '#4f46e5' : '#71717a',
+              borderBottom: active ? '2px solid #4f46e5' : '2px solid transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: '18px',
+                fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+              }}
+            >
+              {icon}
+            </span>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Shared sub-components ───────────────────────────────────────────────────
 
 function Toggle({ checked }: { checked: boolean }) {

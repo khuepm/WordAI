@@ -67,7 +67,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - _Requirements: 3.1, 6.1_
 
 - [~] 6. Tạo `HorizontalTabBar` sub-component trong `PreferencesDialog`
-  - [~] 6.1 Thêm `HorizontalTabBar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
+  - [x] 6.1 Thêm `HorizontalTabBar` vào `apps/wordai-editor/src/components/PreferencesDialog.tsx`
     - Interface `HorizontalTabBarProps { activeTab, onTabChange }`
     - `role="tablist"` trên container, mỗi tab có `role="tab"` và `aria-selected`
     - Hiển thị ở trên cùng khi layout stacked
