@@ -81,7 +81,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - _Requirements: 3.2, 6.2_
 
 - [~] 7. Refactor `PreferencesDialog` — responsive layout và CSS variables
-  - [~] 7.1 Tích hợp `useViewportSize` vào `PreferencesDialog`
+  - [x] 7.1 Tích hợp `useViewportSize` vào `PreferencesDialog`
     - Import và gọi `useViewportSize()` để lấy `{ width, height }`
     - Tính `isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR`
     - Tính `isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT`

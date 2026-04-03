@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
+import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -952,6 +953,10 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { width } = useViewportSize();
+  const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
+  const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
+
   useEffect(() => {
     if (!isOpen || !initialTab) return;
     if (activeTab !== initialTab) {
@@ -1001,11 +1006,17 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
         <div style={{
           width: '100%', maxWidth: '900px', height: '870px',
           background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
-          display: 'flex', overflow: 'hidden',
+          display: 'flex', flexDirection: isStacked ? 'column' : 'row', overflow: 'hidden',
           boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
           pointerEvents: 'all',
         }}>
-          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+          {isStacked ? (
+            <HorizontalTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          ) : isCollapsed ? (
+            <CollapsedSidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+          ) : (
+            <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+          )}
           <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff' }}>
             {/* Content header */}
             <header style={{
