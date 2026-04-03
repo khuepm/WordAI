@@ -48,7 +48,7 @@ Triển khai cơ chế responsive thống nhất cho `PreferencesDialog` và `Qu
     - Tag comment: `// Feature: responsive-modal-system, Property 6: QuickSearchPopup results list height constraint`
     - _Requirements: 2.4_
 
-- [~] 4. Checkpoint — Đảm bảo tests pass cho QuickSearchPopup
+- [x] 4. Checkpoint — Đảm bảo tests pass cho QuickSearchPopup
   - Ensure all tests pass, ask the user if questions arise.
 
 - [~] 5. Tạo `CollapsedSidebar` sub-component trong `PreferencesDialog`
