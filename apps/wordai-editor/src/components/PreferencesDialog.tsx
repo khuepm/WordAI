@@ -960,12 +960,15 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
   const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
   const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
 
+  // Sync to initialTab only when the dialog first opens, not on every tab change
+  const prevIsOpen = useRef(false);
   useEffect(() => {
-    if (!isOpen || !initialTab) return;
-    if (activeTab !== initialTab) {
+    const justOpened = isOpen && !prevIsOpen.current;
+    prevIsOpen.current = isOpen;
+    if (justOpened && initialTab) {
       setActiveTab(initialTab);
     }
-  }, [isOpen, initialTab, activeTab]);
+  }, [isOpen, initialTab]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;

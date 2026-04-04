@@ -190,3 +190,60 @@ Trigger: `Cmd+Shift+P` (macOS) / `Ctrl+Shift+P` (Windows/Linux)
 │               Editorial grade typefaces │
 └─────────────────────────────────────────┘
 ```
+
+---
+
+## Flow: Mở Preferences từ Quick Search
+
+```
+Cmd+Shift+P
+  └─ QuickSearchPopup mở (isQuickSearchOpen = true)
+       └─ User gõ tên setting → chọn entry
+            └─ handleQuickSearchSelect(entry) [App.tsx]
+                 ├─ setIsQuickSearchOpen(false)       ← đóng popup
+                 ├─ setPreferencesInitialTab(entry.tab)
+                 ├─ setPreferencesTargetSettingId(entry.id)
+                 └─ setIsPreferencesOpen(true)        ← mở dialog
+
+PreferencesDialog nhận props:
+  - isOpen = true
+  - initialTab = entry.tab   (vd: "ai-engine")
+  - targetSettingId = entry.id (vd: "ai-engine.creativity")
+
+  └─ useEffect [isOpen, initialTab] — chỉ chạy khi dialog vừa mở
+       └─ setActiveTab(initialTab)   ← sync tab một lần duy nhất
+
+  └─ useEffect [targetSettingId, isOpen]
+       └─ setTimeout 300ms → scrollIntoView([data-setting-id="..."])
+
+Sau khi mở:
+  - User có thể click tab khác bình thường (activeTab thay đổi tự do)
+  - activeTab KHÔNG bị reset về initialTab vì effect chỉ chạy khi dialog mở lần đầu
+  - Search trong dialog hoạt động bình thường
+```
+
+### Bug đã fix (2026-04-04)
+
+Trước đây `useEffect` sync tab có `activeTab` trong dependency array:
+
+```tsx
+// ❌ Bug: activeTab trong deps → mỗi lần click tab, effect chạy lại và reset về initialTab
+useEffect(() => {
+  if (!isOpen || !initialTab) return;
+  if (activeTab !== initialTab) setActiveTab(initialTab);
+}, [isOpen, initialTab, activeTab]);
+```
+
+Fix: dùng `useRef` để track lần mở đầu tiên, chỉ sync tab khi dialog vừa chuyển từ đóng → mở:
+
+```tsx
+// ✅ Fix: chỉ sync khi dialog vừa mở (justOpened), không phụ thuộc activeTab
+const prevIsOpen = useRef(false);
+useEffect(() => {
+  const justOpened = isOpen && !prevIsOpen.current;
+  prevIsOpen.current = isOpen;
+  if (justOpened && initialTab) {
+    setActiveTab(initialTab);
+  }
+}, [isOpen, initialTab]);
+```
