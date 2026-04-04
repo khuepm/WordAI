@@ -228,44 +228,46 @@ function App() {
         onSave={triggerSave}
         onOpenPreferences={() => setIsPreferencesOpen(true)}
       />
-      {/* AI service unavailable banner (Req 25.5) */}
+      {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
         <div
           data-testid="ai-service-banner"
           style={{
             position: 'fixed',
-            top: 'var(--topnav-height)',
-            left: 0,
-            right: 0,
+            bottom: '24px',
+            left: '24px',
             zIndex: 200,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: 'var(--spacing-xs) var(--spacing-lg)',
-            background: 'var(--md-sys-color-error-container)',
-            color: 'var(--md-sys-color-on-error-container)',
+            gap: '8px',
+            padding: '10px 14px',
+            background: '#1f2937',
+            color: '#f9fafb',
             fontFamily: 'var(--font-family-ui)',
-            fontSize: 'var(--font-size-sm)',
-            borderBottom: '1px solid var(--md-sys-color-error)',
+            fontSize: '12px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            maxWidth: '320px',
           }}
           role="alert"
         >
-          <span>AI service unavailable. Editing continues normally.</span>
-          <div>
+          <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>AI unavailable. Editing continues.</span>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
               data-testid="ai-service-retry-button"
               onClick={() => { setBannerDismissed(false); checkAIHealth(); }}
               style={{
-                background: 'var(--md-sys-color-error)',
-                color: 'var(--md-sys-color-on-error)',
+                background: 'rgba(255,255,255,0.15)',
+                color: '#f9fafb',
                 border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                padding: 'var(--spacing-xs) var(--spacing-md)',
+                borderRadius: '6px',
+                padding: '4px 8px',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-family-ui)',
-                fontSize: 'var(--font-size-sm)',
-                marginLeft: 'var(--spacing-md)',
+                fontSize: '11px',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
               }}
             >
               Retry
@@ -274,18 +276,18 @@ function App() {
               data-testid="ai-service-preferences-button"
               onClick={() => setIsPreferencesOpen(true)}
               style={{
-                background: 'var(--md-sys-color-error)',
-                color: 'var(--md-sys-color-on-error)',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#d1d5db',
                 border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                padding: 'var(--spacing-xs) var(--spacing-md)',
+                borderRadius: '6px',
+                padding: '4px 8px',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-family-ui)',
-                fontSize: 'var(--font-size-sm)',
-                marginLeft: 'var(--spacing-md)',
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
               }}
             >
-              Preferences
+              Settings
             </button>
             <button
               data-testid="ai-service-close-button"
@@ -293,14 +295,13 @@ function App() {
               aria-label="Close"
               style={{
                 background: 'transparent',
-                color: 'var(--md-sys-color-on-error-container)',
+                color: '#9ca3af',
                 border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                padding: 'var(--spacing-xs)',
+                borderRadius: '6px',
+                padding: '2px 4px',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-family-ui)',
-                fontSize: 'var(--font-size-md)',
-                marginLeft: 'var(--spacing-md)',
+                fontSize: '14px',
                 lineHeight: 1,
               }}
             >
