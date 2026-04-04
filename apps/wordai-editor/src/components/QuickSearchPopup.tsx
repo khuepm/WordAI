@@ -120,8 +120,7 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         style={{
-          width: 560,
-          maxWidth: 'calc(100vw - 32px)',
+          maxWidth: 'var(--modal-max-width-popup, min(560px, calc(100vw - 32px)))',
           backgroundColor: '#ffffff',
           borderRadius: 12,
           boxShadow: '0 20px 60px rgba(67, 67, 213, 0.18), 0 4px 16px rgba(0,0,0,0.12)',
@@ -192,7 +191,7 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
         {/* Results list */}
         <div
           style={{
-            maxHeight: 8 * 64,
+            maxHeight: 'min(512px, calc(100vh - 200px))',
             overflowY: 'auto',
           }}
         >

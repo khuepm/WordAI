@@ -191,10 +191,6 @@ export function EditorCanvas({
             opacity: 0.6,
           }}>
             <span>Edited {relativeTime}</span>
-            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-            <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
-            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-            <span>{readingTime} min read</span>
             {hasUnsavedChanges && (
               <>
                 <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
@@ -224,11 +220,21 @@ export function EditorCanvas({
             data-testid="block-text-editor"
           />
         </div>
-        {/* Document metadata bar (Req 4.1–4.5) */}
+        {/* Document metadata bar (Req 4.1–4.5, 19.2) */}
         <div style={styles.metaBar} aria-label="Document metadata">
+          <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+          <span style={styles.metaSep}>·</span>
+          <span>{readingTime} min read</span>
+          <span style={styles.metaSep}>·</span>
           <button data-testid="font-size-decrease" aria-label="Decrease font size" onClick={handleDecreaseFontSize} style={styles.fontSizeBtn}>A−</button>
           <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
           <button data-testid="font-size-increase" aria-label="Increase font size" onClick={handleIncreaseFontSize} style={styles.fontSizeBtn}>A+</button>
+          {hasUnsavedChanges && (
+            <>
+              <span style={styles.metaSep}>·</span>
+              <span aria-label="Unsaved changes" style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>Unsaved</span>
+            </>
+          )}
           {tags.length > 0 && (
             <>
               <span style={styles.metaSep}>·</span>
@@ -270,7 +276,7 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
     gap: '0.25rem',
     padding: '0.5rem 0',
-    fontFamily: 'var(--font-family-label)',
+    fontFamily: 'var(--font-family-ui)',
     fontSize: 'var(--font-size-xs)',
     color: 'var(--md-sys-color-on-surface-variant)',
     opacity: 0.6,
