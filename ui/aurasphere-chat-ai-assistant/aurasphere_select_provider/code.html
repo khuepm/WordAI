@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Ethereal Editor - AuraSphere</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "tertiary-container": "#b65700",
+              "surface-variant": "#e1e3e4",
+              "primary-container": "#5d5fef",
+              "on-primary-fixed-variant": "#2e2bc2",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#3f417b",
+              "inverse-surface": "#2e3132",
+              "on-tertiary-fixed-variant": "#743500",
+              "on-secondary-container": "#474984",
+              "error-container": "#ffdad6",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-secondary": "#ffffff",
+              "outline": "#767586",
+              "on-primary-container": "#faf7ff",
+              "inverse-on-surface": "#f0f1f2",
+              "background": "#f8f9fa",
+              "tertiary": "#904400",
+              "on-background": "#191c1d",
+              "surface-tint": "#4849da",
+              "on-secondary-fixed": "#12134d",
+              "secondary": "#575995",
+              "primary-fixed": "#e1e0ff",
+              "primary-fixed-dim": "#c1c1ff",
+              "outline-variant": "#c7c4d7",
+              "on-surface": "#191c1d",
+              "on-tertiary-fixed": "#321300",
+              "secondary-container": "#babbfe",
+              "surface-dim": "#d9dadb",
+              "surface-container": "#edeeef",
+              "primary": "#4343d5",
+              "surface-bright": "#f8f9fa",
+              "tertiary-fixed": "#ffdbc8",
+              "surface-container-low": "#f3f4f5",
+              "surface-container-highest": "#e1e3e4",
+              "surface-container-high": "#e7e8e9",
+              "inverse-primary": "#c1c1ff",
+              "secondary-fixed-dim": "#c1c1ff",
+              "on-surface-variant": "#464555",
+              "secondary-fixed": "#e1e0ff",
+              "on-primary-fixed": "#07006c",
+              "tertiary-fixed-dim": "#ffb689",
+              "on-tertiary-container": "#fff6f3",
+              "surface": "#f8f9fa",
+              "surface-container-lowest": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .serif-editor { font-family: 'Newsreader', serif; }
+        .ui-sans { font-family: 'Manrope', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar (Left) -->
+<aside class="fixed left-0 top-0 h-screen z-40 flex flex-col py-8 bg-[#edeeef] dark:bg-[#2e3132] h-full w-72 flex-col rounded-r-xl">
+<div class="px-8 mb-12">
+<h1 class="text-lg font-bold tracking-tight text-[#191c1d] dark:text-[#f8f9fa] ui-sans">The Ethereal Editor</h1>
+<p class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant/60 ui-sans mt-1">Pro Workspace</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-8 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 ui-sans hover:bg-[#f8f9fa]/50 transition-all text-[0.75rem] uppercase font-semibold tracking-wider" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="edit_note">edit_note</span>
+                Editor
+            </a>
+<a class="flex items-center gap-3 px-8 py-3 text-[#4343d5] dark:text-[#5d5fef] font-bold border-r-2 border-[#4343d5] dark:border-[#5d5fef] ui-sans bg-[#f8f9fa]/50 text-[0.75rem] uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="auto_awesome">auto_awesome</span>
+                AuraSphere
+            </a>
+<a class="flex items-center gap-3 px-8 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 ui-sans hover:bg-[#f8f9fa]/50 transition-all text-[0.75rem] uppercase font-semibold tracking-wider" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="inventory_2">inventory_2</span>
+                Archive
+            </a>
+<a class="flex items-center gap-3 px-8 py-3 text-[#191c1d]/60 dark:text-[#f8f9fa]/60 ui-sans hover:bg-[#f8f9fa]/50 transition-all text-[0.75rem] uppercase font-semibold tracking-wider" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 py-3 bg-primary text-on-primary rounded-xl font-bold ui-sans text-sm active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+                Connect AI
+            </button>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-72 h-16 flex justify-between items-center px-12 z-30 bg-[#f8f9fa]/80 dark:bg-[#191c1d]/80 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black text-[#191c1d] dark:text-[#f8f9fa] ui-sans">AuraSphere</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-[#191c1d]/70 dark:text-[#f8f9fa]/70 hover:text-[#4343d5] transition-colors ui-sans text-sm font-medium" href="#">Drafts</a>
+<a class="text-[#191c1d]/70 dark:text-[#f8f9fa]/70 hover:text-[#4343d5] transition-colors ui-sans text-sm font-medium" href="#">Published</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+</div>
+<button class="bg-primary-container text-on-primary-container px-5 py-2 rounded-lg font-bold ui-sans text-sm">
+                New Story
+            </button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="Profile Settings" class="w-full h-full object-cover" data-alt="minimalist user avatar profile picture with soft lighting and clean aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx3G_G_zmsCDXOIgKSMXTKNMRMnZXPDfnJCflNrHIg7e_vSEJeAdsW0m9L76nkTwf6lUedQprucglxeWJkZGgtcnNYsmIbZ6BTWYRmhOdWU5ROhrgzdVNd3LZjuc9DwTSRF2c8kVe0WXHys0kW4iHqqFn2LdOCZ1zyr_vKHA6W1eqn2NZGaQqFtWyYqwvPsAqR2OpcRyA12ScnHItnveiC9HVNB7TZzXSkcdGyJRyfP6n5qMuJ-51Zp-TREYbRKZRYe_FXfXWyHPI"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-72 mt-16 p-24 mr-[400px] min-h-screen">
+<article class="max-w-2xl mx-auto">
+<header class="mb-12">
+<div class="h-1 w-12 bg-primary/20 mb-8"></div>
+<h2 class="serif-editor text-5xl font-medium text-on-surface leading-tight mb-4">The Architecture of Silence</h2>
+<p class="ui-sans text-on-surface-variant/60 uppercase tracking-[0.2em] text-[0.65rem] font-bold">Draft — Oct 24, 2023</p>
+</header>
+<div class="serif-editor text-lg text-on-surface/90 leading-relaxed space-y-8">
+<p>In the digital age, we have forgotten the weight of a blank page. We have replaced the tactile resistance of paper with the frictionless void of the screen. Yet, within this void, there is a new kind of resonance waiting to be discovered.</p>
+<p>The Ethereal Editor is built on the premise that writing is not merely data entry—it is a performance of thought. Every character is a footstep in a landscape of meaning. When the environment disappears, only the intent remains.</p>
+<p>As we integrate "AuraSphere" intelligence into this process, we must ask ourselves: does the machine speak for us, or does it hold the mirror? A true companion should not complete our sentences, but illuminate the possibilities of the ones we haven't yet finished.</p>
+</div>
+</article>
+</main>
+<!-- AuraSphere Assistant Sidebar (Right) -->
+<aside class="fixed top-0 right-0 h-screen w-[400px] bg-surface-container-low border-l border-outline-variant/10 flex flex-col z-50">
+<div class="p-8 pb-4">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="ui-sans text-[0.65rem] font-black uppercase tracking-widest text-primary">AuraSphere Assistant</span>
+</div>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="close">close</span>
+</button>
+</div>
+<h2 class="serif-editor text-2xl font-semibold mb-2">Connect to AuraSphere</h2>
+<p class="ui-sans text-sm text-on-surface-variant leading-relaxed">Select an intelligence provider to begin your collaborative journey.</p>
+</div>
+<div class="flex-1 overflow-y-auto px-8 py-4 space-y-4">
+<!-- Provider Option: Codex -->
+<label class="group relative block cursor-pointer">
+<input class="peer sr-only" name="provider" type="radio" value="codex"/>
+<div class="p-5 rounded-2xl bg-surface-container-lowest border border-transparent transition-all duration-300 peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-[0_0_20px_rgba(67,67,213,0.08)] group-hover:bg-white group-hover:shadow-sm">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="auto_stories">auto_stories</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h3 class="ui-sans font-bold text-on-surface">Codex</h3>
+<div class="w-4 h-4 rounded-full border-2 border-outline-variant peer-checked:group-[]:border-primary peer-checked:group-[]:bg-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:group-[]:opacity-100"></div>
+</div>
+</div>
+<p class="ui-sans text-xs text-on-surface-variant mt-1 leading-normal">Specialized in deep narrative structure and rhythmic prose analysis.</p>
+</div>
+</div>
+</div>
+</label>
+<!-- Provider Option: Claude Agent -->
+<label class="group relative block cursor-pointer">
+<input class="peer sr-only" name="provider" type="radio" value="claude"/>
+<div class="p-5 rounded-2xl bg-surface-container-lowest border border-transparent transition-all duration-300 peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-[0_0_20px_rgba(67,67,213,0.08)] group-hover:bg-white group-hover:shadow-sm">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-tertiary/5 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-3xl" data-icon="psychology">psychology</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h3 class="ui-sans font-bold text-on-surface">Claude Agent</h3>
+<div class="w-4 h-4 rounded-full border-2 border-outline-variant peer-checked:group-[]:border-primary peer-checked:group-[]:bg-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:group-[]:opacity-100"></div>
+</div>
+</div>
+<p class="ui-sans text-xs text-on-surface-variant mt-1 leading-normal">Exceptional at nuance, editorial feedback, and maintainining your unique voice.</p>
+</div>
+</div>
+</div>
+</label>
+<!-- Provider Option: Gemini CLI -->
+<label class="group relative block cursor-pointer">
+<input class="peer sr-only" name="provider" type="radio" value="gemini"/>
+<div class="p-5 rounded-2xl bg-surface-container-lowest border border-transparent transition-all duration-300 peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-[0_0_20px_rgba(67,67,213,0.08)] group-hover:bg-white group-hover:shadow-sm">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-secondary/5 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl" data-icon="terminal">terminal</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h3 class="ui-sans font-bold text-on-surface">Gemini CLI</h3>
+<div class="w-4 h-4 rounded-full border-2 border-outline-variant peer-checked:group-[]:border-primary peer-checked:group-[]:bg-primary flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:group-[]:opacity-100"></div>
+</div>
+</div>
+<p class="ui-sans text-xs text-on-surface-variant mt-1 leading-normal">Fast, high-efficiency research partner for factual cross-referencing.</p>
+</div>
+</div>
+</div>
+</label>
+</div>
+<div class="p-8 pt-4">
+<div class="flex items-center justify-between mb-6">
+<div class="flex gap-1.5">
+<div class="h-1 w-8 rounded-full bg-primary"></div>
+<div class="h-1 w-8 rounded-full bg-outline-variant/30"></div>
+<div class="h-1 w-8 rounded-full bg-outline-variant/30"></div>
+</div>
+<span class="ui-sans text-[0.65rem] font-bold text-on-surface-variant">Step 1 of 3</span>
+</div>
+<button class="w-full py-4 bg-surface-container-highest text-on-surface-variant/40 rounded-xl font-bold ui-sans transition-all flex items-center justify-center gap-2 cursor-not-allowed" disabled="">
+                Next
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="ui-sans text-[0.65rem] text-center text-on-surface-variant/50 mt-4 uppercase tracking-widest">Powered by AuraSphere Core v4.2</p>
+</div>
+</aside>
+<!-- Floating AI Bubble (Bottom Left) -->
+<div class="fixed bottom-12 left-80 z-20">
+<div class="glass-panel p-4 rounded-2xl shadow-xl border border-primary/5 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<p class="serif-editor italic text-sm text-on-surface/70">"A true companion should not complete our sentences..."</p>
+<button class="ui-sans text-[0.65rem] font-black uppercase tracking-widest text-primary mt-1 hover:underline">Deepen this thought</button>
+</div>
+</div>
+</div>
+</body></html>

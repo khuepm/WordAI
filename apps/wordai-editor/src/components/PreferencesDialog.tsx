@@ -2,13 +2,16 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState } from 'react';
-
-type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy';
+import { useState, useEffect, useRef } from 'react';
+import type { Tab } from '../types/preferences';
+import { Tooltip } from './Tooltip';
+import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: Tab;
+  targetSettingId?: string;
 }
 
 // ─── Sidebar ────────────────────────────────────────────────────────────────
@@ -23,66 +26,264 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
 
   return (
     <aside style={{
-      display: 'flex', flexDirection: 'column', width: '256px', height: '100%',
+      display: 'flex', flexDirection: 'column', width: '256px',
       padding: '1.5rem 1rem', gap: '0.375rem',
       background: '#fafafa', boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
+      justifyContent: 'space-between'
     }}>
-      <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-        <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
-        <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+      <div>
+        <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
+          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+        </div>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {items.map(({ id, icon, label }) => {
+            const active = activeTab === id;
+            return (
+              <button key={id} onClick={() => { onTabChange(id); onClearSearch(); }} style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
+                border: 'none',
+                borderRight: active && !isSearching ? '4px solid #4f46e5' : '4px solid transparent',
+                background: active && !isSearching ? '#ffffff' : 'transparent',
+                color: active && !isSearching ? '#4f46e5' : '#71717a',
+                boxShadow: active && !isSearching ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transform: active && !isSearching ? 'scale(1.02)' : 'none',
+                transition: 'all 0.15s',
+                fontFamily: 'inherit',
+              }}>
+                <span className="material-symbols-outlined" style={{
+                  fontSize: '20px',
+                  fontVariationSettings: active && !isSearching ? "'FILL' 1" : "'FILL' 0",
+                }}>{icon}</span>
+                {label}
+              </button>
+            );
+          })}
+          {isSearching && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
+              <button style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
+                border: 'none',
+                borderLeft: '4px solid #4343d5',
+                background: 'rgba(67,67,213,0.05)',
+                color: '#4343d5',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                fontFamily: 'inherit',
+                width: '100%',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
+                Search Results
+              </button>
+            </div>
+          )}
+        </nav>
       </div>
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {items.map(({ id, icon, label }) => {
-          const active = activeTab === id;
-          return (
-            <button key={id} onClick={() => { onTabChange(id); onClearSearch(); }} style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-              fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
-              border: 'none',
-              borderRight: active && !isSearching ? '4px solid #4f46e5' : '4px solid transparent',
-              background: active && !isSearching ? '#ffffff' : 'transparent',
-              color: active && !isSearching ? '#4f46e5' : '#71717a',
-              boxShadow: active && !isSearching ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transform: active && !isSearching ? 'scale(1.02)' : 'none',
-              transition: 'all 0.15s',
-              fontFamily: 'inherit',
-            }}>
-              <span className="material-symbols-outlined" style={{
-                fontSize: '20px',
-                fontVariationSettings: active && !isSearching ? "'FILL' 1" : "'FILL' 0",
-              }}>{icon}</span>
-              {label}
-            </button>
-          );
-        })}
-        {isSearching && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
-            <button style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-              fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
-              border: 'none',
-              borderLeft: '4px solid #4343d5',
-              background: 'rgba(67,67,213,0.05)',
-              color: '#4343d5',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              fontFamily: 'inherit',
-              width: '100%',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
-              Search Results
-            </button>
-          </div>
-        )}
-      </nav>
-      <div style={{ padding: '0 0.5rem' }}>
+      <div>
         <div style={{ padding: '1rem', background: 'rgba(67,67,213,0.05)', borderRadius: '0.75rem', border: '1px solid rgba(67,67,213,0.1)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>AuraSphere Pro</p>
           <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>Unlock larger context windows and exclusive models.</p>
         </div>
       </div>
     </aside>
+  );
+}
+
+// ─── CollapsedSidebar ────────────────────────────────────────────────────────
+
+interface CollapsedSidebarProps {
+  activeTab: Tab;
+  onTabChange: (t: Tab) => void;
+  isSearching: boolean;
+  onClearSearch: () => void;
+}
+
+export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
+  const items: { id: Tab; icon: string; label: string }[] = [
+    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
+    { id: 'typography', icon: 'format_size', label: 'Typography' },
+    { id: 'privacy', icon: 'security', label: 'Privacy' },
+  ];
+
+  return (
+    <aside style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: 'var(--modal-sidebar-collapsed-width, 64px)',
+      height: '100%',
+      padding: '1.5rem 0',
+      gap: '0.375rem',
+      background: '#fafafa',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
+      flexShrink: 0,
+    }}>
+      {/* Header indicator */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#4343d5', fontVariationSettings: "'FILL' 1" }}>
+          settings
+        </span>
+      </div>
+
+      {/* Tab buttons */}
+      <nav style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1 }}>
+        {items.map(({ id, icon, label }) => {
+          const active = activeTab === id && !isSearching;
+          return (
+            <Tooltip key={id} text={label} position="right">
+              <button
+                aria-label={label}
+                onClick={() => { onTabChange(id); onClearSearch(); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: active ? '#ffffff' : 'transparent',
+                  color: active ? '#4f46e5' : '#71717a',
+                  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transform: active ? 'scale(1.05)' : 'none',
+                  transition: 'all 0.15s',
+                  outline: active ? '2px solid rgba(79,70,229,0.2)' : 'none',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{
+                  fontSize: '20px',
+                  fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                }}>{icon}</span>
+              </button>
+            </Tooltip>
+          );
+        })}
+
+        {/* Search state */}
+        {isSearching && (
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <Tooltip text="Search Results" position="right">
+              <button
+                aria-label="Search Results"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'rgba(67,67,213,0.05)',
+                  color: '#4343d5',
+                  outline: '2px solid rgba(67,67,213,0.2)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
+              </button>
+            </Tooltip>
+            <Tooltip text="Clear search" position="right">
+              <button
+                aria-label="Clear search"
+                onClick={onClearSearch}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  color: '#a1a1aa',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+              </button>
+            </Tooltip>
+          </div>
+        )}
+      </nav>
+    </aside>
+  );
+}
+
+// ─── HorizontalTabBar ───────────────────────────────────────────────────────
+
+export interface HorizontalTabBarProps {
+  activeTab: Tab;
+  onTabChange: (t: Tab) => void;
+}
+
+export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarProps) {
+  const items: { id: Tab; icon: string; label: string }[] = [
+    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
+    { id: 'typography', icon: 'format_size', label: 'Typography' },
+    { id: 'privacy', icon: 'security', label: 'Privacy' },
+  ];
+
+  return (
+    <div
+      role="tablist"
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '4px',
+        padding: '8px 16px',
+        borderBottom: '1px solid rgba(199,196,215,0.15)',
+        background: '#fafafa',
+        overflowX: 'auto',
+      }}
+    >
+      {items.map(({ id, icon, label }) => {
+        const active = activeTab === id;
+        return (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onTabChange(id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              background: active ? '#ffffff' : 'transparent',
+              color: active ? '#4f46e5' : '#71717a',
+              borderBottom: active ? '2px solid #4f46e5' : '2px solid transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: '18px',
+                fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+              }}
+            >
+              {icon}
+            </span>
+            {label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -151,9 +352,9 @@ function GeneralTab() {
       </div>
 
       {/* Interface Mode */}
-      <div>
+      <div data-setting-id="general.theme">
         <SectionHeader label="Interface Mode" description="Adjust the visual appearance of the editor shell." />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {themes.map((theme, i) => (
             <label key={theme} style={{ cursor: 'pointer' }}>
               <input type="radio" name="pref-theme" defaultChecked={i === 0} style={{ display: 'none' }} />
@@ -175,7 +376,7 @@ function GeneralTab() {
       </div>
 
       {/* Auto-Save */}
-      <div>
+      <div data-setting-id="general.autoSave">
         <SectionHeader label="Auto-Save" description="Automatically backup your progress to the cloud library as you write." />
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
@@ -192,11 +393,46 @@ function GeneralTab() {
       </div>
 
       {/* Focus Mode */}
-      <div>
+      <div data-setting-id="general.focusMode">
         <SectionHeader label="Focus Mode" description="Automatically hide toolbars and secondary panels when you begin typing." />
         <SettingRow icon="visibility_off" label="Enable distraction-free shell">
           <Toggle checked={false} />
         </SettingRow>
+      </div>
+
+      {/* Interface Language */}
+      <div data-setting-id="general.language">
+        <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
+        <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+          <select style={{
+            width: '100%',
+            background: 'rgba(243,244,245,0.5)',
+            border: 'none',
+            borderRadius: '1rem',
+            padding: '1.25rem',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            appearance: 'none',
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+          }}>
+            <option>English (US)</option>
+            <option>Vietnamese (Tiếng Việt)</option>
+            <option>Japanese (日本語)</option>
+            <option>French (Français)</option>
+            <option>German (Deutsch)</option>
+          </select>
+          <span className="material-symbols-outlined" style={{
+            position: 'absolute',
+            right: '1.25rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#4343d5',
+            pointerEvents: 'none',
+            fontSize: '20px'
+          }}>unfold_more</span>
+        </div>
       </div>
     </div>
   );
@@ -236,8 +472,8 @@ function AIEngineTab() {
   ];
 
   const sliders = [
-    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'] },
-    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'] },
+    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'], settingId: 'ai-engine.creativity' },
+    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
   ];
 
   return (
@@ -253,7 +489,7 @@ function AIEngineTab() {
       </div>
 
       {/* Connect Agent */}
-      <div>
+      <div data-setting-id="ai-engine.agent">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Connect your agent</h3>
@@ -261,7 +497,7 @@ function AIEngineTab() {
           </div>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>Claude Active</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {agents.map(a => {
             const active = selectedAgent === a.id;
             return (
@@ -287,12 +523,12 @@ function AIEngineTab() {
       </div>
 
       {/* Aura Models */}
-      <div>
+      <div data-setting-id="ai-engine.model">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Aura Models</h3>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro Required for Aura-Pro</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {models.map(m => {
             const active = selectedModel === m.id;
             return (
@@ -326,9 +562,8 @@ function AIEngineTab() {
 
       {/* Sliders */}
       <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {sliders.map((s, i) => (
-          <div key={s.label}>
-            {i > 0 && <div style={{ marginBottom: '1.5rem' }} />}
+        {sliders.map((s) => (
+          <div key={s.label} data-setting-id={s.settingId}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
@@ -346,8 +581,8 @@ function AIEngineTab() {
       </div>
 
       {/* Language + Knowledge */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+        <div data-setting-id="ai-engine.responseLanguage">
           <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Response Language</label>
           <div style={{ position: 'relative' }}>
             <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
@@ -359,7 +594,7 @@ function AIEngineTab() {
           </div>
           <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Overrides document language settings for AI responses.</p>
         </div>
-        <div>
+        <div data-setting-id="ai-engine.webAccess">
           <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Knowledge Integration</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -390,9 +625,9 @@ function TypographyTab() {
   ];
 
   const smartFeatures = [
-    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true },
-    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false },
-    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true },
+    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true, settingId: 'typography.smartQuotes' },
+    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false, settingId: 'typography.autoCapitalize' },
+    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true, settingId: 'typography.ligatures' },
   ];
 
   return (
@@ -403,7 +638,7 @@ function TypographyTab() {
       </div>
 
       {/* Font Family */}
-      <div>
+      <div data-setting-id="typography.fontFamily">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Standard Font</h3>
@@ -411,7 +646,7 @@ function TypographyTab() {
           </div>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.05)', padding: '2px 8px', borderRadius: '4px' }}>PREMIUM TYPE</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {fonts.map((f, i) => (
             <label key={f.label} style={{ cursor: 'pointer' }}>
               <input type="radio" name="pref-font" defaultChecked={i === 0} style={{ display: 'none' }} />
@@ -428,12 +663,12 @@ function TypographyTab() {
       </div>
 
       {/* Font Size + Line Spacing */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem' }}>
         {[
-          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.' },
-          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.' },
+          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.', settingId: 'typography.fontSize' },
+          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.', settingId: 'typography.lineSpacing' },
         ].map(group => (
-          <div key={group.label}>
+          <div key={group.label} data-setting-id={group.settingId}>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{group.label}</h3>
             <div style={{ display: 'flex', background: '#f3f4f5', padding: '6px', borderRadius: '0.75rem', gap: '4px' }}>
               {group.options.map((opt, i) => (
@@ -455,9 +690,9 @@ function TypographyTab() {
       {/* Smart Formatting */}
       <div>
         <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>Smart Formatting</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {smartFeatures.map(f => (
-            <div key={f.label} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
+            <div key={f.label} data-setting-id={f.settingId} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
               <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
                 <span className="material-symbols-outlined" style={{ color: f.on ? '#4343d5' : '#a1a1aa', fontSize: '20px' }}>{f.icon}</span>
                 <div>
@@ -502,7 +737,7 @@ function PrivacyTab() {
       </div>
 
       {/* AI Training */}
-      <div>
+      <div data-setting-id="privacy.allowAITraining">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
           <SectionHeader label="AI Model Training" description="Anonymized snippets help improve the engine. We never store personal identifiers." />
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>Recommended</span>
@@ -513,9 +748,9 @@ function PrivacyTab() {
       </div>
 
       {/* Regional Infrastructure */}
-      <div>
+      <div data-setting-id="privacy.analyticsEnabled">
         <SectionHeader label="Regional Data Infrastructure" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {/* Singapore - active */}
           <div style={{ padding: '1.25rem', borderRadius: '1rem', background: 'rgba(67,67,213,0.08)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -563,7 +798,7 @@ function PrivacyTab() {
       </div>
 
       {/* Encryption Banner */}
-      <div style={{ borderRadius: '1rem', overflow: 'hidden', position: 'relative', height: '144px' }}>
+      <div data-setting-id="privacy.crashReports" style={{ borderRadius: '1rem', overflow: 'hidden', position: 'relative', height: '144px' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #4849da, #5d5fef)', opacity: 0.9 }} />
         <img
           src="/gradient-banner.png"
@@ -583,6 +818,18 @@ function PrivacyTab() {
           <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
         </div>
       </div>
+      <div data-setting-id="privacy.localProcessingOnly" style={{ padding: '1.25rem 1.5rem', borderRadius: '1rem', border: '1px solid #e0e0e0', backgroundColor: '#fafafa', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>Local processing only</h3>
+          <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#555' }}>
+            When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.
+          </p>
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#333', cursor: 'pointer' }}>
+          <input type="checkbox" style={{ width: '14px', height: '14px' }} />
+          <span>Prefer on-device processing only</span>
+        </label>
+      </div>
     </div>
   );
 }
@@ -595,7 +842,7 @@ function SearchResultsTab({ query }: { query: string }) {
       <div style={{ marginBottom: '2rem' }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Showing results for "{query}"</h3>
       </div>
-      
+
       <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
         {/* Result 1 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
@@ -705,9 +952,71 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
-export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('general');
+export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId }: PreferencesDialogProps) {
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { width } = useViewportSize();
+  const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
+  const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
+
+  // Sync to initialTab only when the dialog first opens, not on every tab change
+  const prevIsOpen = useRef(false);
+  useEffect(() => {
+    const justOpened = isOpen && !prevIsOpen.current;
+    prevIsOpen.current = isOpen;
+    if (justOpened && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
+
+  useEffect(() => {
+    if (!targetSettingId || !isOpen) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-setting-id="${targetSettingId}"]`);
+      if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+        (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [targetSettingId, isOpen]);
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap: focus first element when dialog opens
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+    const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
+  }, [isOpen]);
+
+  // Focus trap: handle Tab/Shift+Tab
+  const handleFocusTrap = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab' || !modalRef.current) return;
+    const focusable = Array.from(
+      modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(el => !el.hasAttribute('disabled'));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -724,6 +1033,7 @@ export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
     <>
       {/* Backdrop */}
       <div
+        aria-hidden="true"
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 900,
@@ -737,15 +1047,24 @@ export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
         padding: '1.5rem',
         pointerEvents: 'none',
       }}>
-        <div style={{
-          width: '100%', maxWidth: '900px', height: '870px',
-          background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
-          display: 'flex', overflow: 'hidden',
-          boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
-          pointerEvents: 'all',
-        }}>
-          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
-          <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff' }}>
+        <div
+          ref={modalRef}
+          onKeyDown={handleFocusTrap}
+          style={{
+            width: '100%', maxWidth: 'var(--modal-max-width-preferences, min(900px, calc(100vw - 48px)))', maxHeight: 'var(--modal-max-height-preferences, min(680px, calc(100vh - 80px)))',
+            background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '0.75rem',
+            display: 'flex', flexDirection: isStacked ? 'column' : 'row', overflow: 'hidden',
+            boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 20px 60px rgba(0,0,0,0.12)',
+            pointerEvents: 'all',
+          }}>
+          {isStacked ? (
+            <HorizontalTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          ) : isCollapsed ? (
+            <CollapsedSidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+          ) : (
+            <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+          )}
+          <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff', minWidth: 0 }}>
             {/* Content header */}
             <header style={{
               height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -786,7 +1105,7 @@ export function PreferencesDialog({ isOpen, onClose }: PreferencesDialogProps) {
               </div>
             </header>
             {/* Scrollable content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
               {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
             </div>
             <DialogFooter onClose={onClose} />

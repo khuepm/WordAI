@@ -4,6 +4,7 @@
  */
 
 import { UserAvatar } from './UserAvatar';
+import { useState, useRef, useEffect } from 'react';
 
 interface TopNavBarProps {
   documentTitle: string;
@@ -16,6 +17,19 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName }: TopNavBarProps) {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <>
       <header
@@ -136,7 +150,134 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          <UserAvatar name={userName} size={32} />
+          {/*<UserAvatar name={userName} size={32} />*/}
+          <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              style={{
+                background: isUserMenuOpen ? 'rgba(255,255,255,0.5)' : 'none',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: isUserMenuOpen ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                boxShadow: isUserMenuOpen ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+              }}
+            >
+              <span className="material-symbols-outlined">account_circle</span>
+            </button>
+
+            {isUserMenuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 0.5rem)',
+                  right: 0,
+                  width: '260px',
+                  backgroundColor: 'color-mix(in srgb, var(--md-sys-color-surface-container-lowest, #ffffff) 80%, transparent)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 40px 60px -5px color-mix(in srgb, var(--md-sys-color-on-surface, #191c1d) 4%, transparent)',
+                  borderRadius: 'var(--radius-md, 0.75rem)',
+                  border: '1px solid color-mix(in srgb, var(--md-sys-color-outline-variant, #c7c4d7) 15%, transparent)',
+                  padding: 'var(--spacing-4, 1.4rem)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--spacing-3, 1rem)',
+                  zIndex: 200,
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.25rem',
+                  padding: '1rem',
+                  backgroundColor: 'var(--md-sys-color-surface-container-low, #f0f1f3)',
+                  borderRadius: 'var(--radius-sm, 0.5rem)',
+                }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface, #191c1d)', fontFamily: 'var(--font-family-ui)' }}>
+                    Digital Curator
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant, #40484c)', fontFamily: 'var(--font-family-ui)' }}>
+                    curator@ethereal.editor
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.75rem 1rem',
+                      textAlign: 'left',
+                      borderRadius: 'var(--radius-sm, 0.25rem)',
+                      color: 'var(--md-sys-color-on-surface, #191c1d)',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      fontFamily: 'var(--font-family-ui)',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>person</span>
+                    Profile
+                  </button>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.75rem 1rem',
+                      textAlign: 'left',
+                      borderRadius: 'var(--radius-sm, 0.25rem)',
+                      color: 'var(--md-sys-color-on-surface, #191c1d)',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      fontFamily: 'var(--font-family-ui)',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>workspace_premium</span>
+                    Subscription
+                  </button>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.75rem 1rem',
+                      textAlign: 'left',
+                      borderRadius: 'var(--radius-sm, 0.25rem)',
+                      color: 'var(--md-sys-color-error, #ba1a1a)',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      fontFamily: 'var(--font-family-ui)',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-error-container, #ffdad6)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
       {/* Divider */}

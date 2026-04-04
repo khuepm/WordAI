@@ -1,0 +1,30 @@
+{
+  "general": {
+    "theme": "system",
+    "autoSave": { "enabled": true, "intervalMinutes": 5 },
+    "focusMode": false,
+    "language": "en-US"
+  },
+  "aiEngine": {
+    "agent": "claude",
+    "model": "aura-turbo",
+    "creativity": 75,
+    "contextWindowTokens": 16000,
+    "responseLanguage": "auto",
+    "webAccess": true
+  },
+  "typography": {
+    "fontFamily": "inter",
+    "fontSize": "medium",
+    "lineSpacing": "1.15",
+    "smartQuotes": true,
+    "autoCapitalize": false,
+    "ligatures": true
+  },
+  "privacy": {
+    "allowAITraining": false,
+    "analyticsEnabled": false,
+    "crashReports": true,
+    "localProcessingOnly": false
+  }
+}

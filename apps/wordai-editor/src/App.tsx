@@ -12,11 +12,14 @@ import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { PreferencesDialog } from './components/PreferencesDialog';
+import { QuickSearchPopup } from './components/QuickSearchPopup';
+import { Tooltip } from './components/Tooltip';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
+import type { SettingEntry, Tab } from './types/preferences';
 import { ensureBlockValue, extractPlainText, replaceTextInBlockValue } from './utils/blockText';
 
 const LAST_PATH_KEY = 'wordai_last_document_path';
@@ -39,6 +42,7 @@ function App() {
     openVersionHistory,
     closeVersionHistory,
     setAiServiceStatus,
+    markFilePersisted,
   } = useAppState();
 
   const [fontSize, setFontSize] = useState<number>(() => {
@@ -48,15 +52,38 @@ function App() {
 
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+  const [preferencesInitialTab, setPreferencesInitialTab] = useState<Tab | undefined>(undefined);
+  const [preferencesTargetSettingId, setPreferencesTargetSettingId] = useState<string | undefined>(undefined);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
     localStorage.setItem(FONT_SIZE_KEY, String(size));
   }, []);
 
+  // Cmd+Shift+P / Ctrl+Shift+P opens Quick Search (Req 1.1, 1.2)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setIsQuickSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleQuickSearchSelect = useCallback((entry: SettingEntry) => {
+    setIsQuickSearchOpen(false);
+    setPreferencesInitialTab(entry.tab as Tab);
+    setPreferencesTargetSettingId(entry.id);
+    setIsPreferencesOpen(true);
+  }, []);
+
   const {
     document,
     filePath,
+    isFilePersisted,
     isAIPanelOpen,
     isNegotiationOpen,
     isRenderDrawerOpen,
@@ -79,23 +106,38 @@ function App() {
         if (savedPath) {
           doc = await loadDocument(savedPath);
           path = savedPath;
+          const persisted = !!savedPath;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         } else {
           doc = await createDocument();
           path = getDocumentPath(doc.id);
+          // Newly created docs are not yet persisted; keep auto-save disabled until first save.
+          const persisted = false;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         }
       } catch {
         // Always fall back to a new document — never stay stuck on loading
         try {
           doc = await createDocument();
           path = getDocumentPath(doc.id);
+          const persisted = false;
+          if (!cancelled) {
+            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
+            localStorage.setItem(LAST_PATH_KEY, path);
+          }
+          return;
         } catch (e) {
           console.error('Failed to create document:', e);
           return;
         }
-      }
-      if (!cancelled) {
-        setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
-        localStorage.setItem(LAST_PATH_KEY, path);
       }
     }
     init();
@@ -170,15 +212,16 @@ function App() {
   const handleNew = useCallback(async () => {
     const doc = await createDocument();
     const path = getDocumentPath(doc.id);
-    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path);
+    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, false);
     localStorage.setItem(LAST_PATH_KEY, path);
   }, [setDocument]);
 
   const { saveError: autoSaveError, triggerSave } = useAutoSave(
     document ?? ({} as Document),
-    filePath,
+    document && filePath ? filePath : '',
     handleSaveSuccess,
-    handleSaveError
+    handleSaveError,
+    isFilePersisted
   );
 
   // Sync auto-save error into global state
@@ -311,7 +354,6 @@ function App() {
         </div>
       )}
 
-      {/* Left sidebar */}
       <aside style={{
         position: 'fixed',
         left: 0,
@@ -329,43 +371,48 @@ function App() {
         gap: '1.5rem',
         zIndex: 40,
       }}>
-        <button
-          onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
-          style={{
-            padding: '0.75rem',
-            background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
-            border: 'none',
-            borderRadius: '0.75rem',
-            cursor: 'pointer',
-            color: isAIPanelOpen ? 'var(--md-sys-color-primary)' : '#5a5a5a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
-          }}
-          title="AuraSphere AI"
-        >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-        </button>
-        <button
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Analytics"
-        >
-          <span className="material-symbols-outlined">analytics</span>
-        </button>
-        <button
-          onClick={openVersionHistory}
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Version History"
-        >
-          <span className="material-symbols-outlined">history</span>
-        </button>
-        <button
-          style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
-          title="Settings"
-        >
-          <span className="material-symbols-outlined">tune</span>
-        </button>
+        <Tooltip text="AuraSphere AI">
+          <button
+            onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
+            style={{
+              padding: '0.75rem',
+              background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
+              border: 'none',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              color: isAIPanelOpen ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Analytics">
+          <button
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">analytics</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Version History">
+          <button
+            onClick={openVersionHistory}
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">history</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Settings">
+          <button
+            onClick={() => setIsPreferencesOpen(true)}
+            style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
+          >
+            <span className="material-symbols-outlined">tune</span>
+          </button>
+        </Tooltip>
       </aside>
 
       {/* Main content */}
@@ -423,7 +470,14 @@ function App() {
 
       <PreferencesDialog
         isOpen={isPreferencesOpen}
-        onClose={() => setIsPreferencesOpen(false)}
+        onClose={() => { setIsPreferencesOpen(false); setPreferencesTargetSettingId(undefined); }}
+        initialTab={preferencesInitialTab}
+        targetSettingId={preferencesTargetSettingId}
+      />
+      <QuickSearchPopup
+        isOpen={isQuickSearchOpen}
+        onClose={() => setIsQuickSearchOpen(false)}
+        onSelect={handleQuickSearchSelect}
       />
     </div>
   );

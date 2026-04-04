@@ -1,0 +1,76 @@
+name: Release macOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    name: Build and Release (macOS)
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: wordai-editor/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            wordai-editor/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('wordai-editor/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: wordai-editor
+        run: npm ci
+
+      - name: Build Tauri app (universal macOS)
+        working-directory: wordai-editor
+        run: npx tauri build --target universal-apple-darwin
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: List build artifacts
+        run: |
+          find wordai-editor/src-tauri/target \( -name "*.dmg" -o -name "*.app.tar.gz" \) | head -20
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: |
+            wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            wordai-editor/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: false
