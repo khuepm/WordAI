@@ -1,22 +1,7 @@
-/**
- * AuraSpherePanel - AI assistant sidebar with chat interface and suggestion cards
- * Requirements: 5.4, 6.1, 6.2, 7.1, 7.2, 7.3, 7.4, 7.5, 16.4, 16.5,
- *               18.1, 19.2, 20.1, 20.2, 23.1–23.5, 24.1–24.5
- */
-
-import {
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  KeyboardEvent,
-} from 'react';
+import { useState, useCallback, useRef, useEffect, KeyboardEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { AISuggestion, ChatMessage, AIRequest } from '../types/ai';
 import type { TextSelection } from '../types/document';
-import type { IPCResponse } from '../types/ipc';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 export interface AuraSpherePanelProps {
   isOpen: boolean;
@@ -24,98 +9,10 @@ export interface AuraSpherePanelProps {
   selection: TextSelection | null;
   documentId: string;
   documentContext: string;
-  /** Called when user clicks a suggestion card — parent opens NegotiationPanel */
   onSuggestionSelect: (suggestion: AISuggestion) => void;
 }
 
-// ─── SuggestionCard sub-component ────────────────────────────────────────────
-
-interface SuggestionCardProps {
-  suggestion: AISuggestion;
-  isFocused: boolean;
-  onSelect: (s: AISuggestion) => void;
-  onDismiss: (id: string) => void;
-  animationIndex: number;
-}
-
-function SuggestionCard({ suggestion, isFocused, onSelect, onDismiss, animationIndex }: SuggestionCardProps) {
-  const [dismissed, setDismissed] = useState(false);
-
-  const handleDismiss = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setDismissed(true);
-      // Wait for fade-out animation before removing (Req 24.3)
-      setTimeout(() => onDismiss(suggestion.id), 250);
-    },
-    [suggestion.id, onDismiss]
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onSelect(suggestion);
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        handleDismiss(e as unknown as React.MouseEvent);
-      }
-    },
-    [suggestion, onSelect, handleDismiss]
-  );
-
-  const pct = Math.round(suggestion.confidenceScore * 100);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`AI suggestion: ${suggestion.suggestedText.slice(0, 60)}`}
-      data-testid="suggestion-card"
-      onClick={() => onSelect(suggestion)}
-      onKeyDown={handleKeyDown}
-      style={{
-        ...cardStyles.card,
-        animation: 'card-fade-in 250ms ease-out both',
-        animationDelay: `${animationIndex * 80}ms`,
-        ...(isFocused ? cardStyles.cardFocused : {}),
-        ...(dismissed ? cardStyles.cardDismissed : {}),
-      }}
-    >
-      {/* Suggested text preview */}
-      <p style={cardStyles.suggestedText}>{suggestion.suggestedText}</p>
-
-      {/* Explanation */}
-      {suggestion.explanation && (
-        <p style={cardStyles.explanation}>{suggestion.explanation}</p>
-      )}
-
-      {/* Confidence score bar (Req 7.2) */}
-      <div style={cardStyles.confidenceRow} aria-label={`Confidence: ${pct}%`}>
-        <div style={cardStyles.confidenceBar}>
-          <div
-            style={{ ...cardStyles.confidenceFill, width: `${pct}%` }}
-            data-testid="confidence-fill"
-          />
-        </div>
-        <span style={cardStyles.confidenceLabel}>{pct}%</span>
-      </div>
-
-      {/* Dismiss button */}
-      <button
-        style={cardStyles.dismissBtn}
-        onClick={handleDismiss}
-        aria-label="Dismiss suggestion"
-        tabIndex={-1}
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
-
-// ─── AuraSpherePanel ─────────────────────────────────────────────────────────
+type TabState = 'Assistant' | 'Analysis' | 'History';
 
 export function AuraSpherePanel({
   isOpen,
@@ -125,595 +22,549 @@ export function AuraSpherePanel({
   documentContext,
   onSuggestionSelect,
 }: AuraSpherePanelProps) {
-  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [activeTab, setActiveTab] = useState<TabState>('Assistant');
   const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [focusedCardIndex, setFocusedCardIndex] = useState<number>(-1);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLInputElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll chat to bottom on new messages (scrollIntoView may be absent in test env)
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-  }, [chatHistory]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory, suggestions]);
 
-  // Focus chat input when panel opens
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => chatInputRef.current?.focus(), 320);
-    }
-  }, [isOpen]);
-
-  // Request AI suggestions when panel opens with a selection (Req 6.1, 6.2)
-  useEffect(() => {
-    if (!isOpen) return;
-    if (!selection?.text && !documentContext) return;
-
-    const req: AIRequest = {
-      documentId,
-      selectedText: selection?.text,
-      context: documentContext,
-    };
-
+  const sendChatToAI = useCallback(async (message: string) => {
     setIsLoading(true);
     setError(null);
 
-    invoke<IPCResponse<AISuggestion[]>>('request_ai_suggestion', { request: req })
-      .then((res) => {
-        if (res.success && res.data) {
-          // Sort by confidence descending (Req 7.3)
-          const sorted = [...res.data].sort((a, b) => b.confidenceScore - a.confidenceScore);
-          setSuggestions(sorted);
-        } else {
-          setError(res.error?.message ?? 'Failed to get suggestions.');
-        }
-      })
-      .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        setError(msg);
-      })
-      .finally(() => setIsLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  // Dismiss a suggestion card (Req 24.3)
-  const handleDismiss = useCallback((id: string) => {
-    setSuggestions((prev) => prev.filter((s) => s.id !== id));
-  }, []);
-
-  // Retry AI request (Req 16.5)
-  const handleRetry = useCallback(() => {
-    if (!selection?.text && !documentContext) return;
-    const req: AIRequest = {
-      documentId,
-      selectedText: selection?.text,
-      context: documentContext,
-    };
-    setIsLoading(true);
-    setError(null);
-    invoke<IPCResponse<AISuggestion[]>>('request_ai_suggestion', { request: req })
-      .then((res) => {
-        if (res.success && res.data) {
-          const sorted = [...res.data].sort((a, b) => b.confidenceScore - a.confidenceScore);
-          setSuggestions(sorted);
-        } else {
-          setError(res.error?.message ?? 'Failed to get suggestions.');
-        }
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : String(err));
-      })
-      .finally(() => setIsLoading(false));
-  }, [documentId, documentContext, selection]);
-
-  // Send chat message (Req 23.2, 23.3, 23.4)
-  const handleSendChat = useCallback(async () => {
-    const text = chatInput.trim();
-    if (!text) return;
-
-    const userMsg: ChatMessage = {
+    const newUserMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: text,
-      timestamp: new Date(),
+      content: message,
+      timestamp: new Date()
     };
-    setChatHistory((prev) => [...prev, userMsg]);
+
+    setChatHistory(prev => [...prev, newUserMsg]);
     setChatInput('');
-    setIsLoading(true);
 
     try {
-      const req: AIRequest = {
-        documentId,
-        context: documentContext,
-        prompt: text,
-        chatHistory: [...chatHistory, userMsg],
-      };
-      const res = await invoke<IPCResponse<ChatMessage>>('send_chat_message', { request: req });
-      if (res.success && res.data) {
-        setChatHistory((prev) => [...prev, res.data!]);
-      } else {
-        const errMsg: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: res.error?.message ?? 'Something went wrong.',
-          timestamp: new Date(),
-        };
-        setChatHistory((prev) => [...prev, errMsg]);
+      let context = documentContext;
+      if (selection) {
+        context = `Selected text: "${selection.text}"\n\nFull text:\n${documentContext}`;
       }
-    } catch (err: unknown) {
-      const errMsg: ChatMessage = {
+
+      const request: AIRequest = {
+        prompt: message,
+        context: context,
+        documentId: documentId,
+      };
+
+      const response = await invoke<{ response: string, suggestions: any[] }>('ai_chat', { request });
+
+      const newAiMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: err instanceof Error ? err.message : 'Something went wrong.',
-        timestamp: new Date(),
+        content: response.response,
+        timestamp: new Date()
       };
-      setChatHistory((prev) => [...prev, errMsg]);
+
+      setChatHistory(prev => [...prev, newAiMsg]);
+
+      if (response.suggestions && response.suggestions.length > 0) {
+        setSuggestions(response.suggestions);
+      }
+    } catch (err) {
+      console.error('Failed to get AI response:', err);
+      setError('AuraSphere failed to respond. Please try again.');
     } finally {
       setIsLoading(false);
+      setTimeout(() => { chatInputRef.current?.focus(); }, 10);
     }
-  }, [chatInput, chatHistory, documentId, documentContext]);
+  }, [documentContext, documentId, selection]);
 
-  const handleChatKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSendChat();
-      }
-    },
-    [handleSendChat]
-  );
+  const handleSendChat = () => {
+    if (!chatInput.trim() || isLoading) return;
+    sendChatToAI(chatInput.trim());
+  };
 
-  // Escape key closes the panel (Req 21.4) — attached to document so it fires
-  // regardless of which element has focus inside the panel
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  const handleChatKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendChat();
+    }
+  };
 
-  // Arrow-key navigation between suggestion cards (Req 24.4, 24.5)
-  const handlePanelKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (suggestions.length === 0) return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusedCardIndex((i) => Math.min(i + 1, suggestions.length - 1));
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedCardIndex((i) => Math.max(i - 1, 0));
-      }
-    },
-    [suggestions.length]
-  );
+  if (!isOpen) return null;
+
+  // ---- Demo placeholder messages for the Assistant tab ----
+  const hasDemoContent = chatHistory.length === 0;
+  const demoVersions = [
+    { id: '1', label: 'Version 1', tag: 'Formal Editorial', text: 'The intersection of artificial intelligence and creative writing represents more than just a technological shift; it is a fundamental...' },
+    { id: '2', label: 'Version 2', tag: 'Minimalist & Bold', text: 'In the age of algorithmic synthesis, the role of the author is evolving. AuraSphere serves as the bridge between raw creative instinct...' },
+    { id: '3', label: 'Version 3', tag: 'Technical Visionary', text: 'Our architecture introduces the Liquid Data model to long-form content. This proposal outlines how AuraSphere recedes into the digital periphery...' },
+  ];
 
   return (
-    <div
-      role="complementary"
-      aria-label="AuraSphere AI assistant panel"
-      aria-hidden={!isOpen}
-      data-testid="aura-sphere-panel"
+    <aside
+      className="fixed right-0 top-16 bottom-0 z-40 flex flex-col font-label"
       style={{
-        ...panelStyles.panel,
-        ...(isOpen ? panelStyles.panelOpen : panelStyles.panelClosed),
+        width: '360px',
+        background: 'rgba(255,255,255,0.7)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderLeft: '1px solid rgba(199,196,215,0.15)',
+        boxShadow: '0 40px 60px -5px rgba(67,67,213,0.08)',
       }}
-      onKeyDown={handlePanelKeyDown}
     >
-      {/* Header */}
-      <div style={panelStyles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+      {/* ── HEADER ── */}
+      <div style={{ padding: '24px', borderBottom: '1px solid rgba(199,196,215,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          {/* Blue circle avatar icon */}
           <div style={{
-            width: '40px', height: '40px', borderRadius: '50%',
-            background: 'var(--md-sys-color-primary-container)',
+            width: 40, height: 40,
+            borderRadius: '50%',
+            background: '#5d5fef',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
           }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-on-primary-container)', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+            <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 20, fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
           </div>
-          <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>AuraSphere</div>
-            <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-family-label)', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#5a5a5a', opacity: 0.7 }}>AI Writing Partner</div>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#4343d5', lineHeight: 1.2 }}>AuraSphere</h2>
+            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#767586', opacity: 0.7, marginTop: 2 }}>AI Writing Partner</p>
           </div>
           <button
-            style={{ ...panelStyles.closeBtn, marginLeft: 'auto' }}
             onClick={onClose}
-            aria-label="Close AI panel"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#767586', padding: 4, display: 'flex' }}
+            aria-label="Close panel"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
           </button>
         </div>
-        {/* Tabs */}
-        <div style={{ display: 'flex', background: 'var(--md-sys-color-surface-container)', borderRadius: 'var(--radius-md)', padding: '4px', gap: '2px' }}>
-          {['Assistant', 'Analysis', 'History'].map((tab) => (
-            <button key={tab} style={{
-              flex: 1,
-              padding: '6px 0',
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              background: tab === 'Assistant' ? 'rgba(255,255,255,0.5)' : 'transparent',
-              color: tab === 'Assistant' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
-              fontFamily: 'var(--font-family-label)',
-            }}>
+
+        {/* ── TABS ── */}
+        <div style={{
+          display: 'flex',
+          background: '#edeeef',
+          borderRadius: 8,
+          padding: 4,
+          gap: 2,
+        }}>
+          {(['Assistant', 'Analysis', 'History'] as TabState[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                padding: '6px 4px',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: 6,
+                transition: 'all 0.15s ease',
+                background: activeTab === tab ? 'rgba(255,255,255,0.5)' : 'transparent',
+                color: activeTab === tab ? '#4343d5' : '#5a5a5a',
+                boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                opacity: activeTab === tab ? 1 : 0.7,
+              }}
+            >
               {tab}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Suggestions area */}
-      <div style={panelStyles.suggestionsArea} aria-label="AI suggestions">
-        {isLoading && (
-          <div style={panelStyles.loadingIndicator} role="status" aria-live="polite" data-testid="loading-indicator">
-            <span style={panelStyles.spinner} aria-hidden="true" />
-            <span>Thinking…</span>
-          </div>
-        )}
+      {/* ── CONTENT AREA ── */}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-        {error && !isLoading && (
-          <div style={panelStyles.errorBox} role="alert" data-testid="error-message">
-            <p style={panelStyles.errorText}>{error}</p>
-            <button style={panelStyles.retryBtn} onClick={handleRetry} data-testid="retry-button">
-              Retry
-            </button>
-          </div>
-        )}
-
-        {!isLoading && !error && suggestions.length === 0 && (
-          <p style={panelStyles.emptyHint}>
-            {selection?.text
-              ? 'No suggestions yet. Ask me anything below.'
-              : 'Select text and press Cmd+K, or ask me anything below.'}
-          </p>
-        )}
-
-        {suggestions.map((s, idx) => (
-          <SuggestionCard
-            key={s.id}
-            suggestion={s}
-            isFocused={focusedCardIndex === idx}
-            onSelect={onSuggestionSelect}
-            onDismiss={handleDismiss}
-            animationIndex={idx}
-          />
-        ))}
-      </div>
-
-      {/* Chat history */}
-      {chatHistory.length > 0 && (
-        <div style={panelStyles.chatHistory} aria-label="Chat history" data-testid="chat-history">
-          {chatHistory.map((msg) => (
+        {/* ═══════════════ ASSISTANT TAB ═══════════════ */}
+        {activeTab === 'Assistant' && (
+          <>
             <div
-              key={msg.id}
-              style={{
-                ...panelStyles.chatBubble,
-                ...(msg.role === 'user' ? panelStyles.chatBubbleUser : panelStyles.chatBubbleAssistant),
-              }}
-              data-testid={`chat-message-${msg.role}`}
+              style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 24 }}
             >
-              {msg.content}
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-      )}
+              {hasDemoContent ? (
+                <>
+                  {/* Demo user message */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div style={{
+                      background: '#e7e8e9',
+                      color: '#191c1d',
+                      padding: '12px 16px',
+                      borderRadius: '20px',
+                      maxWidth: '90%',
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                    }}>
+                      Can you help me rewrite the introduction to sound more visionary and professional? Give me a few options.
+                    </div>
+                  </div>
 
-      {/* Chat input (Req 23.1) */}
-      <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid rgba(199,196,215,0.1)', flexShrink: 0 }}>
-        <div style={{ position: 'relative' }}>
-          <textarea
-            ref={chatInputRef as unknown as React.RefObject<HTMLTextAreaElement>}
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={handleChatKeyDown as unknown as React.KeyboardEventHandler<HTMLTextAreaElement>}
-            placeholder="Ask AuraSphere… (e.g. @Document)"
-            style={{
-              width: '100%',
-              background: 'var(--md-sys-color-surface-container-low)',
-              border: 'none',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1rem 3rem 1rem 1rem',
-              fontSize: 'var(--font-size-sm)',
-              fontFamily: 'var(--font-family-label)',
-              color: 'var(--md-sys-color-on-surface)',
-              resize: 'none',
-              minHeight: '80px',
-              outline: 'none',
-            }}
-            aria-label="Chat input"
-            data-testid="chat-input"
-            disabled={isLoading}
-          />
-          <button
-            style={{
-              position: 'absolute',
-              right: '0.75rem',
-              bottom: '0.75rem',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'var(--md-sys-color-primary)',
-              color: 'var(--md-sys-color-on-primary)',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onClick={handleSendChat}
-            disabled={isLoading || !chatInput.trim()}
-            aria-label="Send message"
-            data-testid="send-button"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>north</span>
-          </button>
-        </div>
-        <p style={{ fontSize: '0.6rem', textAlign: 'center', marginTop: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'var(--font-family-label)' }}>
-          Press Cmd + K to trigger AI
-        </p>
+                  {/* Demo AI response */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: 16, fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4343d5' }}>AuraSphere AI</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 15, color: '#464555', lineHeight: 1.75 }}>
+                      Certainly. I've drafted three distinct versions focusing on the 'Ethereal Editor' concept with varying levels of formality.
+                    </p>
+
+                    {/* Demo version cards */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {demoVersions.map(v => (
+                        <div key={v.id} style={{
+                          background: '#fff',
+                          borderRadius: 12,
+                          border: '1px solid rgba(199,196,215,0.25)',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{ padding: '16px 16px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{v.label}</span>
+                              <span style={{ fontSize: 11, color: '#767586' }}>{v.tag}</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: 13, color: '#191c1d', lineHeight: 1.6 }}>{v.text}</p>
+                          </div>
+                          <button style={{
+                            width: '100%',
+                            padding: '10px 16px',
+                            background: 'rgba(67,67,213,0.05)',
+                            border: 'none',
+                            borderTop: '1px solid rgba(199,196,215,0.15)',
+                            cursor: 'pointer',
+                            color: '#4343d5',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 4,
+                          }}>
+                            View Version
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Real chat history */
+                chatHistory.map((msg, index) => {
+                  const isUser = msg.role === 'user';
+                  return isUser ? (
+                    <div key={msg.id} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <div style={{
+                        background: '#e7e8e9',
+                        color: '#191c1d',
+                        padding: '12px 16px',
+                        borderRadius: '20px',
+                        maxWidth: '90%',
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                      }}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: 16, fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4343d5' }}>AuraSphere AI</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 15, color: '#464555', lineHeight: 1.75 }}>{msg.content}</p>
+
+                      {/* Suggestions as version cards after last AI message */}
+                      {index === chatHistory.length - 1 && suggestions.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {suggestions.map((s, idx) => (
+                            <div key={s.id} style={{
+                              background: '#fff',
+                              borderRadius: 12,
+                              border: '1px solid rgba(199,196,215,0.25)',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                              overflow: 'hidden',
+                            }}>
+                              <div style={{ padding: '16px 16px 12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <span style={{ fontSize: 10, fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Version {idx + 1}</span>
+                                  <span style={{ fontSize: 11, color: '#767586' }}>{s.explanation || 'Suggested Edit'}</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 13, color: '#191c1d', lineHeight: 1.6 }}>{s.suggestedText}</p>
+                              </div>
+                              <button
+                                onClick={() => onSuggestionSelect(s)}
+                                style={{
+                                  width: '100%',
+                                  padding: '10px 16px',
+                                  background: 'rgba(67,67,213,0.05)',
+                                  border: 'none',
+                                  borderTop: '1px solid rgba(199,196,215,0.15)',
+                                  cursor: 'pointer',
+                                  color: '#4343d5',
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 4,
+                                }}
+                              >
+                                View Version
+                                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+
+              {/* Loading indicator */}
+              {isLoading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: 16, fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4343d5' }}>AuraSphere AI</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, padding: '4px 2px' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(67,67,213,0.4)', animation: 'bounce 1.2s infinite' }}></div>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(67,67,213,0.4)', animation: 'bounce 1.2s infinite 0.2s' }}></div>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(67,67,213,0.4)', animation: 'bounce 1.2s infinite 0.4s' }}></div>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div style={{ fontSize: 12, color: '#ba1a1a', padding: '8px 12px', background: '#ffdad6', borderRadius: 8 }}>
+                  {error}
+                </div>
+              )}
+
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* ── INPUT AREA ── */}
+            <div style={{ padding: '24px', borderTop: '1px solid rgba(199,196,215,0.1)', flexShrink: 0 }}>
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  ref={chatInputRef}
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={handleChatKeyDown}
+                  disabled={isLoading}
+                  placeholder="Ra lệnh (e.g., @Báo_cáo_Q1)"
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    background: '#f3f4f5',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '14px 48px 14px 16px',
+                    fontSize: 13,
+                    color: '#191c1d',
+                    resize: 'none',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    lineHeight: 1.5,
+                    boxSizing: 'border-box',
+                  }}
+                />
+                {/* Send button */}
+                <button
+                  onClick={handleSendChat}
+                  disabled={isLoading || !chatInput.trim()}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    bottom: 12,
+                    width: 32, height: 32,
+                    borderRadius: '50%',
+                    background: chatInput.trim() ? '#4343d5' : '#c7c4d7',
+                    border: 'none',
+                    cursor: chatInput.trim() ? 'pointer' : 'default',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background 0.15s ease',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 16 }}>north</span>
+                </button>
+                {/* Attach button */}
+                <button style={{
+                  position: 'absolute',
+                  left: 12,
+                  bottom: 12,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#767586',
+                  display: 'flex',
+                  opacity: 0.5,
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>attach_file</span>
+                </button>
+              </div>
+              <p style={{
+                margin: '12px 0 0',
+                fontSize: 9,
+                textAlign: 'center',
+                color: '#464555',
+                opacity: 0.4,
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+              }}>Press Cmd + K to trigger AI</p>
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════ ANALYSIS TAB ═══════════════ */}
+        {activeTab === 'Analysis' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <section>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#767586', opacity: 0.7 }}>Tone Analysis</h3>
+                <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: 16 }}>info</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[
+                  { label: 'Primary Tone', value: 'Formal', pct: 82, color: '#4343d5' },
+                  { label: 'Secondary', value: 'Evocative', pct: 64, color: '#575995' },
+                ].map(t => (
+                  <div key={t.label} style={{ background: '#fff', padding: 16, borderRadius: 12, border: '1px solid rgba(199,196,215,0.2)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                    <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 700, color: '#4343d5', textTransform: 'uppercase' }}>{t.label}</p>
+                    <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#191c1d', fontFamily: 'Manrope, sans-serif' }}>{t.value}</p>
+                    <div style={{ marginTop: 12, height: 4, background: '#e1e3e4', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${t.pct}%`, height: '100%', background: t.color, borderRadius: 4 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section style={{ background: '#f3f4f5', borderRadius: 12, padding: 24, position: 'relative', overflow: 'hidden', border: '1px solid rgba(199,196,215,0.2)' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#4343d5' }}>Reading Level</h3>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: 36, fontWeight: 700, color: '#4343d5', fontFamily: 'Manrope, sans-serif', lineHeight: 1 }}>Grade 10</span>
+                <span style={{ fontSize: 10, color: 'rgba(67,67,213,0.6)', fontWeight: 700, textTransform: 'uppercase' }}>Academic</span>
+              </div>
+              <p style={{ margin: '12px 0 0', fontSize: 12, color: '#464555', lineHeight: 1.6, fontFamily: 'Newsreader, serif' }}>
+                Your prose is sophisticated yet accessible. Ideal for editorial features.
+              </p>
+              <div style={{ position: 'absolute', right: -32, bottom: -32, width: 128, height: 128, background: 'rgba(67,67,213,0.05)', borderRadius: '50%', filter: 'blur(30px)' }} />
+            </section>
+
+            <section>
+              <h3 style={{ margin: '0 0 16px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#767586', opacity: 0.7 }}>Editorial Sentiment</h3>
+              <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid rgba(199,196,215,0.2)', height: 192, position: 'relative' }}>
+                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 24, boxSizing: 'border-box' }} preserveAspectRatio="none" viewBox="0 0 100 100">
+                  <path d="M0,70 Q15,60 25,40 T50,20 T75,50 T100,30" fill="none" stroke="#4343d5" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  <circle cx="25" cy="40" fill="#4343d5" r="2" />
+                  <circle cx="50" cy="20" fill="#4343d5" r="2" />
+                </svg>
+                <div style={{ position: 'absolute', bottom: 16, left: 24, right: 24, display: 'flex', justifyContent: 'space-between' }}>
+                  {['Intro', 'Middle', 'Climax', 'Outro'].map(l => (
+                    <span key={l} style={{ fontSize: 8, color: '#767586', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{l}</span>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* ═══════════════ HISTORY TAB ═══════════════ */}
+        {activeTab === 'History' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#767586' }}>Activity History</h3>
+              <span className="material-symbols-outlined" style={{ color: 'rgba(67,67,213,0.4)', fontSize: 14, cursor: 'pointer' }}>filter_list</span>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: '#767586', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>Today</div>
+            </div>
+
+            {[
+              { icon: 'psychology', color: '#4343d5', label: 'Style Refinement', time: '14:22', text: '"Adjusted the tone to be more academic yet accessible..."', italic: true },
+              { icon: 'edit_note', color: '#575995', label: 'Structural Shift', time: '11:05', text: 'Moved the "AuraSphere" paragraph to follow digital focus definition.', italic: false },
+            ].map(item => (
+              <div key={item.label} style={{
+                background: '#fff',
+                padding: 16,
+                borderRadius: 12,
+                border: '1px solid rgba(199,196,215,0.2)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                marginBottom: 10,
+                cursor: 'default',
+              }}
+                className="group"
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: item.color, fontVariationSettings: item.icon === 'psychology' ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: item.color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{item.label}</span>
+                  </div>
+                  <span style={{ fontSize: 9, color: '#767586' }}>{item.time}</span>
+                </div>
+                <p style={{ margin: '0 0 12px', fontSize: 12, color: '#191c1d', lineHeight: 1.6, fontStyle: item.italic ? 'italic' : 'normal' }}>{item.text}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button style={{ flex: 1, padding: '8px 0', background: 'rgba(67,67,213,0.05)', color: '#4343d5', border: 'none', borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Apply</button>
+                  <button style={{ flex: 1, padding: '8px 0', background: '#edeeef', color: '#464555', border: 'none', borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Revisit</button>
+                </div>
+              </div>
+            ))}
+
+            <div style={{ position: 'relative', marginTop: 8 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: '#767586', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>Yesterday</div>
+            </div>
+
+            <div style={{ background: '#fff', padding: 16, borderRadius: 12, border: '1px solid rgba(199,196,215,0.2)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#b65700' }}>history_edu</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#b65700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Contextual Injection</span>
+                </div>
+                <span style={{ fontSize: 9, color: '#767586' }}>Oct 12</span>
+              </div>
+              <p style={{ margin: '0 0 12px', fontSize: 12, color: '#191c1d', lineHeight: 1.6 }}>Added references to monastic cells and private libraries.</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={{ flex: 1, padding: '8px 0', background: 'rgba(67,67,213,0.05)', color: '#4343d5', border: 'none', borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Apply</button>
+                <button style={{ flex: 1, padding: '8px 0', background: '#edeeef', color: '#464555', border: 'none', borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>Revisit</button>
+              </div>
+            </div>
+
+            {/* Suggestion banner */}
+            <div style={{
+              position: 'relative',
+              padding: 16,
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #4343d5, #5d5fef)',
+              color: '#fff',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(67,67,213,0.2)',
+            }}>
+              <div style={{ position: 'absolute', right: -16, top: -16, width: 64, height: 64, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', filter: 'blur(16px)' }} />
+              <p style={{ margin: '0 0 4px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.8 }}>Aura Suggestion</p>
+              <p style={{ margin: '0 0 12px', fontSize: 11, lineHeight: 1.5, fontWeight: 500 }}>You've visited the "Negotiated" version 3 times. Merge permanently?</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6, fontSize: 9, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>Yes, Merge</button>
+                <button style={{ padding: '4px 12px', background: 'transparent', border: 'none', borderRadius: 6, fontSize: 9, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: 0.8 }}>Browse</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </aside>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const panelStyles: Record<string, React.CSSProperties> = {
-  panel: {
-    position: 'fixed',
-    top: 'var(--topnav-height)',
-    right: 0,
-    bottom: 0,
-    width: 'var(--right-panel-width)',
-    display: 'flex',
-    flexDirection: 'column',
-    fontFamily: 'var(--font-family-ui)',
-    background: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderLeft: '1px solid rgba(199, 196, 215, 0.15)',
-    boxShadow: 'var(--shadow-ambient-strong)',
-    transition: 'transform var(--transition-normal), opacity var(--transition-normal)',
-    zIndex: 40,
-    overflow: 'hidden',
-  },
-  panelOpen: {
-    transform: 'translateX(0)',
-    opacity: 1,
-    pointerEvents: 'auto',
-  },
-  panelClosed: {
-    transform: 'translateX(100%)',
-    opacity: 0,
-    pointerEvents: 'none',
-  },
-  header: {
-    padding: 'var(--spacing-lg)',
-    borderBottom: '1px solid rgba(199, 196, 215, 0.1)',
-    flexShrink: 0,
-  },
-  title: {
-    fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface)',
-    letterSpacing: '0.02em',
-  },
-  closeBtn: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-base)',
-    padding: 'var(--spacing-xs)',
-    borderRadius: 'var(--radius-sm)',
-    lineHeight: 1,
-    display: 'flex',
-    alignItems: 'center',
-  },
-  suggestionsArea: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: 'var(--spacing-md)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--spacing-sm)',
-  },
-  loadingIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--spacing-sm)',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-sm)',
-    padding: 'var(--spacing-md)',
-  },
-  spinner: {
-    display: 'inline-block',
-    width: '16px',
-    height: '16px',
-    border: '2px solid var(--md-sys-color-outline-variant)',
-    borderTopColor: 'var(--md-sys-color-primary)',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
-  errorBox: {
-    background: 'var(--md-sys-color-error-container)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-md)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--spacing-sm)',
-  },
-  errorText: {
-    margin: 0,
-    color: 'var(--md-sys-color-on-error-container)',
-    fontSize: 'var(--font-size-sm)',
-  },
-  retryBtn: {
-    alignSelf: 'flex-start',
-    background: 'var(--md-sys-color-error)',
-    color: 'var(--md-sys-color-on-error)',
-    border: 'none',
-    borderRadius: 'var(--radius-sm)',
-    padding: 'var(--spacing-xs) var(--spacing-md)',
-    cursor: 'pointer',
-    fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-  },
-  emptyHint: {
-    margin: 0,
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-sm)',
-    textAlign: 'center',
-    padding: 'var(--spacing-xl) var(--spacing-md)',
-    opacity: 0.7,
-  },
-  chatHistory: {
-    maxHeight: '220px',
-    overflowY: 'auto',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--spacing-xs)',
-    borderTop: '1px solid var(--md-sys-color-outline-variant)',
-  },
-  chatBubble: {
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-xs) var(--spacing-sm)',
-    fontSize: 'var(--font-size-sm)',
-    maxWidth: '90%',
-    wordBreak: 'break-word',
-  },
-  chatBubbleUser: {
-    alignSelf: 'flex-end',
-    background: 'var(--md-sys-color-primary-container)',
-    color: 'var(--md-sys-color-on-primary-container)',
-  },
-  chatBubbleAssistant: {
-    alignSelf: 'flex-start',
-    background: 'var(--md-sys-color-surface-variant)',
-    color: 'var(--md-sys-color-on-surface-variant)',
-  },
-  chatInputRow: {
-    display: 'flex',
-    gap: 'var(--spacing-xs)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
-    borderTop: '1px solid var(--md-sys-color-outline-variant)',
-    flexShrink: 0,
-  },
-  chatInput: {
-    flex: 1,
-    border: '1px solid var(--md-sys-color-outline-variant)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-xs) var(--spacing-sm)',
-    fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-    background: 'rgba(255,255,255,0.5)',
-    color: 'var(--md-sys-color-on-surface)',
-    outline: 'none',
-  },
-  sendBtn: {
-    background: 'var(--md-sys-color-primary)',
-    color: 'var(--md-sys-color-on-primary)',
-    border: 'none',
-    borderRadius: 'var(--radius-md)',
-    width: '36px',
-    height: '36px',
-    cursor: 'pointer',
-    fontSize: 'var(--font-size-base)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-};
-
-const cardStyles: Record<string, React.CSSProperties> = {
-  card: {
-    position: 'relative',
-    background: 'rgba(255, 255, 255, 0.55)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'var(--spacing-md)',
-    cursor: 'pointer',
-    transition: 'box-shadow var(--transition-fast), opacity 250ms ease',
-    outline: 'none',
-  },
-  cardFocused: {
-    // Hover/focus glow (Req 7.4, 24.1, 24.5)
-    boxShadow: 'var(--shadow-glow)',
-    border: '1px solid var(--md-sys-color-primary)',
-  },
-  cardDismissed: {
-    opacity: 0,
-    pointerEvents: 'none',
-  },
-  suggestedText: {
-    margin: '0 0 var(--spacing-xs)',
-    fontSize: 'var(--font-size-sm)',
-    color: 'var(--md-sys-color-on-surface)',
-    lineHeight: 'var(--line-height-normal)',
-    // Clamp to 3 lines
-    display: '-webkit-box',
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-  },
-  explanation: {
-    margin: '0 0 var(--spacing-sm)',
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    lineHeight: 'var(--line-height-normal)',
-  },
-  confidenceRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--spacing-xs)',
-  },
-  confidenceBar: {
-    flex: 1,
-    height: '4px',
-    background: 'var(--md-sys-color-outline-variant)',
-    borderRadius: '2px',
-    overflow: 'hidden',
-  },
-  confidenceFill: {
-    height: '100%',
-    background: 'var(--md-sys-color-primary)',
-    borderRadius: '2px',
-    transition: 'width var(--transition-fast)',
-  },
-  confidenceLabel: {
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    minWidth: '28px',
-    textAlign: 'right',
-  },
-  dismissBtn: {
-    position: 'absolute',
-    top: 'var(--spacing-xs)',
-    right: 'var(--spacing-xs)',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-xs)',
-    padding: '2px 4px',
-    borderRadius: 'var(--radius-sm)',
-    opacity: 0.6,
-    lineHeight: 1,
-  },
-};
 
 export default AuraSpherePanel;

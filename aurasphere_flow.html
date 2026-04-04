@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraSphere AI Connection Flow Reference</title>
+    <style>
+        /* AuraSphere Mono Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --bg: #030303;
+            --surface: #0a0a0a;
+            --surface-hover: #141414;
+            --border: #222222;
+            --border-focus: #444444;
+            --text-main: #f0f0f0;
+            --text-muted: #777777;
+            --accent: #ffffff;
+            --accent-glow: rgba(255, 255, 255, 0.15);
+            --mono-font: 'Space Mono', monospace;
+            --sans-font: 'Inter', sans-serif;
+            --success: #4CAF50;
+            --google-blue: #4285F4;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #000;
+            color: var(--text-main);
+            font-family: var(--sans-font);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+
+        .sidebar-container {
+            width: 340px;
+            height: 80vh;
+            max-height: 800px;
+            min-height: 500px;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        .header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono-font);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 3, 3, 0.8);
+            z-index: 10;
+        }
+
+        .header-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--border-focus);
+            transition: all 0.4s ease;
+        }
+
+        .header-status.connected {
+            background-color: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .step-container {
+            flex: 1;
+            position: absolute;
+            top: 59px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 32px 24px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            background-color: var(--bg);
+            animation: fadeInStep 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            overflow-y: auto;
+        }
+
+        .step-container.active {
+            display: flex;
+        }
+
+        @keyframes fadeInStep {
+            0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h2 { font-size: 18px; font-weight: 500; margin: 0 0 6px 0; letter-spacing: -0.5px; }
+        p.subtitle { font-size: 13px; color: var(--text-muted); margin: 0 0 20px 0; line-height: 1.5; }
+
+        /* UI Select Box */
+        .custom-select-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        
+        .custom-select {
+            width: 100%;
+            appearance: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 6px;
+            color: var(--text-main);
+            font-family: var(--sans-font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .custom-select:focus, .custom-select:hover { border-color: var(--border-focus); }
+
+        .custom-select-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 4px;
+            font-family: var(--mono-font);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: auto;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
+        .btn:active { transform: scale(0.98); }
+
+        /* Plan Cards */
+        .option-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+        }
+        .option-card:hover { border-color: var(--border-focus); }
+        .option-card.selected { border-color: var(--accent); background: rgba(255,255,255,0.03); }
+        .option-card h3 { margin: 0 0 4px 0; font-size: 13px; font-family: var(--mono-font); }
+        .option-card p { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+        /* Helpers */
+        .mono-text { font-family: var(--mono-font); text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; }
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 32px; text-align: center; }
+
+        .aura-spinner { width: 64px; height: 64px; border-radius: 50%; border: 1px dashed var(--border-focus); animation: spin 4s linear infinite; display: flex; align-items: center; justify-content: center; }
+        .aura-inner { width: 16px; height: 16px; background: var(--accent); border-radius: 50%; filter: blur(4px); animation: pulse-glow 2s infinite alternate; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse-glow { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.5); opacity: 1; } }
+
+        .success-icon { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar-container">
+        <!-- Persistent Header -->
+        <div class="header">
+            <span>AuraSphere: Mono</span>
+            <div class="header-status" id="headerStatus"></div>
+        </div>
+
+        <!-- 
+            SCREEN 1: aurasphere_mono (Provider Selection) 
+        -->
+        <div class="step-container active" id="screen_provider">
+            <div>
+                <h2>Intelligence Provider</h2>
+                <p class="subtitle">Select the AI logic engine for your active workspace.</p>
+            </div>
+            
+            <div class="custom-select-wrapper">
+                <select id="providerSelect" class="custom-select" onchange="handleProviderSelection()">
+                    <option value="" disabled selected>Select an AI Provider...</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="boongai">BoongAI Network</option>
+                </select>
+                <div class="custom-select-icon">▼</div>
+            </div>
+
+            <div id="actionArea" style="margin-top:auto; display:none; flex-direction:column; gap:12px;">
+                <p id="actionHint" class="subtitle" style="font-size:11px; margin:0; text-align:center;"></p>
+                <button class="btn" id="actionBtn"></button>
+            </div>
+        </div>
+
+        <!-- 
+            SCREEN 2: select_your_plan (BoongAI Exclusive) 
+        -->
+        <div class="step-container" id="screen_plan">
+            <div>
+                <h2>Workspace Tier</h2>
+                <p class="subtitle">Select your BoongAI capability tier.</p>
+            </div>
+            
+            <div class="option-card selected">
+                <h3>Pro Tier</h3>
+                <p>Standard processing limits.</p>
+            </div>
+            <div class="option-card">
+                <h3>Ultra Tier</h3>
+                <p>Uncapped capabilities.</p>
+            </div>
+
+            <button class="btn" style="margin-top:auto;" onclick="showScreen('screen_redirecting'); simulateConnection('BoongAI');">Connect to BoongAI</button>
+        </div>
+
+        <!-- 
+            SCREEN 3: aurasphere_redirecting... 
+            Triggered automatically when browser is opened for OAuth
+        -->
+        <div class="step-container" id="screen_redirecting">
+            <div class="loader-container">
+                <div class="aura-spinner"><div class="aura-inner"></div></div>
+                <div>
+                    <h3 class="mono-text" style="color:var(--accent); margin-bottom: 8px;">AWAITING AUTHORIZATION</h3>
+                    <p class="subtitle mono-text" style="margin:0; font-size:10px; opacity:0.6" id="loadingText">PLEASE CHECK BROWSER...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 
+            SCREEN 4: aurasphere_connected_successfull 
+        -->
+        <div class="step-container" id="screen_success">
+            <div class="loader-container">
+                <div class="success-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div>
+                    <h3 class="mono-text" style="color:var(--text-main); margin-bottom:8px;">CONNECTION SECURED</h3>
+                    <p class="subtitle mono-text" style="font-size:10px; opacity:0.6;">AURASPHERE IS ONLINE</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 
+        =======================================================
+        FLOW REFERENCE LOGIC FOR AI 
+        (Defines exactly how components transition based on choices)
+        =======================================================
+    -->
+    <script>
+        // Utility to switch active UI panels
+        function showScreen(screenId) {
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Logic bound to the `aurasphere_mono` dropdown
+        function handleProviderSelection() {
+            const provider = document.getElementById('providerSelect').value;
+            const actionArea = document.getElementById('actionArea');
+            const btn = document.getElementById('actionBtn');
+            const hint = document.getElementById('actionHint');
+
+            actionArea.style.display = 'flex';
+
+            if(provider === 'boongai') {
+                btn.innerText = 'Select Plan';
+                btn.style.background = 'var(--text-main)';
+                btn.style.color = '#000';
+                
+                // BOONGAI FLOW: Route to Plan Selection UI
+                btn.onclick = () => showScreen('screen_plan');
+                hint.innerText = 'Requires BoongAI pricing tier configuration.';
+                
+            } else if(provider === 'gemini') {
+                btn.innerText = 'Login With Google';
+                btn.style.background = 'var(--google-blue)';
+                btn.style.color = '#fff';
+                
+                // GEMINI FLOW: Directly launch OAuth process (Skips Plan UI)
+                btn.onclick = () => initiateGeminiOAuthFlow();
+                hint.innerText = 'AuraSphere will open your browser to securely log in.';
+            }
+        }
+
+        // Deep Link / OAuth Simulation Logic for Gemini
+        function initiateGeminiOAuthFlow() {
+            
+            // 1. (Native APIS) Call desktop API to open default system browser to Google Login URL.
+            console.log("Desktop API: Opening externally -> https://accounts.google.com/...");
+            
+            // 2. Transistion local UI to lock state: 'aurasphere_redirecting...'
+            showScreen('screen_redirecting');
+
+            // 3. (Simulation) Wait for Deep Link App Redirect Callback mechanism from OS
+            const textEl = document.getElementById('loadingText');
+            
+            // Emulate user time spent typing in browser
+            setTimeout(() => {
+                textEl.innerText = "DEEP LINK RECEIVED. VERIFYING TOKEN...";
+                
+                // OS passed deep link myapp://oauth/callback?target=gemini
+                // Processing response locally...
+                setTimeout(() => {
+                    // 4. Verification success! Skip 'select_your_plan' and land directly in success screen.
+                    document.getElementById('headerStatus').classList.add('connected');
+                    showScreen('screen_success');
+                }, 1000);
+
+            }, 3500);
+        }
+
+        // Basic simulation for BoongAI (to finish the loop)
+        function simulateConnection(name) {
+            const textEl = document.getElementById('loadingText');
+            textEl.innerText = `CONNECTING TO ${name.toUpperCase()}...`;
+            setTimeout(() => {
+                document.getElementById('headerStatus').classList.add('connected');
+                showScreen('screen_success');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@
  * Requirements: 18.1, 19.2
  */
 
+import { UserAvatar } from './UserAvatar';
 import { useState, useRef, useEffect } from 'react';
 
 interface TopNavBarProps {
@@ -11,9 +12,11 @@ interface TopNavBarProps {
   onNew: () => void;
   onSave: () => void;
   onOpenPreferences?: () => void;
+  /** Authenticated user's display name; omit for anonymous/guest. */
+  userName?: string;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName }: TopNavBarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -147,6 +150,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
+          {/*<UserAvatar name={userName} size={32} />*/}
           <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -202,7 +206,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                     curator@ethereal.editor
                   </div>
                 </div>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <button
                     style={{
