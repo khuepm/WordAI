@@ -26,60 +26,63 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
 
   return (
     <aside style={{
-      display: 'flex', flexDirection: 'column', width: '256px', height: '100%',
+      display: 'flex', flexDirection: 'column', width: '256px',
       padding: '1.5rem 1rem', gap: '0.375rem',
       background: '#fafafa', boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
+      justifyContent: 'space-between'
     }}>
-      <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-        <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
-        <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+      <div>
+        <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
+          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+        </div>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {items.map(({ id, icon, label }) => {
+            const active = activeTab === id;
+            return (
+              <button key={id} onClick={() => { onTabChange(id); onClearSearch(); }} style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
+                border: 'none',
+                borderRight: active && !isSearching ? '4px solid #4f46e5' : '4px solid transparent',
+                background: active && !isSearching ? '#ffffff' : 'transparent',
+                color: active && !isSearching ? '#4f46e5' : '#71717a',
+                boxShadow: active && !isSearching ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transform: active && !isSearching ? 'scale(1.02)' : 'none',
+                transition: 'all 0.15s',
+                fontFamily: 'inherit',
+              }}>
+                <span className="material-symbols-outlined" style={{
+                  fontSize: '20px',
+                  fontVariationSettings: active && !isSearching ? "'FILL' 1" : "'FILL' 0",
+                }}>{icon}</span>
+                {label}
+              </button>
+            );
+          })}
+          {isSearching && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
+              <button style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
+                border: 'none',
+                borderLeft: '4px solid #4343d5',
+                background: 'rgba(67,67,213,0.05)',
+                color: '#4343d5',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                fontFamily: 'inherit',
+                width: '100%',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
+                Search Results
+              </button>
+            </div>
+          )}
+        </nav>
       </div>
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {items.map(({ id, icon, label }) => {
-          const active = activeTab === id;
-          return (
-            <button key={id} onClick={() => { onTabChange(id); onClearSearch(); }} style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-              fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
-              border: 'none',
-              borderRight: active && !isSearching ? '4px solid #4f46e5' : '4px solid transparent',
-              background: active && !isSearching ? '#ffffff' : 'transparent',
-              color: active && !isSearching ? '#4f46e5' : '#71717a',
-              boxShadow: active && !isSearching ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transform: active && !isSearching ? 'scale(1.02)' : 'none',
-              transition: 'all 0.15s',
-              fontFamily: 'inherit',
-            }}>
-              <span className="material-symbols-outlined" style={{
-                fontSize: '20px',
-                fontVariationSettings: active && !isSearching ? "'FILL' 1" : "'FILL' 0",
-              }}>{icon}</span>
-              {label}
-            </button>
-          );
-        })}
-        {isSearching && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
-            <button style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-              fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
-              border: 'none',
-              borderLeft: '4px solid #4343d5',
-              background: 'rgba(67,67,213,0.05)',
-              color: '#4343d5',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              fontFamily: 'inherit',
-              width: '100%',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
-              Search Results
-            </button>
-          </div>
-        )}
-      </nav>
-      <div style={{ padding: '0 0.5rem' }}>
+      <div>
         <div style={{ padding: '1rem', background: 'rgba(67,67,213,0.05)', borderRadius: '0.75rem', border: '1px solid rgba(67,67,213,0.1)' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>AuraSphere Pro</p>
           <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>Unlock larger context windows and exclusive models.</p>
