@@ -137,7 +137,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 3: Aura_Tag Preservation — file có YAML frontmatter `aura_intent_id` → parse → serialize → vẫn còn `aura_intent_id`**
     - **Validates: Requirements 11.8, 11.9**
 
-- [-] 11. Implement DOCX_Exporter (Rust)
+- [x] 11. Implement DOCX_Exporter (Rust)
   - [x] 11.1 Tạo `src-tauri/src/docx_exporter.rs`
     - `export(doc: &Document) -> Result<Vec<u8>, IPCError>`: chuyển Document → DOCX bytes dùng `docx-rs`
     - Bảo toàn: văn bản, heading levels, danh sách, bold/italic
