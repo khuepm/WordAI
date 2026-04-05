@@ -6,7 +6,7 @@ export interface SettingEntry {
   description: string;
   tab: Tab;
   keywords: string[];
-  type: 'select' | 'toggle' | 'slider' | 'number' | 'radio';
+  type: 'select' | 'toggle' | 'slider' | 'number' | 'radio' | 'text';
   defaultValue: unknown;
 }
 
