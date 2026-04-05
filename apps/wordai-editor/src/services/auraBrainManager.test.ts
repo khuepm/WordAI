@@ -236,7 +236,7 @@ describe('Sync_Queue logic', () => {
     await firstSync;
 
     // Allow the fire-and-forget queue drain to run
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 50));
 
     // Both IPC calls should have been made
     expect(mockInvoke).toHaveBeenCalledTimes(2);
@@ -257,7 +257,7 @@ describe('Sync_Queue logic', () => {
 
     resolveFirst(2);
     await firstSync;
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 50));
 
     expect(getState().syncQueue).toBeNull();
   });

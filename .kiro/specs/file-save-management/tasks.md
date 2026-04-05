@@ -102,7 +102,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: không hiển thị `●` khi clean
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [-] 8. Kết nối Cmd+S với AuraBrain_Manager (TypeScript frontend)
+- [x] 8. Kết nối Cmd+S với AuraBrain_Manager (TypeScript frontend)
   - [x] 8.1 Cập nhật keyboard shortcut handler trong `App.tsx` hoặc `EditorCanvas.tsx`
     - `Cmd+S` / `Ctrl+S` → gọi `auraBrainManager.sync(currentDocument)` — không mở dialog
     - Truyền `isDirty` và `isSyncing` state xuống `DocumentTitleBar`
@@ -114,7 +114,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Khi Undo và hash khớp `lastSyncedHash` → `isDirty = false`
     - _Requirements: 4.2, 4.3, 4.4, 4.5_
 
-- [~] 9. Checkpoint — Core Sync hoạt động end-to-end
+- [x] 9. Checkpoint — Core Sync hoạt động end-to-end
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [~] 10. Implement Markdown_Serializer (Rust)
