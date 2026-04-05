@@ -14,7 +14,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Khởi tạo DB tại đúng platform path: `~/Library/Application Support/WordAI/AuraBrain/` (macOS) hoặc `AppData/Local/WordAI/AuraBrain/` (Windows)
     - _Requirements: 5.1, 5.2, 5.3, 9.6_
 
-  - [ ] 1.2 Viết unit test cho SQLite_Store khởi tạo
+  - [x] 1.2 Viết unit test cho SQLite_Store khởi tạo
     - Test DB được tạo đúng path
     - Test WAL mode được bật
     - Test schema tồn tại sau init

@@ -40,15 +40,31 @@ impl SqliteStore {
             message: format!("Cannot resolve app data directory: {e}"),
         })?;
 
-        let db_dir = base.join("WordAI").join("AuraBrain");
-        std::fs::create_dir_all(&db_dir).map_err(|e| IPCError {
-            code: "IO_ERROR".to_string(),
-            message: format!("Cannot create AuraBrain directory: {e}"),
-        })?;
+        let db_path = base.join("WordAI").join("AuraBrain").join("aurabrain.db");
+        Self::new_with_path(&db_path)
+    }
 
-        let db_path = db_dir.join("aurabrain.db");
+    /// Initialise the AuraBrain database at an explicit path.
+    ///
+    /// This is the core initialisation logic extracted for testability.
+    /// `new()` resolves the platform path and delegates here.
+    ///
+    /// 1. Creates parent directories if they do not exist.
+    /// 2. Opens (or creates) the SQLite database at `db_path`.
+    /// 3. Enables WAL mode.
+    /// 4. Creates the schema (idempotent — uses `IF NOT EXISTS`).
+    ///
+    /// Requirements: 5.1, 9.6
+    pub(crate) fn new_with_path(db_path: &std::path::Path) -> Result<Self, IPCError> {
+        // Create parent directories if needed
+        if let Some(parent) = db_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| IPCError {
+                code: "IO_ERROR".to_string(),
+                message: format!("Cannot create AuraBrain directory: {e}"),
+            })?;
+        }
 
-        let conn = Connection::open(&db_path).map_err(|e| IPCError {
+        let conn = Connection::open(db_path).map_err(|e| IPCError {
             code: "DB_OPEN_ERROR".to_string(),
             message: format!("Cannot open AuraBrain database: {e}"),
         })?;
@@ -316,5 +332,75 @@ fn extract_block_text(block: &DocumentBlock) -> String {
         DocumentBlock::ListItem { text, .. } => text.clone(),
         DocumentBlock::CodeBlock { code, .. } => code.clone(),
         DocumentBlock::Placeholder(p) => p.display_hint.clone(),
+    }
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_db_created_at_path() {
+        // Test that the DB file is created at the specified path
+        let dir = tempdir().unwrap();
+        let db_path = dir.path().join("test.db");
+        assert!(!db_path.exists());
+        let _store = SqliteStore::new_with_path(&db_path).unwrap();
+        assert!(db_path.exists(), "DB file should be created at the given path");
+    }
+
+    #[test]
+    fn test_wal_mode_enabled() {
+        // Test that WAL journal mode is enabled after initialization
+        let dir = tempdir().unwrap();
+        let db_path = dir.path().join("wal_test.db");
+        let store = SqliteStore::new_with_path(&db_path).unwrap();
+        let conn = store.conn.lock().unwrap();
+        let mode: String = conn
+            .query_row("PRAGMA journal_mode", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(mode, "wal", "Journal mode should be WAL");
+    }
+
+    #[test]
+    fn test_schema_exists_after_init() {
+        // Test that both tables exist after initialization
+        let dir = tempdir().unwrap();
+        let db_path = dir.path().join("schema_test.db");
+        let store = SqliteStore::new_with_path(&db_path).unwrap();
+        let conn = store.conn.lock().unwrap();
+
+        // Check intents table exists
+        let intents_exists: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='intents'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(intents_exists, 1, "intents table should exist");
+
+        // Check intent_chunks table exists
+        let chunks_exists: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='intent_chunks'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(chunks_exists, 1, "intent_chunks table should exist");
+
+        // Check index exists
+        let index_exists: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_intent_chunks_document_id'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(index_exists, 1, "idx_intent_chunks_document_id index should exist");
     }
 }
