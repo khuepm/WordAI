@@ -4,6 +4,7 @@
  */
 
 import { UserAvatar } from './UserAvatar';
+import { DocumentTitleBar } from './DocumentTitleBar';
 import { useState, useRef, useEffect } from 'react';
 
 interface TopNavBarProps {
@@ -14,9 +15,13 @@ interface TopNavBarProps {
   onOpenPreferences?: () => void;
   /** Authenticated user's display name; omit for anonymous/guest. */
   userName?: string;
+  /** AuraBrain dirty state — true when content differs from last sync (Req 3.3, 3.4) */
+  isDirty?: boolean;
+  /** AuraBrain syncing state — true while sync is in progress (Req 1.1) */
+  isSyncing?: boolean;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false }: TopNavBarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -76,23 +81,20 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           </nav>
         </div>
 
-        {/* Center: doc title */}
-        <span
-          data-testid="document-title"
+        {/* Center: doc title via DocumentTitleBar (Req 3.1–3.4) */}
+        <div
           style={{
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--md-sys-color-on-surface-variant)',
-            fontWeight: 500,
           }}
         >
-          {documentTitle}
-          {hasUnsavedChanges && (
-            <span data-testid="unsaved-indicator" style={{ marginLeft: '4px', color: 'var(--md-sys-color-primary)' }} aria-label="unsaved changes">•</span>
-          )}
-        </span>
+          <DocumentTitleBar
+            intentName={documentTitle || null}
+            isDirty={isDirty}
+            isSyncing={isSyncing}
+          />
+        </div>
 
         {/* Right: actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

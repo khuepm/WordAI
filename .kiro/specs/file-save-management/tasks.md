@@ -51,27 +51,27 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 - [x] 4. Checkpoint — Backend SQLite hoạt động
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [~] 5. Implement AuraBrain_Manager service (TypeScript frontend)
-  - [ ] 5.1 Tạo `src/services/auraBrainManager.ts` với state management
+- [x] 5. Implement AuraBrain_Manager service (TypeScript frontend)
+  - [x] 5.1 Tạo `src/services/auraBrainManager.ts` với state management
     - State: `isSyncing: boolean`, `syncQueue: SyncEntry | null`, `lastSyncedHash: string | null`, `lastSyncedAt: number | null`
     - Implement `computeContentHash(content: string): Promise<string>` dùng Web Crypto API (SHA-256)
     - Implement `isDirty(currentContent: string): boolean` — so sánh hash hiện tại với `lastSyncedHash`
     - _Requirements: 1.3, 4.1, 4.2, 4.6_
 
-  - [ ] 5.2 Implement `sync(document: Document): Promise<SyncResult>` với Sync_Queue logic
+  - [x] 5.2 Implement `sync(document: Document): Promise<SyncResult>` với Sync_Queue logic
     - Nếu `isSyncing = true`: đưa vào `syncQueue` (thay thế entry cũ nếu có)
     - Nếu `isSyncing = false`: set `isSyncing = true`, gọi IPC `sync_intent`, set `isSyncing = false`
     - Sau khi sync xong: tính `lastSyncedHash`, set `lastSyncedAt = Date.now()`, xử lý `syncQueue` nếu có
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [ ] 5.3 Viết unit test cho Sync_Queue logic
+  - [x] 5.3 Viết unit test cho Sync_Queue logic
     - Test: sync thứ 2 trong khi sync thứ 1 đang chạy → vào queue
     - Test: sync thứ 3 thay thế sync thứ 2 trong queue
     - Test: sau khi sync xong, queue được xử lý
     - _Requirements: 1.5, 1.6, 9.4_
 
-- [~] 6. Implement Auto-sync (TypeScript frontend)
-  - [ ] 6.1 Mở rộng `src/hooks/useAutoSave.ts` thành `useAutoSync` hook
+- [x] 6. Implement Auto-sync (TypeScript frontend)
+  - [x] 6.1 Mở rộng `src/hooks/useAutoSave.ts` thành `useAutoSync` hook
     - Đọc preferences `autoSyncEnabled` và `autoSyncInterval`
     - Thiết lập interval timer gọi `auraBrainManager.sync()`
     - Lắng nghe window `blur` event → trigger sync ngay lập tức
@@ -79,15 +79,15 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Bỏ qua nếu `isSyncing = true`
     - _Requirements: 2.1, 2.2, 2.3, 2.6, 2.7_
 
-  - [ ] 6.2 Viết unit test cho useAutoSync
+  - [x] 6.2 Viết unit test cho useAutoSync
     - Test: interval trigger gọi sync
     - Test: blur trigger gọi sync
     - Test: debounce window bỏ qua blur trigger
     - Test: không trigger khi `isSyncing = true`
     - _Requirements: 2.1, 2.2, 2.6, 2.7_
 
-- [~] 7. Implement Document_Title_Bar component (TypeScript frontend)
-  - [ ] 7.1 Tạo `src/components/DocumentTitleBar.tsx`
+- [x] 7. Implement Document_Title_Bar component (TypeScript frontend)
+  - [x] 7.1 Tạo `src/components/DocumentTitleBar.tsx`
     - Props: `intentName: string | null`, `isDirty: boolean`, `isSyncing: boolean`
     - Render: `"● {Intent_Name} — WordAI"` khi dirty, `"{Intent_Name} — WordAI"` khi clean
     - Render: `"Untitled Intent — WordAI"` khi `intentName = null`
@@ -95,29 +95,29 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Cập nhật trong vòng 100ms khi `intentName` thay đổi
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.6, 3.7_
 
-  - [ ] 7.2 Viết unit test cho DocumentTitleBar
+  - [x] 7.2 Viết unit test cho DocumentTitleBar
     - Test: hiển thị đúng format với intent name
     - Test: hiển thị "Untitled Intent" khi null
     - Test: hiển thị `●` khi dirty
     - Test: không hiển thị `●` khi clean
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 8. Kết nối Cmd+S với AuraBrain_Manager (TypeScript frontend)
-  - [ ] 8.1 Cập nhật keyboard shortcut handler trong `App.tsx` hoặc `EditorCanvas.tsx`
+- [-] 8. Kết nối Cmd+S với AuraBrain_Manager (TypeScript frontend)
+  - [x] 8.1 Cập nhật keyboard shortcut handler trong `App.tsx` hoặc `EditorCanvas.tsx`
     - `Cmd+S` / `Ctrl+S` → gọi `auraBrainManager.sync(currentDocument)` — không mở dialog
     - Truyền `isDirty` và `isSyncing` state xuống `DocumentTitleBar`
     - Hiển thị error notification nếu sync thất bại (không xóa Unsaved_Indicator)
     - _Requirements: 1.1, 1.2, 1.4, 3.3, 3.4_
 
-  - [ ] 8.2 Implement Dirty_Bit tracking khi người dùng chỉnh sửa
+  - [x] 8.2 Implement Dirty_Bit tracking khi người dùng chỉnh sửa
     - Mỗi khi `document.content` thay đổi → gọi `auraBrainManager.isDirty()` → cập nhật state
     - Khi Undo và hash khớp `lastSyncedHash` → `isDirty = false`
     - _Requirements: 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 9. Checkpoint — Core Sync hoạt động end-to-end
+- [~] 9. Checkpoint — Core Sync hoạt động end-to-end
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 10. Implement Markdown_Serializer (Rust)
+- [~] 10. Implement Markdown_Serializer (Rust)
   - [ ] 10.1 Tạo `src-tauri/src/markdown_serializer.rs`
     - `serialize(doc: &Document) -> Result<String, IPCError>`: chuyển Document → Markdown string
     - Bảo toàn: văn bản, tiêu đề (heading levels), danh sách, bold/italic/code inline
@@ -137,7 +137,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 3: Aura_Tag Preservation — file có YAML frontmatter `aura_intent_id` → parse → serialize → vẫn còn `aura_intent_id`**
     - **Validates: Requirements 11.8, 11.9**
 
-- [ ] 11. Implement DOCX_Exporter (Rust)
+- [~] 11. Implement DOCX_Exporter (Rust)
   - [ ] 11.1 Tạo `src-tauri/src/docx_exporter.rs`
     - `export(doc: &Document) -> Result<Vec<u8>, IPCError>`: chuyển Document → DOCX bytes dùng `docx-rs`
     - Bảo toàn: văn bản, heading levels, danh sách, bold/italic
@@ -159,7 +159,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 5: Aura_Tag DOCX Preservation — export với AuraIntentId → import lại → AuraIntentId vẫn còn**
     - **Validates: Requirements 11.8_
 
-- [ ] 12. Thêm IPC commands cho Export/Import (Rust)
+- [~] 12. Thêm IPC commands cho Export/Import (Rust)
   - [ ] 12.1 Implement `#[tauri::command] export_markdown` và `#[tauri::command] export_docx`
     - `export_markdown(path, document_json)` → gọi `markdown_serializer::serialize` → ghi file UTF-8
     - `export_docx(path, document_json)` → gọi `docx_exporter::export` → ghi bytes
@@ -173,7 +173,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
   - [ ] 12.3 Đăng ký các commands mới vào `tauri::Builder`
     - _Requirements: 6.1, 7.1, 8.1_
 
-- [ ] 13. Implement Export_Module frontend (TypeScript)
+- [~] 13. Implement Export_Module frontend (TypeScript)
   - [ ] 13.1 Tạo `src/services/exportService.ts`
     - `exportMarkdown(document)`: mở Native_File_Dialog (Tauri dialog plugin) → gọi IPC `export_markdown`
     - `exportDocx(document)`: mở Native_File_Dialog → gọi IPC `export_docx`
@@ -187,7 +187,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Hiển thị warnings nếu có Unsupported_Element
     - _Requirements: 8.1, 8.9, 8.10_
 
-- [ ] 14. Implement Replace_Confirmation_Dialog (TypeScript frontend)
+- [~] 14. Implement Replace_Confirmation_Dialog (TypeScript frontend)
   - [ ] 14.1 Tạo `src/components/ReplaceConfirmationDialog.tsx`
     - Hiển thị khi import file có Aura_Tag trùng với Intent đã tồn tại trong AuraBrain
     - Hai lựa chọn: "Cập nhật Intent" và "Tạo Intent mới"
@@ -201,7 +201,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Sau khi "Cập nhật Intent": mở intent trong Editor_Canvas, xóa Unsaved_Indicator
     - _Requirements: 8.4, 8.5, 8.6, 8.7, 8.8_
 
-- [ ] 15. Cập nhật Preferences và SettingRegistry (TypeScript frontend)
+- [~] 15. Cập nhật Preferences và SettingRegistry (TypeScript frontend)
   - [ ] 15.1 Mở rộng `src/types/preferences.ts`
     - Thêm vào `Preferences.general`: `defaultExportPath: string`, `defaultExportFormat: 'markdown' | 'docx'`, `autoSyncEnabled: boolean`, `autoSyncInterval: number`
     - Thêm vào `defaultPreferences.general`: giá trị mặc định tương ứng
@@ -224,7 +224,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: validation `autoSyncInterval` từ chối giá trị < 5 và > 60
     - _Requirements: 10.5, 10.10_
 
-- [ ] 16. Checkpoint cuối — Đảm bảo tất cả tests pass
+- [~] 16. Checkpoint cuối — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 ## Ghi chú

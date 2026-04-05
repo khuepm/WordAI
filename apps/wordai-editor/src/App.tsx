@@ -1,9 +1,9 @@
 /**
  * App - Application root wired to global state manager
- * Requirements: 1.1, 1.2, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
+ * Requirements: 1.1, 1.2, 1.4, 3.3, 3.4, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
@@ -17,6 +17,7 @@ import { Tooltip } from './components/Tooltip';
 import { useAutoSave } from './hooks/useAutoSave';
 import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
 import { useAppState } from './services/stateManager';
+import * as auraBrainManager from './services/auraBrainManager';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
 import type { SettingEntry, Tab } from './types/preferences';
@@ -56,6 +57,13 @@ function App() {
   const [preferencesInitialTab, setPreferencesInitialTab] = useState<Tab | undefined>(undefined);
   const [preferencesTargetSettingId, setPreferencesTargetSettingId] = useState<string | undefined>(undefined);
 
+  // AuraBrain sync state (Req 1.1, 1.2, 1.4, 3.3, 3.4)
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncErrorMsg, setSyncErrorMsg] = useState<string | null>(null);
+  // Ref to track current content hash for dirty detection
+  const currentHashRef = useRef<string | null>(null);
+
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
     localStorage.setItem(FONT_SIZE_KEY, String(size));
@@ -71,6 +79,32 @@ function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Cmd+S / Ctrl+S → sync to AuraBrain (Req 1.1, 1.2, 1.4)
+  const documentRef = useRef<Document | null>(null);
+
+  useEffect(() => {
+    const handleSaveKeyDown = async (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        const doc = documentRef.current;
+        if (!doc) return;
+        setIsSyncing(true);
+        setSyncErrorMsg(null);
+        const result = await auraBrainManager.sync(doc);
+        setIsSyncing(false);
+        if (result.success) {
+          // Req 1.2, 3.4: clear dirty indicator on success
+          setIsDirty(false);
+        } else {
+          // Req 1.4: show error notification, keep dirty indicator
+          setSyncErrorMsg(result.error ?? 'Sync failed. Please try again.');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleSaveKeyDown);
+    return () => window.removeEventListener('keydown', handleSaveKeyDown);
   }, []);
 
   const handleQuickSearchSelect = useCallback((entry: SettingEntry) => {
@@ -94,6 +128,11 @@ function App() {
     hasUnsavedChanges,
     aiServiceAvailable,
   } = state;
+
+  // Keep documentRef in sync for the Cmd+S handler (Req 1.1)
+  useEffect(() => {
+    documentRef.current = document;
+  }, [document]);
 
   // Initialize: restore last document or create a fresh one (Req 25.1–25.3)
   useEffect(() => {
@@ -168,6 +207,13 @@ function App() {
 
   const handleDocumentChange = useCallback((doc: Document) => {
     updateDocument(doc);
+    // Req 3.3: mark dirty when content changes
+    // Compute hash async and compare with lastSyncedHash
+    auraBrainManager.computeContentHash(doc.content).then((hash) => {
+      currentHashRef.current = hash;
+      const dirty = auraBrainManager.isDirty(hash);
+      setIsDirty(dirty);
+    });
   }, [updateDocument]);
 
   const handleSaveSuccess = useCallback((doc: Document) => {
@@ -270,6 +316,8 @@ function App() {
         onNew={handleNew}
         onSave={triggerSave}
         onOpenPreferences={() => setIsPreferencesOpen(true)}
+        isDirty={isDirty}
+        isSyncing={isSyncing}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -354,6 +402,52 @@ function App() {
         </div>
       )}
 
+      {/* Sync error notification (Req 1.4) — non-blocking toast, keeps dirty indicator */}
+      {syncErrorMsg && (
+        <div
+          data-testid="sync-error-notification"
+          role="alert"
+          aria-live="assertive"
+          style={{
+            position: 'fixed',
+            bottom: aiServiceAvailable === false && !bannerDismissed ? '80px' : '24px',
+            left: '24px',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            background: '#7f1d1d',
+            color: '#fef2f2',
+            fontFamily: 'var(--font-family-ui)',
+            fontSize: '12px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            maxWidth: '360px',
+          }}
+        >
+          <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>Sync failed: {syncErrorMsg}</span>
+          <button
+            data-testid="sync-error-close-button"
+            onClick={() => setSyncErrorMsg(null)}
+            aria-label="Dismiss sync error"
+            style={{
+              background: 'transparent',
+              color: '#fca5a5',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '2px 4px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-ui)',
+              fontSize: '14px',
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <aside style={{
         position: 'fixed',
         left: 0,
@@ -479,7 +573,7 @@ function App() {
         onClose={() => setIsQuickSearchOpen(false)}
         onSelect={handleQuickSearchSelect}
       />
-    </div>
+    </div >
   );
 }
 
