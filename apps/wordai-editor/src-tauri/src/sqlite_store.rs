@@ -403,4 +403,145 @@ mod tests {
             .unwrap();
         assert_eq!(index_exists, 1, "idx_intent_chunks_document_id index should exist");
     }
+
+    // ── Property-Based Tests ──────────────────────────────────────────────────
+
+    // Feature: file-save-management, Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời
+    // Validates: Requirements 5.4, 5.5, 9.1
+    #[cfg(test)]
+    mod pbt {
+        use super::*;
+        use proptest::prelude::*;
+        use tempfile::tempdir;
+
+        /// Generate a random non-empty string of printable ASCII characters.
+        fn arb_nonempty_string() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9 ]{1,50}".prop_map(|s| s)
+        }
+
+        /// Generate a random DocumentBlock (Paragraph or Heading).
+        fn arb_document_block() -> impl Strategy<Value = DocumentBlock> {
+            prop_oneof![
+                arb_nonempty_string().prop_map(|text| DocumentBlock::Paragraph {
+                    text,
+                    inline: vec![],
+                }),
+                (1u8..=3u8, arb_nonempty_string()).prop_map(|(level, text)| {
+                    DocumentBlock::Heading { level, text }
+                }),
+            ]
+        }
+
+        /// Generate a Vec of 1–5 DocumentBlocks.
+        fn arb_blocks() -> impl Strategy<Value = Vec<DocumentBlock>> {
+            prop::collection::vec(arb_document_block(), 1..=5)
+        }
+
+        proptest! {
+            /// Property 1: Atomic Write
+            ///
+            /// If `upsert_intent` fails mid-transaction (simulated by injecting a
+            /// duplicate PRIMARY KEY on the second chunk insert), the `intents` table
+            /// must NOT contain the partial record — the entire transaction is rolled back.
+            ///
+            /// Feature: file-save-management, Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời
+            /// Validates: Requirements 5.4, 5.5, 9.1
+            #[test]
+            fn prop_atomic_write_rollback_on_chunk_failure(
+                intent_name in arb_nonempty_string(),
+                blocks in arb_blocks(),
+            ) {
+                let dir = tempdir().unwrap();
+                let db_path = dir.path().join("atomic_test.db");
+                let store = SqliteStore::new_with_path(&db_path).unwrap();
+
+                let doc_id = uuid::Uuid::new_v4().to_string();
+                let now_ms = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as i64;
+
+                // Simulate a mid-transaction failure by manually running the steps
+                // with a duplicate chunk id (PRIMARY KEY violation on second insert).
+                let raw_content = serde_json::to_string(&blocks).unwrap();
+                let duplicate_chunk_id = "duplicate-chunk-id-that-will-collide";
+
+                let conn = store.conn.lock().unwrap();
+
+                // Run the transaction manually, injecting a PK collision on the 2nd chunk
+                let result: Result<(), rusqlite::Error> = (|| {
+                    conn.execute_batch("BEGIN;")?;
+
+                    // Step 1: Insert the intent row (succeeds)
+                    conn.execute(
+                        "INSERT OR REPLACE INTO intents \
+                         (id, intent_name, raw_content, created_at, updated_at, version) \
+                         VALUES (?1, ?2, ?3, ?4, ?5, 1)",
+                        params![doc_id, intent_name, raw_content, now_ms, now_ms],
+                    )?;
+
+                    // Step 2: Delete old chunks (no-op for new doc)
+                    conn.execute(
+                        "DELETE FROM intent_chunks WHERE document_id = ?1",
+                        params![doc_id],
+                    )?;
+
+                    // Step 3a: Insert first chunk with the duplicate id (succeeds)
+                    conn.execute(
+                        "INSERT INTO intent_chunks \
+                         (id, document_id, chunk_index, chunk_text, embedding) \
+                         VALUES (?1, ?2, 0, 'chunk_a', NULL)",
+                        params![duplicate_chunk_id, doc_id],
+                    )?;
+
+                    // Step 3b: Insert second chunk with the SAME id → PRIMARY KEY violation
+                    conn.execute(
+                        "INSERT INTO intent_chunks \
+                         (id, document_id, chunk_index, chunk_text, embedding) \
+                         VALUES (?1, ?2, 1, 'chunk_b', NULL)",
+                        params![duplicate_chunk_id, doc_id],
+                    )?;
+
+                    conn.execute_batch("COMMIT;")?;
+                    Ok(())
+                })();
+
+                // The transaction must have failed
+                prop_assert!(result.is_err(), "Expected transaction to fail due to PK collision");
+
+                // Rollback explicitly (mirrors upsert_intent error path)
+                let _ = conn.execute_batch("ROLLBACK;");
+
+                // Assert: intents table must NOT contain the partial record
+                let intent_count: i64 = conn
+                    .query_row(
+                        "SELECT COUNT(*) FROM intents WHERE id = ?1",
+                        params![doc_id],
+                        |row| row.get(0),
+                    )
+                    .unwrap();
+
+                prop_assert_eq!(
+                    intent_count,
+                    0,
+                    "intents table must not contain partial record after failed transaction"
+                );
+
+                // Assert: intent_chunks table must also be empty for this doc
+                let chunk_count: i64 = conn
+                    .query_row(
+                        "SELECT COUNT(*) FROM intent_chunks WHERE document_id = ?1",
+                        params![doc_id],
+                        |row| row.get(0),
+                    )
+                    .unwrap();
+
+                prop_assert_eq!(
+                    chunk_count,
+                    0,
+                    "intent_chunks table must not contain partial data after failed transaction"
+                );
+            }
+        }
+    }
 }

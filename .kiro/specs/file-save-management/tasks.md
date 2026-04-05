@@ -6,7 +6,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 
 ## Tasks
 
-- [-] 1. Thiết lập SQLite schema và SQLite_Store (Rust)
+- [x] 1. Thiết lập SQLite schema và SQLite_Store (Rust)
   - [x] 1.1 Tạo module `src-tauri/src/sqlite_store.rs` với schema AuraBrain
     - Tạo bảng `intents`: `id` (UUID TEXT PK), `intent_name` (TEXT), `raw_content` (TEXT), `created_at` (INTEGER), `updated_at` (INTEGER), `version` (INTEGER)
     - Tạo bảng `intent_chunks`: `id` (UUID TEXT PK), `document_id` (TEXT FK), `chunk_index` (INTEGER), `chunk_text` (TEXT), `embedding` (BLOB nullable)
@@ -20,14 +20,14 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test schema tồn tại sau init
     - _Requirements: 5.1, 9.6_
 
-- [~] 2. Implement CRUD operations cho SQLite_Store (Rust)
-  - [ ] 2.1 Implement `upsert_intent` — ghi document + chunks trong một transaction
+- [-] 2. Implement CRUD operations cho SQLite_Store (Rust)
+  - [x] 2.1 Implement `upsert_intent` — ghi document + chunks trong một transaction
     - Dùng `INSERT OR REPLACE` cho bảng `intents`, tăng `version` mỗi lần upsert
     - Xóa chunks cũ và insert chunks mới trong cùng transaction
     - Rollback toàn bộ nếu bất kỳ bước nào thất bại
     - _Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-  - [ ] 2.2 Implement `get_intent` và `list_intents`
+  - [-] 2.2 Implement `get_intent` và `list_intents`
     - `get_intent(id)` → trả về intent với raw_content
     - `list_intents()` → trả về danh sách intent (không kèm raw_content)
     - _Requirements: 5.2_
