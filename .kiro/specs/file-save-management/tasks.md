@@ -36,7 +36,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời**
     - **Validates: Requirements 5.4, 5.5, 9.1**
 
-- [-] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
+- [x] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
   - [x] 3.1 Implement `#[tauri::command] sync_intent` — nhận Document JSON, ghi vào SQLite
     - Deserialize Document JSON → gọi `sqlite_store.upsert_intent`
     - Trả về `Ok(version)` hoặc `Err(IPCError)`
@@ -48,7 +48,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
   - [x] 3.3 Đăng ký các commands mới vào `tauri::Builder` trong `lib.rs`
     - _Requirements: 1.1_
 
-- [~] 4. Checkpoint — Backend SQLite hoạt động
+- [x] 4. Checkpoint — Backend SQLite hoạt động
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [~] 5. Implement AuraBrain_Manager service (TypeScript frontend)
