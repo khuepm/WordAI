@@ -14,7 +14,7 @@ use crate::models::{AuraDocument, DocumentBlock, InlineSpan, IPCError};
 /// Convert an AuraDocument to a Markdown string with YAML frontmatter Aura_Tag.
 ///
 /// Frontmatter format:
-/// ```
+/// ```text
 /// ---
 /// aura_intent_id: <uuid>
 /// aura_exported_at: <iso8601>

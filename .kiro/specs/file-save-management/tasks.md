@@ -224,7 +224,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: validation `autoSyncInterval` từ chối giá trị < 5 và > 60
     - _Requirements: 10.5, 10.10_
 
-- [~] 16. Checkpoint cuối — Đảm bảo tất cả tests pass
+- [x] 16. Checkpoint cuối — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 ## Ghi chú
