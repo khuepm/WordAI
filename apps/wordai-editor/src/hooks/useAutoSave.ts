@@ -103,3 +103,65 @@ export function useAutoSave(
 
   return { isSaving, lastSaved, saveError, hasUnsavedChanges, triggerSave };
 }
+
+// ---------------------------------------------------------------------------
+// useAutoSync — AuraBrain auto-sync hook
+// Requirements: 2.1, 2.2, 2.3, 2.6, 2.7
+// ---------------------------------------------------------------------------
+
+import { sync, getState } from '../services/auraBrainManager';
+
+const BLUR_DEBOUNCE_MS = 2000;
+
+export interface UseAutoSyncOptions {
+  document: Document;
+  autoSyncEnabled: boolean;
+  autoSyncInterval: number; // seconds, range [5, 60]
+}
+
+/**
+ * Sets up periodic auto-sync and blur-triggered sync for AuraBrain.
+ *
+ * - Interval timer calls auraBrainManager.sync() every `autoSyncInterval` seconds
+ * - Window blur event triggers sync immediately (with debounce)
+ * - Debounce: skip blur-triggered sync if Date.now() - lastSyncedAt < 2000ms
+ * - Skip if isSyncing = true
+ *
+ * Requirements: 2.1, 2.2, 2.3, 2.6, 2.7
+ */
+export function useAutoSync(options: UseAutoSyncOptions): void {
+  const { document, autoSyncEnabled, autoSyncInterval } = options;
+
+  const documentRef = useRef(document);
+  useEffect(() => { documentRef.current = document; }, [document]);
+
+  // Interval-based sync (Req 2.1)
+  useEffect(() => {
+    if (!autoSyncEnabled) return;
+
+    const intervalMs = autoSyncInterval * 1000;
+    const id = setInterval(() => {
+      const state = getState();
+      if (state.isSyncing) return; // Req 2.7
+      void sync(documentRef.current);
+    }, intervalMs);
+
+    return () => clearInterval(id);
+  }, [autoSyncEnabled, autoSyncInterval]);
+
+  // Blur-triggered sync with debounce (Req 2.2, 2.6)
+  useEffect(() => {
+    if (!autoSyncEnabled) return;
+
+    const handleBlur = () => {
+      const state = getState();
+      if (state.isSyncing) return; // Req 2.7
+      // Debounce: skip if last sync was within 2000ms (Req 2.6)
+      if (state.lastSyncedAt !== null && Date.now() - state.lastSyncedAt < BLUR_DEBOUNCE_MS) return;
+      void sync(documentRef.current);
+    };
+
+    window.addEventListener('blur', handleBlur);
+    return () => window.removeEventListener('blur', handleBlur);
+  }, [autoSyncEnabled]);
+}
