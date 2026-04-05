@@ -14,7 +14,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Khởi tạo DB tại đúng platform path: `~/Library/Application Support/WordAI/AuraBrain/` (macOS) hoặc `AppData/Local/WordAI/AuraBrain/` (Windows)
     - _Requirements: 5.1, 5.2, 5.3, 9.6_
 
-  - [ ]* 1.2 Viết unit test cho SQLite_Store khởi tạo
+  - [ ] 1.2 Viết unit test cho SQLite_Store khởi tạo
     - Test DB được tạo đúng path
     - Test WAL mode được bật
     - Test schema tồn tại sau init
@@ -32,7 +32,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - `list_intents()` → trả về danh sách intent (không kèm raw_content)
     - _Requirements: 5.2_
 
-  - [ ]* 2.3 Viết property test cho transaction atomicity
+  - [ ] 2.3 Viết property test cho transaction atomicity
     - **Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời**
     - **Validates: Requirements 5.4, 5.5, 9.1**
 
@@ -64,7 +64,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Sau khi sync xong: tính `lastSyncedHash`, set `lastSyncedAt = Date.now()`, xử lý `syncQueue` nếu có
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [ ]* 5.3 Viết unit test cho Sync_Queue logic
+  - [ ] 5.3 Viết unit test cho Sync_Queue logic
     - Test: sync thứ 2 trong khi sync thứ 1 đang chạy → vào queue
     - Test: sync thứ 3 thay thế sync thứ 2 trong queue
     - Test: sau khi sync xong, queue được xử lý
@@ -79,7 +79,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Bỏ qua nếu `isSyncing = true`
     - _Requirements: 2.1, 2.2, 2.3, 2.6, 2.7_
 
-  - [ ]* 6.2 Viết unit test cho useAutoSync
+  - [ ] 6.2 Viết unit test cho useAutoSync
     - Test: interval trigger gọi sync
     - Test: blur trigger gọi sync
     - Test: debounce window bỏ qua blur trigger
@@ -95,7 +95,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Cập nhật trong vòng 100ms khi `intentName` thay đổi
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.6, 3.7_
 
-  - [ ]* 7.2 Viết unit test cho DocumentTitleBar
+  - [ ] 7.2 Viết unit test cho DocumentTitleBar
     - Test: hiển thị đúng format với intent name
     - Test: hiển thị "Untitled Intent" khi null
     - Test: hiển thị `●` khi dirty
@@ -129,11 +129,11 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Trả về lỗi mô tả vị trí nếu cú pháp không hợp lệ
     - _Requirements: 8.2, 11.3, 11.4, 11.9_
 
-  - [ ]* 10.3 Viết property test cho Markdown round-trip
+  - [ ] 10.3 Viết property test cho Markdown round-trip
     - **Property 2: Round-trip Markdown — serialize(doc) → parse() phải tạo Document tương đương về content**
     - **Validates: Requirements 11.1, 11.3**
 
-  - [ ]* 10.4 Viết property test cho Aura_Tag preservation qua Markdown
+  - [ ] 10.4 Viết property test cho Aura_Tag preservation qua Markdown
     - **Property 3: Aura_Tag Preservation — file có YAML frontmatter `aura_intent_id` → parse → serialize → vẫn còn `aura_intent_id`**
     - **Validates: Requirements 11.8, 11.9**
 
@@ -151,11 +151,11 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Trả về danh sách loại Unsupported_Element gặp phải
     - _Requirements: 8.3, 8.10, 11.2, 11.5_
 
-  - [ ]* 11.3 Viết property test cho DOCX round-trip
+  - [ ] 11.3 Viết property test cho DOCX round-trip
     - **Property 4: Round-trip DOCX — export(doc) → import() phải bảo toàn toàn bộ văn bản và cấu trúc heading**
     - **Validates: Requirements 11.2_
 
-  - [ ]* 11.4 Viết property test cho Aura_Tag preservation qua DOCX
+  - [ ] 11.4 Viết property test cho Aura_Tag preservation qua DOCX
     - **Property 5: Aura_Tag DOCX Preservation — export với AuraIntentId → import lại → AuraIntentId vẫn còn**
     - **Validates: Requirements 11.8_
 
@@ -218,7 +218,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Từ chối giá trị ngoài khoảng 5–60, giữ nguyên giá trị hợp lệ trước đó
     - _Requirements: 10.4, 10.5_
 
-  - [ ]* 15.4 Viết unit test cho SettingRegistry entries mới
+  - [ ] 15.4 Viết unit test cho SettingRegistry entries mới
     - Test: QuickSearch với "auto sync" trả về ít nhất 1 entry mới
     - Test: QuickSearch với "export" trả về ít nhất 1 entry mới
     - Test: validation `autoSyncInterval` từ chối giá trị < 5 và > 60
