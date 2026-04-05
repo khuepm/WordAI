@@ -1,6 +1,6 @@
 # WordAI
 
-![WordAI Screenshot](ui/render_on_demand_desktop/screen.png)
+![WordAI Screenshot](https://raw.githubusercontent.com/khuepm/WordAI/main/ui/render_on_demand_desktop/screen.png)
 
 ## Key Features
 
