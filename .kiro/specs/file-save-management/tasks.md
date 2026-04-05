@@ -117,35 +117,35 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 - [x] 9. Checkpoint — Core Sync hoạt động end-to-end
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [~] 10. Implement Markdown_Serializer (Rust)
-  - [ ] 10.1 Tạo `src-tauri/src/markdown_serializer.rs`
+- [x] 10. Implement Markdown_Serializer (Rust)
+  - [x] 10.1 Tạo `src-tauri/src/markdown_serializer.rs`
     - `serialize(doc: &Document) -> Result<String, IPCError>`: chuyển Document → Markdown string
     - Bảo toàn: văn bản, tiêu đề (heading levels), danh sách, bold/italic/code inline
     - Chèn YAML frontmatter ở đầu file: `---\naura_intent_id: {id}\naura_exported_at: {ts}\n---`
     - _Requirements: 6.3, 6.4, 6.8, 6.9, 11.1, 11.3_
 
-  - [ ] 10.2 Implement `parse(markdown: &str) -> Result<Document, IPCError>` dùng `pulldown-cmark`
+  - [x] 10.2 Implement `parse(markdown: &str) -> Result<Document, IPCError>` dùng `pulldown-cmark`
     - Đọc YAML frontmatter → extract `aura_intent_id`, không đưa vào `raw_content`
     - Trả về lỗi mô tả vị trí nếu cú pháp không hợp lệ
     - _Requirements: 8.2, 11.3, 11.4, 11.9_
 
-  - [ ] 10.3 Viết property test cho Markdown round-trip
+  - [x] 10.3 Viết property test cho Markdown round-trip
     - **Property 2: Round-trip Markdown — serialize(doc) → parse() phải tạo Document tương đương về content**
     - **Validates: Requirements 11.1, 11.3**
 
-  - [ ] 10.4 Viết property test cho Aura_Tag preservation qua Markdown
+  - [x] 10.4 Viết property test cho Aura_Tag preservation qua Markdown
     - **Property 3: Aura_Tag Preservation — file có YAML frontmatter `aura_intent_id` → parse → serialize → vẫn còn `aura_intent_id`**
     - **Validates: Requirements 11.8, 11.9**
 
-- [~] 11. Implement DOCX_Exporter (Rust)
-  - [ ] 11.1 Tạo `src-tauri/src/docx_exporter.rs`
+- [-] 11. Implement DOCX_Exporter (Rust)
+  - [x] 11.1 Tạo `src-tauri/src/docx_exporter.rs`
     - `export(doc: &Document) -> Result<Vec<u8>, IPCError>`: chuyển Document → DOCX bytes dùng `docx-rs`
     - Bảo toàn: văn bản, heading levels, danh sách, bold/italic
     - Nhúng Aura_Tag vào Custom Document Properties: `AuraIntentId` và `AuraExportedAt`
     - Chạy trong `tokio::task::spawn_blocking` để không chặn main thread
     - _Requirements: 7.2, 7.3, 7.4, 7.8, 7.9_
 
-  - [ ] 11.2 Implement `import(bytes: &[u8]) -> Result<(Document, Vec<String>), IPCError>`
+  - [-] 11.2 Implement `import(bytes: &[u8]) -> Result<(Document, Vec<String>), IPCError>`
     - Đọc Custom Document Properties để extract `AuraIntentId`
     - Chuyển đổi Unsupported_Element (Table, Image, Comment) → Placeholder
     - Trả về danh sách loại Unsupported_Element gặp phải

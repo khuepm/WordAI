@@ -1,6 +1,8 @@
 pub mod ai_service;
+pub mod docx_exporter;
 pub mod document_store;
 pub mod file_manager;
+pub mod markdown_serializer;
 pub mod models;
 pub mod pdf_export;
 pub mod preferences_store;
