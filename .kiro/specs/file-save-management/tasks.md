@@ -20,32 +20,32 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test schema tồn tại sau init
     - _Requirements: 5.1, 9.6_
 
-- [-] 2. Implement CRUD operations cho SQLite_Store (Rust)
+- [x] 2. Implement CRUD operations cho SQLite_Store (Rust)
   - [x] 2.1 Implement `upsert_intent` — ghi document + chunks trong một transaction
     - Dùng `INSERT OR REPLACE` cho bảng `intents`, tăng `version` mỗi lần upsert
     - Xóa chunks cũ và insert chunks mới trong cùng transaction
     - Rollback toàn bộ nếu bất kỳ bước nào thất bại
     - _Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-  - [-] 2.2 Implement `get_intent` và `list_intents`
+  - [x] 2.2 Implement `get_intent` và `list_intents`
     - `get_intent(id)` → trả về intent với raw_content
     - `list_intents()` → trả về danh sách intent (không kèm raw_content)
     - _Requirements: 5.2_
 
-  - [ ] 2.3 Viết property test cho transaction atomicity
+  - [x] 2.3 Viết property test cho transaction atomicity
     - **Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời**
     - **Validates: Requirements 5.4, 5.5, 9.1**
 
-- [~] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
-  - [ ] 3.1 Implement `#[tauri::command] sync_intent` — nhận Document JSON, ghi vào SQLite
+- [-] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
+  - [x] 3.1 Implement `#[tauri::command] sync_intent` — nhận Document JSON, ghi vào SQLite
     - Deserialize Document JSON → gọi `sqlite_store.upsert_intent`
     - Trả về `Ok(version)` hoặc `Err(IPCError)`
     - _Requirements: 1.1, 1.7, 5.4_
 
-  - [ ] 3.2 Implement `#[tauri::command] get_intent` và `#[tauri::command] list_intents`
+  - [x] 3.2 Implement `#[tauri::command] get_intent` và `#[tauri::command] list_intents`
     - _Requirements: 5.2_
 
-  - [ ] 3.3 Đăng ký các commands mới vào `tauri::Builder` trong `lib.rs`
+  - [x] 3.3 Đăng ký các commands mới vào `tauri::Builder` trong `lib.rs`
     - _Requirements: 1.1_
 
 - [~] 4. Checkpoint — Backend SQLite hoạt động

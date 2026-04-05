@@ -6,8 +6,9 @@ pub mod pdf_export;
 pub mod preferences_store;
 pub mod sqlite_store;
 
-use models::{AISuggestion, Document, DocumentSnapshot, IPCError};
+use models::{AISuggestion, AuraDocument, Document, DocumentSnapshot, IntentSummary, IPCError};
 use pdf_export::PDFExportOptions;
+use sqlite_store::SqliteStore;
 use tauri::Manager;
 
 // ── IPC Commands ──────────────────────────────────────────────────────────────
@@ -118,12 +119,55 @@ fn get_version_history(doc_id: String) -> Vec<DocumentSnapshot> {
     document_store::get_version_history(&doc_id)
 }
 
+// ── AuraBrain IPC Commands ────────────────────────────────────────────────────
+
+/// Sync (upsert) an AuraDocument into the AuraBrain SQLite store.
+/// Returns the new version number on success.
+/// Requirements: 1.1, 1.7, 5.4
+#[tauri::command]
+async fn sync_intent(
+    document: AuraDocument,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<i64, IPCError> {
+    state.upsert_intent(&document)
+}
+
+/// Retrieve a single AuraDocument by id (includes raw_content).
+/// Returns None if no intent with the given id exists.
+/// Requirements: 5.2
+#[tauri::command]
+async fn get_intent(
+    id: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Option<AuraDocument>, IPCError> {
+    state.get_intent(&id)
+}
+
+/// List all intents as lightweight summaries (no raw_content).
+/// Requirements: 5.2
+#[tauri::command]
+async fn list_intents(
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Vec<IntentSummary>, IPCError> {
+    state.list_intents()
+}
+
 // ── App Entry Point ───────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            let store = SqliteStore::new(app.handle()).map_err(|e| {
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to initialize AuraBrain SQLite store: {}", e.message),
+                )) as Box<dyn std::error::Error>
+            })?;
+            app.manage(store);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             save_document,
             load_document,
@@ -136,6 +180,9 @@ pub fn run() {
             preferences_store::load_preferences,
             preferences_store::save_preferences,
             preferences_store::reset_preferences,
+            sync_intent,
+            get_intent,
+            list_intents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
