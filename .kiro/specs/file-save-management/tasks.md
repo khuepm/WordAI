@@ -159,7 +159,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 5: Aura_Tag DOCX Preservation — export với AuraIntentId → import lại → AuraIntentId vẫn còn**
     - **Validates: Requirements 11.8_
 
-- [-] 12. Thêm IPC commands cho Export/Import (Rust)
+- [x] 12. Thêm IPC commands cho Export/Import (Rust)
   - [x] 12.1 Implement `#[tauri::command] export_markdown` và `#[tauri::command] export_docx`
     - `export_markdown(path, document_json)` → gọi `markdown_serializer::serialize` → ghi file UTF-8
     - `export_docx(path, document_json)` → gọi `docx_exporter::export` → ghi bytes
@@ -173,27 +173,27 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
   - [x] 12.3 Đăng ký các commands mới vào `tauri::Builder`
     - _Requirements: 6.1, 7.1, 8.1_
 
-- [~] 13. Implement Export_Module frontend (TypeScript)
-  - [ ] 13.1 Tạo `src/services/exportService.ts`
+- [x] 13. Implement Export_Module frontend (TypeScript)
+  - [x] 13.1 Tạo `src/services/exportService.ts`
     - `exportMarkdown(document)`: mở Native_File_Dialog (Tauri dialog plugin) → gọi IPC `export_markdown`
     - `exportDocx(document)`: mở Native_File_Dialog → gọi IPC `export_docx`
     - Đặt default path từ preference `defaultExportPath`
     - Không thay đổi AuraBrain state sau khi export
     - _Requirements: 6.1, 6.2, 6.5, 6.6, 6.7, 7.1, 7.5_
 
-  - [ ] 13.2 Implement `importFile()`
+  - [x] 13.2 Implement `importFile()`
     - Mở Native_File_Dialog với filter `.md` và `.docx`
     - Gọi IPC `import_file` → nhận `(Document, warnings)`
     - Hiển thị warnings nếu có Unsupported_Element
     - _Requirements: 8.1, 8.9, 8.10_
 
-- [~] 14. Implement Replace_Confirmation_Dialog (TypeScript frontend)
-  - [ ] 14.1 Tạo `src/components/ReplaceConfirmationDialog.tsx`
+- [x] 14. Implement Replace_Confirmation_Dialog (TypeScript frontend)
+  - [x] 14.1 Tạo `src/components/ReplaceConfirmationDialog.tsx`
     - Hiển thị khi import file có Aura_Tag trùng với Intent đã tồn tại trong AuraBrain
     - Hai lựa chọn: "Cập nhật Intent" và "Tạo Intent mới"
     - _Requirements: 8.4_
 
-  - [ ] 14.2 Kết nối dialog với import flow trong `exportService.ts`
+  - [x] 14.2 Kết nối dialog với import flow trong `exportService.ts`
     - Sau khi `import_file` trả về Document có `aura_intent_id`: kiểm tra AuraBrain có intent đó không
     - Nếu có → hiển thị `ReplaceConfirmationDialog`
     - "Cập nhật Intent" → gọi `auraBrainManager.sync()` với intent gốc (giữ nguyên id)
@@ -202,23 +202,23 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - _Requirements: 8.4, 8.5, 8.6, 8.7, 8.8_
 
 - [~] 15. Cập nhật Preferences và SettingRegistry (TypeScript frontend)
-  - [ ] 15.1 Mở rộng `src/types/preferences.ts`
+  - [x] 15.1 Mở rộng `src/types/preferences.ts`
     - Thêm vào `Preferences.general`: `defaultExportPath: string`, `defaultExportFormat: 'markdown' | 'docx'`, `autoSyncEnabled: boolean`, `autoSyncInterval: number`
     - Thêm vào `defaultPreferences.general`: giá trị mặc định tương ứng
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-  - [ ] 15.2 Thêm 4 SettingEntry mới vào `src/data/settingRegistry.ts`
+  - [x] 15.2 Thêm 4 SettingEntry mới vào `src/data/settingRegistry.ts`
     - `general.defaultExportPath`: label "Default Export Path", keywords `["export path", "default folder", "export location", "thư mục xuất"]`
     - `general.defaultExportFormat`: label "Default Export Format", keywords `["export format", "file format", "markdown", "docx", "định dạng xuất"]`
     - `general.autoSyncEnabled`: label "Auto Sync", keywords `["auto sync", "autosync", "automatic sync", "tự động đồng bộ"]`
     - `general.autoSyncInterval`: label "Auto Sync Interval", keywords `["auto sync interval", "sync frequency", "autosync timer", "khoảng thời gian đồng bộ"]`
     - _Requirements: 10.6, 10.7, 10.8, 10.9_
 
-  - [ ] 15.3 Thêm validation cho `autoSyncInterval` trong PreferencesService
+  - [x] 15.3 Thêm validation cho `autoSyncInterval` trong PreferencesService
     - Từ chối giá trị ngoài khoảng 5–60, giữ nguyên giá trị hợp lệ trước đó
     - _Requirements: 10.4, 10.5_
 
-  - [ ] 15.4 Viết unit test cho SettingRegistry entries mới
+  - [x] 15.4 Viết unit test cho SettingRegistry entries mới
     - Test: QuickSearch với "auto sync" trả về ít nhất 1 entry mới
     - Test: QuickSearch với "export" trả về ít nhất 1 entry mới
     - Test: validation `autoSyncInterval` từ chối giá trị < 5 và > 60
