@@ -151,11 +151,11 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Trả về danh sách loại Unsupported_Element gặp phải
     - _Requirements: 8.3, 8.10, 11.2, 11.5_
 
-  - [-] 11.3 Viết property test cho DOCX round-trip
+  - [x] 11.3 Viết property test cho DOCX round-trip
     - **Property 4: Round-trip DOCX — export(doc) → import() phải bảo toàn toàn bộ văn bản và cấu trúc heading**
     - **Validates: Requirements 11.2_
 
-  - [ ] 11.4 Viết property test cho Aura_Tag preservation qua DOCX
+  - [-] 11.4 Viết property test cho Aura_Tag preservation qua DOCX
     - **Property 5: Aura_Tag DOCX Preservation — export với AuraIntentId → import lại → AuraIntentId vẫn còn**
     - **Validates: Requirements 11.8_
 
