@@ -201,7 +201,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Sau khi "Cập nhật Intent": mở intent trong Editor_Canvas, xóa Unsaved_Indicator
     - _Requirements: 8.4, 8.5, 8.6, 8.7, 8.8_
 
-- [-] 15. Cập nhật Preferences và SettingRegistry (TypeScript frontend)
+- [x] 15. Cập nhật Preferences và SettingRegistry (TypeScript frontend)
   - [x] 15.1 Mở rộng `src/types/preferences.ts`
     - Thêm vào `Preferences.general`: `defaultExportPath: string`, `defaultExportFormat: 'markdown' | 'docx'`, `autoSyncEnabled: boolean`, `autoSyncInterval: number`
     - Thêm vào `defaultPreferences.general`: giá trị mặc định tương ứng
