@@ -6,8 +6,8 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 
 ## Tasks
 
-- [ ] 1. Thiết lập SQLite schema và SQLite_Store (Rust)
-  - [ ] 1.1 Tạo module `src-tauri/src/sqlite_store.rs` với schema AuraBrain
+- [-] 1. Thiết lập SQLite schema và SQLite_Store (Rust)
+  - [x] 1.1 Tạo module `src-tauri/src/sqlite_store.rs` với schema AuraBrain
     - Tạo bảng `intents`: `id` (UUID TEXT PK), `intent_name` (TEXT), `raw_content` (TEXT), `created_at` (INTEGER), `updated_at` (INTEGER), `version` (INTEGER)
     - Tạo bảng `intent_chunks`: `id` (UUID TEXT PK), `document_id` (TEXT FK), `chunk_index` (INTEGER), `chunk_text` (TEXT), `embedding` (BLOB nullable)
     - Bật WAL mode: `PRAGMA journal_mode=WAL`
@@ -20,7 +20,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test schema tồn tại sau init
     - _Requirements: 5.1, 9.6_
 
-- [ ] 2. Implement CRUD operations cho SQLite_Store (Rust)
+- [~] 2. Implement CRUD operations cho SQLite_Store (Rust)
   - [ ] 2.1 Implement `upsert_intent` — ghi document + chunks trong một transaction
     - Dùng `INSERT OR REPLACE` cho bảng `intents`, tăng `version` mỗi lần upsert
     - Xóa chunks cũ và insert chunks mới trong cùng transaction
@@ -36,7 +36,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 1: Atomic Write — nếu upsert thất bại giữa chừng, DB không có dữ liệu nửa vời**
     - **Validates: Requirements 5.4, 5.5, 9.1**
 
-- [ ] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
+- [~] 3. Thêm Tauri IPC commands cho AuraBrain (Rust)
   - [ ] 3.1 Implement `#[tauri::command] sync_intent` — nhận Document JSON, ghi vào SQLite
     - Deserialize Document JSON → gọi `sqlite_store.upsert_intent`
     - Trả về `Ok(version)` hoặc `Err(IPCError)`
@@ -48,10 +48,10 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
   - [ ] 3.3 Đăng ký các commands mới vào `tauri::Builder` trong `lib.rs`
     - _Requirements: 1.1_
 
-- [ ] 4. Checkpoint — Backend SQLite hoạt động
+- [~] 4. Checkpoint — Backend SQLite hoạt động
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 5. Implement AuraBrain_Manager service (TypeScript frontend)
+- [~] 5. Implement AuraBrain_Manager service (TypeScript frontend)
   - [ ] 5.1 Tạo `src/services/auraBrainManager.ts` với state management
     - State: `isSyncing: boolean`, `syncQueue: SyncEntry | null`, `lastSyncedHash: string | null`, `lastSyncedAt: number | null`
     - Implement `computeContentHash(content: string): Promise<string>` dùng Web Crypto API (SHA-256)
@@ -70,7 +70,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: sau khi sync xong, queue được xử lý
     - _Requirements: 1.5, 1.6, 9.4_
 
-- [ ] 6. Implement Auto-sync (TypeScript frontend)
+- [~] 6. Implement Auto-sync (TypeScript frontend)
   - [ ] 6.1 Mở rộng `src/hooks/useAutoSave.ts` thành `useAutoSync` hook
     - Đọc preferences `autoSyncEnabled` và `autoSyncInterval`
     - Thiết lập interval timer gọi `auraBrainManager.sync()`
@@ -86,7 +86,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: không trigger khi `isSyncing = true`
     - _Requirements: 2.1, 2.2, 2.6, 2.7_
 
-- [ ] 7. Implement Document_Title_Bar component (TypeScript frontend)
+- [~] 7. Implement Document_Title_Bar component (TypeScript frontend)
   - [ ] 7.1 Tạo `src/components/DocumentTitleBar.tsx`
     - Props: `intentName: string | null`, `isDirty: boolean`, `isSyncing: boolean`
     - Render: `"● {Intent_Name} — WordAI"` khi dirty, `"{Intent_Name} — WordAI"` khi clean

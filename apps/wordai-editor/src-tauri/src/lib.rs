@@ -4,6 +4,7 @@ pub mod file_manager;
 pub mod models;
 pub mod pdf_export;
 pub mod preferences_store;
+pub mod sqlite_store;
 
 use models::{AISuggestion, Document, DocumentSnapshot, IPCError};
 use pdf_export::PDFExportOptions;
