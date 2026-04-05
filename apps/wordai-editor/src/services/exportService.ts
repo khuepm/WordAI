@@ -6,11 +6,13 @@
  * explicit user action with a Native_File_Dialog; it does NOT change AuraBrain
  * state or update the Dirty_Bit.
  *
- * Requirements: 6.1, 6.2, 6.5, 6.6, 6.7, 7.1, 7.5, 8.1, 8.9, 8.10
+ * Requirements: 6.1, 6.2, 6.5, 6.6, 6.7, 7.1, 7.5, 8.1, 8.4, 8.5, 8.6,
+ *               8.7, 8.8, 8.9, 8.10
  */
 
 import { invoke } from '@tauri-apps/api/core';
 import type { Document } from '../types/document';
+import { sync } from './auraBrainManager';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,6 +24,38 @@ export interface ImportResult {
   auraIntentId?: string;
   /** List of Unsupported_Element types encountered during import */
   warnings: string[];
+}
+
+/**
+ * Callback invoked when an imported file's Aura_Tag matches an existing Intent.
+ * The caller (UI layer) must present a ReplaceConfirmationDialog and resolve
+ * with the user's choice.
+ *
+ * Requirements: 8.4, 8.5, 8.6
+ */
+export type ConflictResolutionCallback = (
+  intentName: string,
+  auraIntentId: string,
+) => Promise<'update' | 'create_new' | 'cancel'>;
+
+/**
+ * Options for importFile — allows the caller to inject conflict resolution UI
+ * and an optional callback to open the imported intent in the editor.
+ *
+ * Requirements: 8.4, 8.8
+ */
+export interface ImportOptions {
+  /**
+   * Called when the imported file has an Aura_Tag that matches an existing
+   * Intent. Must return the user's choice.
+   */
+  onConflict?: ConflictResolutionCallback;
+  /**
+   * Called after a successful "Cập nhật Intent" so the editor can open the
+   * updated intent and clear the Unsaved_Indicator.
+   * Requirements: 8.8
+   */
+  onOpenIntent?: (document: Document) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -156,28 +190,36 @@ export async function exportDocx(document: Document): Promise<void> {
 
 // ---------------------------------------------------------------------------
 // Import from legacy file
-// Requirements: 8.1, 8.9, 8.10
+// Requirements: 8.1, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10
 // ---------------------------------------------------------------------------
 
 /**
  * Opens a Native_File_Dialog filtered to .md and .docx, calls IPC
- * `import_file`, and returns the ImportResult for the caller to handle.
+ * `import_file`, resolves any Aura_Tag conflict via the provided callback,
+ * and syncs the resulting document into AuraBrain.
  *
- * - If the user cancels the dialog, returns null.
- * - If the file cannot be read/parsed, the IPC throws and the error propagates
- *   to the caller (Requirement 8.9).
- * - If warnings are present (Unsupported_Elements), they are logged and
- *   included in the returned ImportResult (Requirement 8.10).
- *   Full ReplaceConfirmationDialog integration is handled in task 14.
+ * Flow:
+ *  1. Open file dialog (Req 8.1)
+ *  2. Call IPC `import_file` — throws on parse error (Req 8.9)
+ *  3. Surface Unsupported_Element warnings (Req 8.10)
+ *  4. If `auraIntentId` present → check AuraBrain for existing intent (Req 8.4)
+ *     a. Exists → call `onConflict` callback → user picks update / create_new / cancel
+ *        - "update"     → sync with original id, call onOpenIntent (Req 8.5, 8.8)
+ *        - "create_new" → sync with new UUID (Req 8.6)
+ *        - "cancel"     → abort, no side effects
+ *     b. Not found → create new intent with filename as name (Req 8.7)
+ *  5. If no `auraIntentId` → create new intent (Req 8.7)
+ *
+ * Returns the final Document that was synced, or null if the user cancelled.
  */
-export async function importFile(): Promise<ImportResult | null> {
+export async function importFile(options: ImportOptions = {}): Promise<Document | null> {
+  const { onConflict, onOpenIntent } = options;
+
   const path = await openOpenDialog({
-    filters: [
-      { name: 'Supported Files', extensions: ['md', 'docx'] },
-    ],
+    filters: [{ name: 'Supported Files', extensions: ['md', 'docx'] }],
   });
 
-  // Requirement 8.1: user cancelled — do nothing
+  // Requirement 8.1: user cancelled dialog — do nothing
   if (!path) return null;
 
   // Requirement 8.9: throws if file cannot be read or parsed
@@ -191,5 +233,51 @@ export async function importFile(): Promise<ImportResult | null> {
     );
   }
 
-  return result;
+  const { document, auraIntentId } = result;
+
+  // ── Aura_Tag conflict detection (Requirements 8.4 – 8.8) ──────────────────
+  if (auraIntentId) {
+    // Check whether this intent already exists in AuraBrain
+    let existingIntent: Document | null = null;
+    try {
+      existingIntent = await invoke<Document | null>('get_intent', { id: auraIntentId });
+    } catch {
+      // If the IPC call fails we treat it as "not found" and create a new intent
+      existingIntent = null;
+    }
+
+    if (existingIntent) {
+      // Requirement 8.4: conflict — ask the user what to do
+      const choice = onConflict
+        ? await onConflict(existingIntent.title || 'Untitled Intent', auraIntentId)
+        : 'create_new'; // safe default when no UI callback is provided
+
+      if (choice === 'cancel') return null;
+
+      if (choice === 'update') {
+        // Requirement 8.5: keep original id and created_at, bump version
+        const updatedDoc: Document = {
+          ...document,
+          id: auraIntentId,
+          metadata: existingIntent.metadata,
+          lastModified: new Date(),
+        };
+        await sync(updatedDoc);
+        // Requirement 8.8: open the intent in the editor, clear Unsaved_Indicator
+        onOpenIntent?.(updatedDoc);
+        return updatedDoc;
+      }
+
+      // choice === 'create_new' — fall through to new-intent creation below
+    }
+  }
+
+  // Requirement 8.6 / 8.7: no conflict or user chose "create new" — new UUID
+  const newDoc: Document = {
+    ...document,
+    id: crypto.randomUUID(),
+    lastModified: new Date(),
+  };
+  await sync(newDoc);
+  return newDoc;
 }
