@@ -134,6 +134,80 @@ async fn sync_intent(
     state.upsert_intent(&document)
 }
 
+/// Export an AuraDocument to a Markdown file at the given path.
+/// Calls markdown_serializer::serialize and writes UTF-8 to disk.
+/// Requirements: 6.3, 7.2, 7.3
+#[tauri::command]
+async fn export_markdown(path: String, document: AuraDocument) -> Result<(), IPCError> {
+    let markdown = markdown_serializer::serialize(&document)?;
+    tokio::fs::write(&path, markdown.as_bytes())
+        .await
+        .map_err(|e| IPCError {
+            code: "FILE_WRITE_ERROR".to_string(),
+            message: format!("Cannot write Markdown file '{}': {}", path, e),
+        })
+}
+
+/// Export an AuraDocument to a DOCX file at the given path.
+/// Calls docx_exporter::export (runs in spawn_blocking) and writes bytes to disk.
+/// Requirements: 6.3, 7.2, 7.3
+#[tauri::command]
+async fn export_docx(path: String, document: AuraDocument) -> Result<(), IPCError> {
+    let bytes = docx_exporter::export(&document).await?;
+    tokio::fs::write(&path, &bytes)
+        .await
+        .map_err(|e| IPCError {
+            code: "FILE_WRITE_ERROR".to_string(),
+            message: format!("Cannot write DOCX file '{}': {}", path, e),
+        })
+}
+
+/// Import a file (.md or .docx) and return the parsed document with optional Aura_Tag.
+/// Detects format from file extension.
+/// Requirements: 8.1, 8.2, 8.3, 8.9
+#[tauri::command]
+async fn import_file(path: String) -> Result<models::ImportResult, IPCError> {
+    use std::path::Path;
+
+    let ext = Path::new(&path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_lowercase());
+
+    match ext.as_deref() {
+        Some("md") => {
+            let content = tokio::fs::read_to_string(&path)
+                .await
+                .map_err(|e| IPCError {
+                    code: "FILE_READ_ERROR".to_string(),
+                    message: format!("Cannot read Markdown file '{}': {}", path, e),
+                })?;
+            let (document, aura_intent_id) = markdown_serializer::parse(&content)?;
+            Ok(models::ImportResult {
+                document,
+                aura_intent_id,
+                warnings: vec![],
+            })
+        }
+        Some("docx") => {
+            let bytes = tokio::fs::read(&path)
+                .await
+                .map_err(|e| IPCError {
+                    code: "FILE_READ_ERROR".to_string(),
+                    message: format!("Cannot read DOCX file '{}': {}", path, e),
+                })?;
+            docx_exporter::import(&bytes).await
+        }
+        _ => Err(IPCError {
+            code: "UNSUPPORTED_FORMAT".to_string(),
+            message: format!(
+                "Unsupported file format for '{}'. Only .md and .docx are supported.",
+                path
+            ),
+        }),
+    }
+}
+
 /// Retrieve a single AuraDocument by id (includes raw_content).
 /// Returns None if no intent with the given id exists.
 /// Requirements: 5.2
@@ -185,6 +259,9 @@ pub fn run() {
             sync_intent,
             get_intent,
             list_intents,
+            export_markdown,
+            export_docx,
+            import_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

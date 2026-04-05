@@ -159,18 +159,18 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - **Property 5: Aura_Tag DOCX Preservation — export với AuraIntentId → import lại → AuraIntentId vẫn còn**
     - **Validates: Requirements 11.8_
 
-- [~] 12. Thêm IPC commands cho Export/Import (Rust)
-  - [ ] 12.1 Implement `#[tauri::command] export_markdown` và `#[tauri::command] export_docx`
+- [-] 12. Thêm IPC commands cho Export/Import (Rust)
+  - [x] 12.1 Implement `#[tauri::command] export_markdown` và `#[tauri::command] export_docx`
     - `export_markdown(path, document_json)` → gọi `markdown_serializer::serialize` → ghi file UTF-8
     - `export_docx(path, document_json)` → gọi `docx_exporter::export` → ghi bytes
     - _Requirements: 6.3, 7.2, 7.3_
 
-  - [ ] 12.2 Implement `#[tauri::command] import_file`
+  - [x] 12.2 Implement `#[tauri::command] import_file`
     - Detect format từ extension (`.md` / `.docx`)
     - Gọi đúng parser, trả về `(Document, Vec<String> warnings)`
     - _Requirements: 8.1, 8.2, 8.3, 8.9_
 
-  - [ ] 12.3 Đăng ký các commands mới vào `tauri::Builder`
+  - [x] 12.3 Đăng ký các commands mới vào `tauri::Builder`
     - _Requirements: 6.1, 7.1, 8.1_
 
 - [~] 13. Implement Export_Module frontend (TypeScript)
