@@ -145,13 +145,13 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Chạy trong `tokio::task::spawn_blocking` để không chặn main thread
     - _Requirements: 7.2, 7.3, 7.4, 7.8, 7.9_
 
-  - [-] 11.2 Implement `import(bytes: &[u8]) -> Result<(Document, Vec<String>), IPCError>`
+  - [x] 11.2 Implement `import(bytes: &[u8]) -> Result<(Document, Vec<String>), IPCError>`
     - Đọc Custom Document Properties để extract `AuraIntentId`
     - Chuyển đổi Unsupported_Element (Table, Image, Comment) → Placeholder
     - Trả về danh sách loại Unsupported_Element gặp phải
     - _Requirements: 8.3, 8.10, 11.2, 11.5_
 
-  - [ ] 11.3 Viết property test cho DOCX round-trip
+  - [-] 11.3 Viết property test cho DOCX round-trip
     - **Property 4: Round-trip DOCX — export(doc) → import() phải bảo toàn toàn bộ văn bản và cấu trúc heading**
     - **Validates: Requirements 11.2_
 
