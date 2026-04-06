@@ -107,7 +107,15 @@ WordAI/
 
 ## License
 
-This project is proprietary. All rights reserved.
+This project is licensed under the **Business Source License 1.1 (BUSL-1.1)**.
+
+- **Licensor:** Khue Pham (khuepm)
+- **Licensed Work:** WordAI Editor © 2024–2026 Khue Pham
+- **Additional Use Grant:** Personal, non-commercial use (download, build, modify, run) is permitted. Redistribution, sublicensing, or distribution under a different name/brand is **not** permitted without prior written consent.
+- **Change Date:** 2030-04-05
+- **Change License:** Apache License, Version 2.0
+
+On the Change Date the license automatically converts to Apache 2.0. See the [`LICENSE`](./LICENSE) file for full terms.
 
 ---
 
