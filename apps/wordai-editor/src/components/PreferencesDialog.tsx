@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
@@ -22,6 +23,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
     { id: 'typography', icon: 'format_size', label: 'Typography' },
     { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'about', icon: 'info', label: 'About' },
   ];
 
   return (
@@ -107,6 +109,7 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
     { id: 'typography', icon: 'format_size', label: 'Typography' },
     { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'about', icon: 'info', label: 'About' },
   ];
 
   return (
@@ -228,6 +231,7 @@ export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarPro
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
     { id: 'typography', icon: 'format_size', label: 'Typography' },
     { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'about', icon: 'info', label: 'About' },
   ];
 
   return (
@@ -834,6 +838,75 @@ function PrivacyTab() {
   );
 }
 
+// ─── Tab: About ──────────────────────────────────────────────────────────────
+
+function AboutTab() {
+  const isMac = navigator.platform.toUpperCase().includes('MAC') || navigator.userAgent.includes('Mac');
+  const storagePath = isMac
+    ? '~/Library/Application Support/WordAI/AuraBrain/'
+    : 'AppData/Local/WordAI/AuraBrain/';
+  const revealLabel = isMac ? 'Reveal in Finder' : 'Reveal in Explorer';
+  const [revealError, setRevealError] = useState<string | null>(null);
+
+  async function handleReveal() {
+    try {
+      setRevealError(null);
+      await invoke('reveal_in_file_manager', { path: storagePath });
+    } catch (err) {
+      setRevealError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      {/* Header */}
+      <div>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>System Information</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>About WordAI</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
+          "Your data, your device. AuraBrain stores everything locally."
+        </p>
+      </div>
+
+      {/* AuraBrain Storage Path */}
+      <div data-setting-id="about.auraBrainStoragePath">
+        <SectionHeader label="AuraBrain Storage Location" description="Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này." />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          padding: '1.25rem', background: 'rgba(243,244,245,0.5)',
+          borderRadius: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+        }}>
+          <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '24px', flexShrink: 0 }}>folder</span>
+          <code style={{
+            flex: 1, fontSize: '0.8125rem', fontFamily: 'monospace',
+            color: '#18181b', wordBreak: 'break-all',
+          }}>{storagePath}</code>
+          <button
+            onClick={handleReveal}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1rem', borderRadius: '0.5rem',
+              fontSize: '0.75rem', fontWeight: 700,
+              background: '#4343d5', color: '#ffffff',
+              border: 'none', cursor: 'pointer', flexShrink: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+            {revealLabel}
+          </button>
+        </div>
+        {revealError && (
+          <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
+            {revealError}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
 function SearchResultsTab({ query }: { query: string }) {
@@ -1025,6 +1098,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
     'ai-engine': <AIEngineTab />,
     'typography': <TypographyTab />,
     'privacy': <PrivacyTab />,
+    'about': <AboutTab />,
   };
 
   const isSearching = searchQuery.trim().length > 0;
@@ -1072,7 +1146,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
-                  {isSearching ? 'Search Results' : { general: 'General Settings', 'ai-engine': 'AI Engine Settings', typography: 'Typography & Formatting', privacy: 'Privacy & Security' }[activeTab]}
+                  {isSearching ? 'Search Results' : { general: 'General Settings', 'ai-engine': 'AI Engine Settings', typography: 'Typography & Formatting', privacy: 'Privacy & Security', about: 'About' }[activeTab]}
                 </h2>
                 {!isSearching && activeTab === 'ai-engine' && (
                   <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Active</span>
