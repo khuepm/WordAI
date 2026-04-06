@@ -234,7 +234,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 - Property tests (Tasks 2.3, 5.3, 10.3, 10.4, 11.3, 11.4) validate các invariant quan trọng nhất của hệ thống
 - Round-trip guarantee chỉ áp dụng cho Export_Module, không áp dụng cho AuraBrain core sync (Req 11.7)
 
-- [-] 17. Implement AuraBrain Storage Path trong Preferences (TypeScript frontend)
+- [x] 17. Implement AuraBrain Storage Path trong Preferences (TypeScript frontend)
   - [x] 17.1 Thêm SettingEntry mới vào `src/data/settingRegistry.ts`
     - Thêm entry cho `about.auraBrainStoragePath`: label "AuraBrain Storage Location", tab `"about"`, keywords `["aurabrain", "storage path", "data location", "database path", "nơi lưu dữ liệu", "thư mục dữ liệu"]`
     - _Requirements: 12.5, 12.6_
@@ -257,7 +257,7 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: QuickSearch với "storage" trả về SettingEntry của storage path
     - _Requirements: 12.5, 12.6_
 
-- [-] 18. Implement Editor Status Bar (TypeScript frontend)
+- [x] 18. Implement Editor Status Bar (TypeScript frontend)
   - [x] 18.1 Tạo `src/components/EditorStatusBar.tsx`
     - Props: `isSyncing: boolean`, `isDirty: boolean`, `lastSyncedAt: number | null`, `storagePath: string`
     - Render `"Syncing..."` khi `isSyncing = true`
