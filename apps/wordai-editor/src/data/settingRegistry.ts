@@ -224,4 +224,15 @@ export const SETTING_REGISTRY: SettingEntry[] = [
     type: 'toggle',
     defaultValue: false,
   },
+
+  // About tab
+  {
+    id: 'about.auraBrainStoragePath',
+    label: 'AuraBrain Storage Location',
+    description: 'Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này',
+    tab: 'about',
+    keywords: ['aurabrain', 'storage path', 'data location', 'database path', 'nơi lưu dữ liệu', 'thư mục dữ liệu'],
+    type: 'text',
+    defaultValue: '',
+  },
 ];

@@ -7,7 +7,7 @@ import type { Tab } from '../types/preferences';
  * Validates: Requirements 5.6
  */
 
-const VALID_TABS: Tab[] = ['general', 'ai-engine', 'typography', 'privacy'];
+const VALID_TABS: Tab[] = ['general', 'ai-engine', 'typography', 'privacy', 'about'];
 
 describe('SettingRegistry — Property 1: Every SettingEntry has all required fields non-empty', () => {
   it('every entry has a non-empty id', () => {

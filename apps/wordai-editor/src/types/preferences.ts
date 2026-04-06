@@ -1,4 +1,4 @@
-export type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy';
+export type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy' | 'about';
 
 export interface SettingEntry {
   id: string;
