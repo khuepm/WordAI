@@ -150,3 +150,32 @@ describe('SettingRegistry — new AuraBrain entries: QuickSearch integration', (
     expect(entry!.keywords).toContain('khoảng thời gian đồng bộ');
   });
 });
+
+/**
+ * Tests for AuraBrain Storage Path SettingEntry
+ * Validates: Requirements 12.5, 12.6
+ */
+describe('SettingRegistry — about.auraBrainStoragePath entry: QuickSearch integration', () => {
+  it('searching "aurabrain" returns the storage path entry (Requirement 12.6)', () => {
+    const results = searchSettings('aurabrain');
+    const ids = results.map((e) => e.id);
+    expect(ids).toContain('about.auraBrainStoragePath');
+  });
+
+  it('searching "storage" returns the storage path entry (Requirement 12.6)', () => {
+    const results = searchSettings('storage');
+    const ids = results.map((e) => e.id);
+    expect(ids).toContain('about.auraBrainStoragePath');
+  });
+
+  it('about.auraBrainStoragePath entry has correct label, tab, and keywords (Requirement 12.5)', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'about.auraBrainStoragePath');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('AuraBrain Storage Location');
+    expect(entry!.tab).toBe('about');
+    expect(entry!.keywords).toContain('aurabrain');
+    expect(entry!.keywords).toContain('storage path');
+    expect(entry!.keywords).toContain('nơi lưu dữ liệu');
+    expect(entry!.keywords).toContain('thư mục dữ liệu');
+  });
+});

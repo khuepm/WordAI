@@ -233,3 +233,49 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
 - Thứ tự dependency: Rust backend (Tasks 1–3) → Frontend core (Tasks 5–8) → Export module (Tasks 10–14) → Preferences (Task 15)
 - Property tests (Tasks 2.3, 5.3, 10.3, 10.4, 11.3, 11.4) validate các invariant quan trọng nhất của hệ thống
 - Round-trip guarantee chỉ áp dụng cho Export_Module, không áp dụng cho AuraBrain core sync (Req 11.7)
+
+- [-] 17. Implement AuraBrain Storage Path trong Preferences (TypeScript frontend)
+  - [x] 17.1 Thêm SettingEntry mới vào `src/data/settingRegistry.ts`
+    - Thêm entry cho `about.auraBrainStoragePath`: label "AuraBrain Storage Location", tab `"about"`, keywords `["aurabrain", "storage path", "data location", "database path", "nơi lưu dữ liệu", "thư mục dữ liệu"]`
+    - _Requirements: 12.5, 12.6_
+
+  - [x] 17.2 Cập nhật `src/components/PreferencesDialog.tsx` — thêm hiển thị storage path trong tab About
+    - Hiển thị đường dẫn AuraBrain storage path đầy đủ theo platform (macOS / Windows)
+    - Thêm nút "Reveal in Finder" (macOS) hoặc "Reveal in Explorer" (Windows) bên cạnh đường dẫn
+    - Gọi Tauri IPC `reveal_in_finder` / `reveal_in_explorer` khi nhấn nút
+    - Hiển thị thông báo lỗi nếu thư mục chưa tồn tại
+    - _Requirements: 12.1, 12.2, 12.3, 12.4_
+
+  - [x] 17.3 Thêm Tauri IPC command `reveal_in_file_manager` (Rust)
+    - Nhận `path: String`, kiểm tra thư mục tồn tại, mở bằng `open::that()` hoặc tương đương
+    - Trả về `Err` mô tả rõ nếu thư mục không tồn tại
+    - Đăng ký command vào `tauri::Builder`
+    - _Requirements: 12.3, 12.4_
+
+  - [x] 17.4 Viết unit test cho SettingRegistry entry mới
+    - Test: QuickSearch với "aurabrain" trả về SettingEntry của storage path
+    - Test: QuickSearch với "storage" trả về SettingEntry của storage path
+    - _Requirements: 12.5, 12.6_
+
+- [-] 18. Implement Editor Status Bar (TypeScript frontend)
+  - [x] 18.1 Tạo `src/components/EditorStatusBar.tsx`
+    - Props: `isSyncing: boolean`, `isDirty: boolean`, `lastSyncedAt: number | null`, `storagePath: string`
+    - Render `"Syncing..."` khi `isSyncing = true`
+    - Render `"Unsaved changes"` khi `isDirty = true` và `isSyncing = false`
+    - Render `"Synced · {N}s ago"` khi `isDirty = false` và `isSyncing = false`
+    - Cập nhật `{N}s ago` mỗi giây bằng `setInterval`
+    - Không hiển thị `storagePath` trực tiếp; chỉ hiển thị qua tooltip khi hover
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8_
+
+  - [x] 18.2 Tích hợp `EditorStatusBar` vào `EditorCanvas.tsx` hoặc layout chính
+    - Đặt cố định ở phía dưới Editor_Canvas
+    - Truyền `isSyncing`, `isDirty`, `lastSyncedAt`, `storagePath` từ state
+    - _Requirements: 13.1_
+
+  - [x] 18.3 Viết unit test cho EditorStatusBar
+    - Test: hiển thị `"Syncing..."` khi `isSyncing = true`
+    - Test: hiển thị `"Unsaved changes"` khi `isDirty = true` và `isSyncing = false`
+    - Test: hiển thị `"Synced · Ns ago"` khi `isDirty = false` và `isSyncing = false`
+    - Test: không hiển thị storage path trực tiếp trên thanh trạng thái
+    - Test: tooltip chứa storage path khi hover
+    - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6_

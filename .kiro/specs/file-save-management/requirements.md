@@ -240,3 +240,35 @@ Tính năng này mở rộng Requirement 2 (Auto-Save), Requirement 11 (Render D
 7. THE Export_Module SHALL không áp dụng round-trip guarantee cho AuraBrain core sync — round-trip chỉ là thuộc tính của Export_Module.
 8. THE Export_Module SHALL đảm bảo rằng Aura_Tag được bảo toàn qua round-trip: file export có Aura_Tag → chỉnh sửa bằng công cụ khác → import lại → Aura_Tag vẫn còn nguyên để nhận diện Intent.
 9. WHEN Markdown_Serializer parse file `.md` có YAML frontmatter chứa `aura_intent_id`, THE Markdown_Serializer SHALL bảo toàn trường này và không đưa nó vào `raw_content` của Document object.
+
+---
+
+### Requirement 12: AuraBrain Storage Path trong Preferences
+
+**User Story:** Là một writer, tôi muốn xem đường dẫn AuraBrain storage path trong phần Preferences/About, để tôi biết dữ liệu của mình đang được lưu ở đâu và có thể truy cập thư mục đó khi cần.
+
+#### Acceptance Criteria
+
+1. THE PreferencesService SHALL hiển thị đường dẫn AuraBrain storage path đầy đủ trong phần About của Preferences dialog.
+2. WHEN người dùng xem phần About trong Preferences, THE PreferencesService SHALL hiển thị đường dẫn tương ứng với platform: `~/Library/Application Support/WordAI/AuraBrain/` (macOS) hoặc `AppData/Local/WordAI/AuraBrain/` (Windows).
+3. WHEN người dùng nhấn nút "Reveal in Finder" (macOS) hoặc "Reveal in Explorer" (Windows) bên cạnh đường dẫn, THE PreferencesService SHALL mở thư mục AuraBrain trong file manager của hệ điều hành.
+4. IF thư mục AuraBrain chưa tồn tại khi người dùng nhấn nút Reveal, THEN THE PreferencesService SHALL hiển thị thông báo lỗi mô tả rõ nguyên nhân và không mở file manager.
+5. THE SettingRegistry SHALL chứa SettingEntry cho thông tin AuraBrain storage path với `label` là "AuraBrain Storage Location", `tab` là `"about"`, và `keywords` bao gồm `["aurabrain", "storage path", "data location", "database path", "nơi lưu dữ liệu", "thư mục dữ liệu"]`.
+6. WHEN QuickSearch_Popup tìm kiếm với từ khóa liên quan đến "aurabrain" hoặc "storage", THE SettingRegistry SHALL trả về SettingEntry của AuraBrain storage path trong kết quả.
+
+---
+
+### Requirement 13: Editor Status Bar
+
+**User Story:** Là một writer, tôi muốn thấy trạng thái sync ngay dưới editor mà không cần nhìn lên title bar, để tôi luôn biết document của mình đang ở trạng thái nào mà không bị phân tâm.
+
+#### Acceptance Criteria
+
+1. THE Editor_Status_Bar SHALL hiển thị cố định ở phía dưới Editor_Canvas, luôn hiển thị trong suốt phiên làm việc.
+2. WHEN thao tác sync hoàn tất thành công, THE Editor_Status_Bar SHALL hiển thị trạng thái theo định dạng `"Synced · {N}s ago"` trong đó `{N}` là số giây kể từ lần sync gần nhất.
+3. WHILE Is_Syncing là `true`, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Syncing..."`.
+4. WHEN Dirty_Bit là `true` và Is_Syncing là `false`, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Unsaved changes"`.
+5. THE Editor_Status_Bar SHALL không hiển thị đường dẫn AuraBrain storage path trực tiếp trên thanh trạng thái.
+6. WHEN người dùng hover chuột vào Editor_Status_Bar, THE Editor_Status_Bar SHALL hiển thị tooltip chứa đường dẫn AuraBrain storage path đầy đủ.
+7. THE Editor_Status_Bar SHALL cập nhật thời gian hiển thị trong `"Synced · {N}s ago"` mỗi giây để phản ánh thời gian thực.
+8. WHEN document mới được tạo và chưa có lần sync nào, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Unsaved changes"`.
