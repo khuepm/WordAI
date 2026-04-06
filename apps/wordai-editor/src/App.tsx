@@ -6,6 +6,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
+import { EditorStatusBar } from './components/EditorStatusBar';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
@@ -57,9 +58,10 @@ function App() {
   const [preferencesInitialTab, setPreferencesInitialTab] = useState<Tab | undefined>(undefined);
   const [preferencesTargetSettingId, setPreferencesTargetSettingId] = useState<string | undefined>(undefined);
 
-  // AuraBrain sync state (Req 1.1, 1.2, 1.4, 3.3, 3.4)
+  // AuraBrain sync state (Req 1.1, 1.2, 1.4, 3.3, 3.4, 13.1–13.8)
   const [isDirty, setIsDirty] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [syncErrorMsg, setSyncErrorMsg] = useState<string | null>(null);
   // Ref to track current content hash for dirty detection
   const currentHashRef = useRef<string | null>(null);
@@ -97,6 +99,7 @@ function App() {
         if (result.success) {
           // Req 1.2, 3.4: clear dirty indicator on success
           setIsDirty(false);
+          setLastSyncedAt(Date.now());
         } else {
           // Req 1.4: show error notification, keep dirty indicator
           setSyncErrorMsg(result.error ?? 'Sync failed. Please try again.');
@@ -512,6 +515,7 @@ function App() {
       {/* Main content */}
       <div style={{
         display: 'flex',
+        flexDirection: 'column',
         flex: 1,
         overflow: 'hidden',
         paddingTop: 'var(--topnav-height)',
@@ -520,45 +524,56 @@ function App() {
         transition: 'padding-right var(--transition-normal)',
         position: 'relative',
       }}>
-        <EditorCanvas
-          document={document}
-          onDocumentChange={handleDocumentChange}
-          onAITrigger={handleAITrigger}
-          isAIPanelOpen={isAIPanelOpen}
-          saveError={saveError}
-          hasUnsavedChanges={hasUnsavedChanges}
-          onManualSave={triggerSave}
-          onOpenExport={openRenderDrawer}
-          onOpenVersionHistory={openVersionHistory}
-          fontSize={fontSize}
-          onFontSizeChange={handleFontSizeChange}
-        />
-        <AuraSpherePanel
-          isOpen={isAIPanelOpen}
-          onClose={closeAIPanel}
-          selection={aiSelection}
-          documentId={document.id}
-          documentContext={aiContext}
-          onSuggestionSelect={handleSuggestionSelect}
-        />
-        <NegotiationPanel
-          isOpen={isNegotiationOpen}
-          suggestion={selectedSuggestion}
-          onAccept={handleNegotiationAccept}
-          onReject={closeNegotiation}
-          onClose={closeNegotiation}
-        />
-        <RenderDrawer
-          isOpen={isRenderDrawerOpen}
-          onClose={closeRenderDrawer}
-          documentId={document.id}
-          documentContent={extractPlainText(document.content)}
-        />
-        <VersionHistory
-          isOpen={isVersionHistoryOpen}
-          onClose={closeVersionHistory}
-          documentId={document.id}
-          onRestore={handleVersionRestore}
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          <EditorCanvas
+            document={document}
+            onDocumentChange={handleDocumentChange}
+            onAITrigger={handleAITrigger}
+            isAIPanelOpen={isAIPanelOpen}
+            saveError={saveError}
+            hasUnsavedChanges={hasUnsavedChanges}
+            onManualSave={triggerSave}
+            onOpenExport={openRenderDrawer}
+            onOpenVersionHistory={openVersionHistory}
+            fontSize={fontSize}
+            onFontSizeChange={handleFontSizeChange}
+          />
+          <AuraSpherePanel
+            isOpen={isAIPanelOpen}
+            onClose={closeAIPanel}
+            selection={aiSelection}
+            documentId={document.id}
+            documentContext={aiContext}
+            onSuggestionSelect={handleSuggestionSelect}
+          />
+          <NegotiationPanel
+            isOpen={isNegotiationOpen}
+            suggestion={selectedSuggestion}
+            onAccept={handleNegotiationAccept}
+            onReject={closeNegotiation}
+            onClose={closeNegotiation}
+          />
+          <RenderDrawer
+            isOpen={isRenderDrawerOpen}
+            onClose={closeRenderDrawer}
+            documentId={document.id}
+            documentContent={extractPlainText(document.content)}
+          />
+          <VersionHistory
+            isOpen={isVersionHistoryOpen}
+            onClose={closeVersionHistory}
+            documentId={document.id}
+            onRestore={handleVersionRestore}
+          />
+        </div>
+        {/* Editor Status Bar — fixed at bottom of editor area (Req 13.1) */}
+        <EditorStatusBar
+          isSyncing={isSyncing}
+          isDirty={isDirty}
+          lastSyncedAt={lastSyncedAt}
+          storagePath={auraBrainManager.getState().lastSyncedAt !== null
+            ? (window.__TAURI_INTERNALS__ ? '~/Library/Application Support/WordAI/AuraBrain/' : 'AppData/Local/WordAI/AuraBrain/')
+            : ''}
         />
       </div>
 
