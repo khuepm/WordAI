@@ -228,6 +228,42 @@ async fn list_intents(
     state.list_intents()
 }
 
+/// Open the AuraBrain storage directory in the system file manager.
+/// Returns Err if the directory does not exist.
+/// Requirements: 12.3, 12.4
+#[tauri::command]
+async fn reveal_in_file_manager(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<(), IPCError> {
+    use std::path::Path;
+
+    // Expand ~ to home directory
+    let expanded = if path.starts_with("~/") {
+        let home = app.path().home_dir().map_err(|_| IPCError {
+            code: "PATH_ERROR".to_string(),
+            message: "Cannot resolve home directory".to_string(),
+        })?;
+        home.join(&path[2..]).to_string_lossy().to_string()
+    } else {
+        path.clone()
+    };
+
+    let dir = Path::new(&expanded);
+    if !dir.exists() {
+        return Err(IPCError {
+            code: "DIR_NOT_FOUND".to_string(),
+            message: format!("Directory does not exist: {}", expanded),
+        });
+    }
+
+    tauri_plugin_opener::open_path(expanded, None::<&str>)
+        .map_err(|e| IPCError {
+            code: "REVEAL_ERROR".to_string(),
+            message: format!("Cannot open directory in file manager: {}", e),
+        })
+}
+
 // ── App Entry Point ───────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -262,6 +298,7 @@ pub fn run() {
             export_markdown,
             export_docx,
             import_file,
+            reveal_in_file_manager,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
