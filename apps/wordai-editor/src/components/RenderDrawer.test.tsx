@@ -8,6 +8,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RenderDrawer } from './RenderDrawer';
 import type { IPCResponse } from '../types/ipc';
+import { exportMarkdown } from '../services/exportService';
 
 // ─── Tauri mock ───────────────────────────────────────────────────────────────
 
@@ -15,6 +16,18 @@ const mockInvoke = vi.fn();
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
+}));
+
+vi.mock('../services/exportService', () => ({
+  exportMarkdown: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.md' }),
+  exportDocx: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.docx' }),
+  importFile: vi.fn().mockResolvedValue({ status: 'cancelled' }),
+}));
+
+vi.mock('../services/preferencesService', () => ({
+  loadPreferences: vi.fn().mockResolvedValue({
+    general: { defaultExportFormat: 'markdown' },
+  }),
 }));
 
 // ─── Default props ────────────────────────────────────────────────────────────
@@ -74,9 +87,9 @@ describe('RenderDrawer - format selection', () => {
     expect(screen.getByTestId('format-option-docx')).toBeInTheDocument();
   });
 
-  it('selects PDF by default', () => {
+  it('selects Markdown from default export preference', () => {
     render(<RenderDrawer {...defaultProps} />);
-    expect(screen.getByTestId('format-option-pdf')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('format-option-markdown')).toHaveAttribute('aria-checked', 'true');
   });
 
   it('updates selected format on click (Req 11.2)', async () => {
@@ -92,7 +105,11 @@ describe('RenderDrawer - format selection', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
-    // PDF selected by default — options visible
+    // Markdown selected by default — PDF options hidden
+    expect(screen.queryByTestId('pdf-options')).not.toBeInTheDocument();
+
+    // Switch to PDF — options visible
+    await user.click(screen.getByTestId('format-option-pdf'));
     expect(screen.getByTestId('pdf-options')).toBeInTheDocument();
 
     // Switch to Markdown — PDF options hidden
@@ -106,6 +123,7 @@ describe('RenderDrawer - format selection', () => {
 describe('RenderDrawer - PDF options', () => {
   it('renders page size buttons', () => {
     render(<RenderDrawer {...defaultProps} />);
+    fireEvent.click(screen.getByTestId('format-option-pdf'));
     expect(screen.getByTestId('page-size-a4')).toBeInTheDocument();
     expect(screen.getByTestId('page-size-letter')).toBeInTheDocument();
     expect(screen.getByTestId('page-size-legal')).toBeInTheDocument();
@@ -113,6 +131,7 @@ describe('RenderDrawer - PDF options', () => {
 
   it('selects A4 page size by default', () => {
     render(<RenderDrawer {...defaultProps} />);
+    fireEvent.click(screen.getByTestId('format-option-pdf'));
     expect(screen.getByTestId('page-size-a4')).toHaveAttribute('aria-checked', 'true');
   });
 
@@ -120,6 +139,7 @@ describe('RenderDrawer - PDF options', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('page-size-letter'));
     expect(screen.getByTestId('page-size-letter')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('page-size-a4')).toHaveAttribute('aria-checked', 'false');
@@ -127,6 +147,7 @@ describe('RenderDrawer - PDF options', () => {
 
   it('renders margin inputs for all four sides', () => {
     render(<RenderDrawer {...defaultProps} />);
+    fireEvent.click(screen.getByTestId('format-option-pdf'));
     expect(screen.getByTestId('margin-top')).toBeInTheDocument();
     expect(screen.getByTestId('margin-bottom')).toBeInTheDocument();
     expect(screen.getByTestId('margin-left')).toBeInTheDocument();
@@ -137,6 +158,7 @@ describe('RenderDrawer - PDF options', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     const topInput = screen.getByTestId('margin-top');
     await user.clear(topInput);
     await user.type(topInput, '30');
@@ -145,12 +167,14 @@ describe('RenderDrawer - PDF options', () => {
 
   it('renders font size slider and value display', () => {
     render(<RenderDrawer {...defaultProps} />);
+    fireEvent.click(screen.getByTestId('format-option-pdf'));
     expect(screen.getByTestId('font-size-slider')).toBeInTheDocument();
     expect(screen.getByTestId('font-size-value')).toHaveTextContent('12pt');
   });
 
   it('updates font size value when slider changes', () => {
     render(<RenderDrawer {...defaultProps} />);
+    fireEvent.click(screen.getByTestId('format-option-pdf'));
     const slider = screen.getByTestId('font-size-slider');
     fireEvent.change(slider, { target: { value: '16' } });
     expect(screen.getByTestId('font-size-value')).toHaveTextContent('16pt');
@@ -170,22 +194,22 @@ describe('RenderDrawer - export confirmation', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
     await waitFor(() => expect(mockInvoke).toHaveBeenCalledOnce());
     expect((mockInvoke as Mock).mock.calls[0][0]).toBe('export_to_pdf');
   });
 
-  it('calls export_document command for non-PDF formats', async () => {
-    mockInvoke.mockResolvedValue({ success: true, data: '/path/to/file.md' } satisfies IPCResponse<string>);
+  it('calls exportMarkdown service for Markdown format', async () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
     await user.click(screen.getByTestId('format-option-markdown'));
     await user.click(screen.getByTestId('export-button'));
 
-    await waitFor(() => expect(mockInvoke).toHaveBeenCalledOnce());
-    expect((mockInvoke as Mock).mock.calls[0][0]).toBe('export_document');
+    await waitFor(() => expect(exportMarkdown).toHaveBeenCalledOnce());
+    expect(mockInvoke).not.toHaveBeenCalledWith('export_document', expect.anything());
   });
 
   it('shows success message after successful export', async () => {
@@ -193,6 +217,7 @@ describe('RenderDrawer - export confirmation', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
     await waitFor(() =>
@@ -208,6 +233,7 @@ describe('RenderDrawer - export confirmation', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
     await waitFor(() =>
@@ -220,6 +246,7 @@ describe('RenderDrawer - export confirmation', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
     await waitFor(() =>
@@ -232,6 +259,7 @@ describe('RenderDrawer - export confirmation', () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
+    await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
     expect(screen.getByTestId('export-button')).toBeDisabled();

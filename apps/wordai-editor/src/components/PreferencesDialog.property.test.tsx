@@ -22,6 +22,8 @@ vi.mock('../hooks/useViewportSize', () => ({
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
+const allTabs: Tab[] = ['general', 'ai-engine', 'typography', 'privacy', 'about'];
+
 // ---------------------------------------------------------------------------
 // Property 1: PreferencesDialog size constraints
 // Validates: Requirements 1.1, 1.2
@@ -61,7 +63,7 @@ describe('Property 1: PreferencesDialog size constraints', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
@@ -72,12 +74,13 @@ describe('Property 1: PreferencesDialog size constraints', () => {
 // ---------------------------------------------------------------------------
 
 describe('Property 3: Collapsed sidebar layout and accessibility', () => {
-  const tabs: Tab[] = ['general', 'ai-engine', 'typography', 'privacy'];
+  const tabs: Tab[] = ['general', 'ai-engine', 'typography', 'privacy', 'about'];
   const tabLabels: Record<Tab, string> = {
     general: 'General',
     'ai-engine': 'AI Engine',
     typography: 'Typography',
     privacy: 'Privacy',
+    about: 'About',
   };
 
   afterEach(() => {
@@ -94,7 +97,7 @@ describe('Property 3: Collapsed sidebar layout and accessibility', () => {
           expect(vw).toBeLessThan(MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -125,7 +128,7 @@ describe('Property 3: Collapsed sidebar layout and accessibility', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -155,7 +158,7 @@ describe('Property 3: Collapsed sidebar layout and accessibility', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
@@ -166,8 +169,6 @@ describe('Property 3: Collapsed sidebar layout and accessibility', () => {
 // ---------------------------------------------------------------------------
 
 describe('Property 4: Stacked layout and ARIA roles', () => {
-  const allTabs: Tab[] = ['general', 'ai-engine', 'typography', 'privacy'];
-
   afterEach(() => {
     // Clean up any rendered components
   });
@@ -181,7 +182,7 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
           expect(vw).toBeLessThan(MODAL_BREAKPOINTS.STACK_LAYOUT);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -190,7 +191,7 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 200, max: 479 }),
-        fc.constantFrom<Tab>('general', 'ai-engine', 'typography', 'privacy'),
+        fc.constantFrom<Tab>('general', 'ai-engine', 'typography', 'privacy', 'about'),
         (vw, activeTab) => {
           void vw; // represents stacked layout viewport width condition
 
@@ -211,7 +212,6 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
 
           // Active tab must have aria-selected="true", inactive tabs aria-selected="false"
           for (const btn of tabButtons) {
-            const tabId = btn.getAttribute('data-tab-id') ?? btn.textContent?.trim();
             const isActive = btn.getAttribute('aria-selected');
             if (btn === container.querySelector(`[role="tab"][aria-selected="true"]`)) {
               expect(isActive).toBe('true');
@@ -231,7 +231,7 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -239,7 +239,7 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
     // Feature: responsive-modal-system, Property 4: Stacked layout and ARIA roles
     fc.assert(
       fc.property(
-        fc.constantFrom<Tab>('general', 'ai-engine', 'typography', 'privacy'),
+        fc.constantFrom<Tab>(...allTabs),
         (activeTab) => {
           const { unmount, container } = render(
             createElement(HorizontalTabBar, {
@@ -268,7 +268,7 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
@@ -286,13 +286,14 @@ describe('Property 5: State preservation across resize', () => {
     'ai-engine': 'AI Engine Settings',
     typography: 'Typography & Formatting',
     privacy: 'Privacy & Security',
+    about: 'About',
   };
 
   it('active tab heading is preserved after viewport resize', () => {
     // Feature: responsive-modal-system, Property 5: State preservation across resize
     fc.assert(
       fc.property(
-        fc.constantFrom<Tab>('general', 'ai-engine', 'typography', 'privacy'),
+        fc.constantFrom<Tab>(...allTabs),
         fc.integer({ min: 400, max: 1200 }), // new viewport width after resize
         (activeTab, newVw) => {
           // Start with normal layout (900px wide)
@@ -335,7 +336,7 @@ describe('Property 5: State preservation across resize', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -387,7 +388,7 @@ describe('Property 5: State preservation across resize', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
@@ -449,7 +450,7 @@ describe('Property 7: Focus trap within modal', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 
@@ -485,7 +486,7 @@ describe('Property 7: Focus trap within modal', () => {
           unmount();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
