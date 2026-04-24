@@ -264,11 +264,27 @@ async fn reveal_in_file_manager(
         })
 }
 
+/// Return the AuraBrain storage directory path used by SqliteStore.
+/// Requirements: file-save-management 12.1, 12.2, 19.4
+#[tauri::command]
+async fn get_aurabrain_storage_path(app: tauri::AppHandle) -> Result<String, IPCError> {
+    let base = app.path().app_data_dir().map_err(|e| IPCError {
+        code: "PATH_ERROR".to_string(),
+        message: format!("Cannot resolve app data directory: {e}"),
+    })?;
+    Ok(base
+        .join("WordAI")
+        .join("AuraBrain")
+        .to_string_lossy()
+        .to_string())
+}
+
 // ── App Entry Point ───────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let store = SqliteStore::new(app.handle()).map_err(|e| {
@@ -299,6 +315,7 @@ pub fn run() {
             export_docx,
             import_file,
             reveal_in_file_manager,
+            get_aurabrain_storage_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
