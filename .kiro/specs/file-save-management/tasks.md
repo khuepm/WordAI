@@ -279,3 +279,392 @@ Triển khai hệ thống lưu trữ AuraBrain (SQLite ẩn) thay thế hoàn to
     - Test: không hiển thị storage path trực tiếp trên thanh trạng thái
     - Test: tooltip chứa storage path khi hover
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6_
+
+---
+
+## Completion Pass: đưa file-save-management tới trạng thái dùng được ngay
+
+Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra implementation hiện tại. Không đánh dấu `[x]` cho đến khi code, test và build thực sự pass.
+
+- [x] 19. Chuẩn hóa ranh giới dữ liệu `Document` ↔ `AuraDocument`
+  - [x] 19.1 Tạo `src/types/auraDocument.ts`
+    - Định nghĩa `AuraIntentDocument`, `AuraDocumentBlock`, `AuraInlineSpan`, `AuraAdapterWarning`, `AuraAdapterResult`
+    - Type phải khớp JSON shape của Rust `AuraDocument` trong `src-tauri/src/models.rs`
+    - `AuraIntentDocument` dùng `intent_name`, `content: AuraDocumentBlock[]`, `created_at`, `updated_at`
+    - Không reuse trực tiếp legacy `Document` cho IPC AuraBrain
+    - _Requirements: 14.1, 14.8, 14.9_
+
+  - [x] 19.2 Tạo `src/services/auraDocumentAdapter.ts`
+    - Implement `documentToAuraIntent(document: Document): AdapterResult<AuraIntentDocument>`
+    - Implement `auraIntentToDocument(intent: AuraIntentDocument): AdapterResult<Document>`
+    - Implement `computeAuraPlainText(intent: AuraIntentDocument): string`
+    - Map `Document.title` ↔ `AuraDocument.intent_name`
+    - Map `Date`/timestamp theo quy ước rõ ràng: frontend `Date`, backend epoch milliseconds
+    - _Requirements: 14.2, 14.3, 14.4_
+
+  - [x] 19.3 Implement parser từ editor content sang `DocumentBlock[]`
+    - Nếu content là JSON hợp lệ từ editor/block editor, parse bằng structured parser
+    - Nếu content là plain text, split thành paragraph blocks
+    - Detect Markdown headings `#`, `##`, `###` thành Heading blocks
+    - Detect unordered lists `- `, `* ` thành `ListItem { ordered: false }`
+    - Detect ordered lists `1. ` thành `ListItem { ordered: true }`
+    - Detect fenced code block thành `CodeBlock`
+    - Fallback malformed content thành một Paragraph và trả warning
+    - _Requirements: 14.5, 14.7_
+
+  - [x] 19.4 Implement inline formatting adapter
+    - Preserve bold, italic, code, bold-italic nếu structured content có inline marks
+    - Nếu inline format không parse được, degrade thành text span và trả warning
+    - Không làm mất visible text trong mọi trường hợp
+    - _Requirements: 14.6, 14.7_
+
+  - [x] 19.5 Cập nhật `auraBrainManager.sync`
+    - Đổi input path: nhận legacy `Document`, convert sang `AuraIntentDocument`, rồi mới gọi `invoke('sync_intent')`
+    - Hoặc đổi API để chỉ nhận `AuraIntentDocument` và bắt caller convert trước
+    - Đảm bảo TypeScript không cho pass nhầm legacy `Document` vào AuraBrain IPC helper
+    - _Requirements: 14.8, 14.9_
+
+  - [x] 19.6 Cập nhật `exportService`
+    - `exportMarkdown(document)` và `exportDocx(document)` phải convert qua adapter trước khi gọi IPC
+    - `importFile()` phải convert `AuraDocument` từ backend thành frontend `Document` trước khi mở editor
+    - Fix các usage đang giả định import result là legacy `Document`
+    - _Requirements: 14.2, 14.3, 18.4_
+
+  - [x] 19.7 Viết unit tests cho adapter
+    - Plain paragraph
+    - Multi-paragraph text
+    - Heading levels
+    - Ordered list
+    - Unordered list
+    - Code block with language
+    - Empty document
+    - Malformed editor JSON fallback
+    - Unicode tiếng Việt
+    - Inline bold/italic/code nếu editor content hỗ trợ
+    - _Requirements: 14.10_
+
+  - [x] 19.8 Viết integration test cho `Cmd+S` payload
+    - Mock `invoke`
+    - Type content trong editor
+    - Press `Cmd+S`
+    - Assert command là `sync_intent`
+    - Assert payload có `intent_name`, `content` là array block, không pass legacy-only fields
+    - _Requirements: 14.11, 17.1_
+
+- [x] 20. Nâng cấp AuraBrain sync state thành React-observable store
+  - [x] 20.1 Refactor `src/services/auraBrainManager.ts`
+    - Thêm `subscribe(listener)`, `getSnapshot()`, `notify()`
+    - State gồm `activeDocumentId`, `isSyncing`, `queuedDocument`, `lastSyncedHashByDocumentId`, `lastSyncedAtByDocumentId`, `lastErrorByDocumentId`
+    - Không dùng một global `lastSyncedHash` cho mọi document
+    - _Requirements: 16.1, 16.6_
+
+  - [x] 20.2 Tạo hook `src/hooks/useAuraBrainSyncState.ts`
+    - Dùng `useSyncExternalStore` hoặc context/hook equivalent
+    - Expose `isSyncing`, `isDirty`, `lastSyncedAt`, `syncError` cho document hiện tại
+    - `App`, `DocumentTitleBar`, `EditorStatusBar` dùng hook này thay vì local copies rời rạc
+    - _Requirements: 16.1, 16.2, 16.3_
+
+  - [x] 20.3 Sửa queue semantics
+    - Khi sync trong lúc `isSyncing=true`, queued request không trả về trạng thái "persisted"
+    - UI không clear Dirty_Bit cho queued request cho đến khi queued IPC hoàn tất thành công
+    - Nếu queued sync fail, giữ Dirty_Bit true và show error
+    - Nếu queued sync success, update hash/timestamp theo queued content mới nhất
+    - _Requirements: 1.5, 1.6, 9.4, 9.5, 16.4, 16.5_
+
+  - [x] 20.4 Thêm baseline lifecycle methods
+    - `initializeSyncedBaseline(document)` khi load intent từ AuraBrain
+    - `resetForNewDocument(documentId)` khi tạo intent mới chưa sync
+    - `setActiveDocument(documentId)` khi đổi document
+    - _Requirements: 16.7, 16.8, 20.2, 20.3_
+
+  - [x] 20.5 Cập nhật `DocumentTitleBar`
+    - Nhận `isDirty`/`isSyncing` từ sync store hoặc parent lấy từ store
+    - Không hiển thị path
+    - Khi queued sync đang chạy, tiếp tục hiển thị syncing/dirty đúng trạng thái
+    - _Requirements: 3.1-3.7, 16.2, 16.4_
+
+  - [x] 20.6 Cập nhật `EditorStatusBar`
+    - Nhận `lastSyncedAt` theo active document
+    - Hiển thị `Syncing...`, `Unsaved changes`, `Synced · Ns ago` theo store
+    - Tooltip storage path lấy từ platform/backend helper, không tự đoán path
+    - _Requirements: 13.1-13.8, 16.2_
+
+  - [x] 20.7 Viết tests cho sync store
+    - Manual sync success clears dirty
+    - Manual sync failure keeps dirty and stores error
+    - Queue last-write-wins
+    - UI state remains syncing until queued sync completes
+    - Switching documents isolates hash state
+    - New document starts with correct dirty state
+    - Loading existing intent initializes clean baseline
+    - _Requirements: 16.1-16.9_
+
+- [x] 21. Nối auto-sync thật vào `App`
+  - [x] 21.1 Load preferences trong `App`
+    - Load `loadPreferences('default')` hoặc user id hiện tại
+    - Store `autoSyncEnabled`, `autoSyncInterval`
+    - Fallback defaults nếu load fail
+    - Update local state khi Preferences dialog save thay đổi các giá trị này
+    - _Requirements: 15.2, 15.3, 15.4_
+
+  - [x] 21.2 Mount `useAutoSync` trong `App`
+    - Hook chạy khi có `document`
+    - Truyền `autoSyncEnabled`, `autoSyncInterval`
+    - Hook dùng `syncDocument(document, 'auto')` từ sync store
+    - _Requirements: 15.1, 15.5_
+
+  - [x] 21.3 Sửa `useAutoSync` để sync dirty-only
+    - Trước mỗi interval tick, compute current hash và so với baseline
+    - Nếu clean, skip và không tăng version
+    - Nếu dirty và không syncing, gọi sync
+    - _Requirements: 15.6, 15.7_
+
+  - [x] 21.4 Hoàn thiện blur-triggered auto-sync
+    - Lắng nghe window blur
+    - Skip nếu clean
+    - Skip nếu `isSyncing=true`
+    - Skip nếu `Date.now() - lastSyncedAt < 2000`
+    - Show non-blocking error nếu fail
+    - _Requirements: 2.2, 2.5, 2.6, 2.7, 15.8, 15.9_
+
+  - [x] 21.5 Sync UI updates
+    - DocumentTitleBar đổi dirty/syncing đúng khi auto-sync start/success/fail
+    - EditorStatusBar đổi dirty/syncing/timestamp đúng khi auto-sync start/success/fail
+    - Sync error toast dùng cùng path manual sync
+    - _Requirements: 15.10_
+
+  - [x] 21.6 Viết tests cho auto-sync integration
+    - `App` mounts `useAutoSync`
+    - Interval tick calls `sync_intent` only when dirty
+    - Blur calls sync when dirty and outside debounce window
+    - Blur skip inside debounce window
+    - Preferences interval update changes timer
+    - Auto-sync failure keeps dirty and shows notification
+    - _Requirements: 15.11_
+
+- [x] 22. Loại bỏ legacy file save khỏi workflow chính
+  - [x] 22.1 Remove `useAutoSave` usage khỏi primary `App` flow
+    - Không gọi `save_document` khi gõ text
+    - Không gọi `save_document` khi `Cmd+S`
+    - Nếu hook vẫn cần cho migration, rename thành `useLegacyFileAutoSave`
+    - _Requirements: 17.1, 17.3, 17.4_
+
+  - [x] 22.2 Cập nhật top navigation action
+    - Nút hiện tại label "Render" phải mở RenderDrawer hoặc action export rõ ràng
+    - Không gọi `triggerSave` legacy
+    - Nếu cần nút sync riêng, label/icon phải là Sync và gọi AuraBrain sync
+    - _Requirements: 17.2, 17.7_
+
+  - [x] 22.3 Refactor state terminology
+    - `hasUnsavedChanges` dùng cho legacy file path phải được thay bằng dirty state AuraBrain hoặc isolate legacy namespace
+    - `saveError`, `markSaved`, `markFilePersisted` không được lẫn vào AuraBrain status
+    - UI copy dùng "Sync", "Synced", "Unsaved changes", "Export", "Render"
+    - _Requirements: 17.6, 17.7_
+
+  - [x] 22.4 Legacy migration path nếu cần
+    - Nếu `wordai_last_document_path` tồn tại, load legacy file một lần
+    - Convert legacy `Document` sang AuraDocument
+    - Sync vào AuraBrain
+    - Store `wordai_last_intent_id`
+    - Không tiếp tục auto-save vào legacy file
+    - _Requirements: 17.5, 20.7_
+
+  - [x] 22.5 Regression tests
+    - Normal typing không gọi `save_document`
+    - `Cmd+S` không gọi `save_document`
+    - Auto-sync không gọi `save_document`
+    - Top nav Render mở RenderDrawer, không save legacy file
+    - Legacy migration syncs into AuraBrain once
+    - _Requirements: 17.8_
+
+- [x] 23. Hoàn thiện startup/restore từ AuraBrain
+  - [x] 23.1 Implement restore key `wordai_last_intent_id`
+    - Ghi key sau sync thành công lần đầu của intent mới
+    - Ghi key khi user mở/import/update intent
+    - Không dùng `wordai_last_document_path` làm primary restore key
+    - _Requirements: 20.1, 20.4, 20.7_
+
+  - [x] 23.2 Startup load last intent
+    - App start đọc `wordai_last_intent_id`
+    - Gọi `get_intent`
+    - Convert `AuraDocument -> Document`
+    - Render editor
+    - Initialize synced baseline clean
+    - _Requirements: 20.1, 20.2_
+
+  - [x] 23.3 Startup fallback when last intent missing
+    - Nếu `get_intent` trả null, gọi `list_intents`
+    - Nếu có intents, mở intent mới cập nhật gần nhất
+    - Nếu DB rỗng, tạo in-memory intent mới chưa sync
+    - _Requirements: 20.3, 20.5_
+
+  - [x] 23.4 Database initialization failure UI
+    - Nếu backend trả lỗi DB init / path / permission, show blocking error state
+    - Có nút Retry
+    - Có nút Reveal diagnostics/storage nếu path resolve được
+    - Không render editor trong trạng thái không thể persist
+    - _Requirements: 20.6_
+
+  - [x] 23.5 Tests startup flow
+    - Last intent exists
+    - Last intent missing but list has recent intent
+    - Empty database creates new unsynced intent
+    - DB init failure shows blocking error
+    - Legacy path key no longer primary
+    - _Requirements: 20.8_
+
+- [x] 24. Hoàn thiện Export/Import UI end-to-end
+  - [x] 24.1 Refactor `RenderDrawer`
+    - Accept full current `Document`, not only `documentId` and plain content
+    - For Markdown, call `exportService.exportMarkdown(document)`
+    - For DOCX, call `exportService.exportDocx(document)`
+    - Stop calling non-existent `export_document`
+    - Keep PDF path separate if PDF export remains supported
+    - _Requirements: 18.1, 18.2, 18.3, 18.4_
+
+  - [x] 24.2 Return structured export result
+    - `exportMarkdown` / `exportDocx` return `cancelled | success | error`
+    - RenderDrawer shows success with output path when available
+    - RenderDrawer shows descriptive error for dialog/load prefs/serialize/write failures
+    - Cancel dialog has no side effects and no error
+    - _Requirements: 18.5, 18.6_
+
+  - [x] 24.3 Default export path and extension
+    - Dialog initial path uses `defaultExportPath`
+    - If file name lacks `.md` or `.docx`, append correct extension
+    - Default format preference can preselect Markdown or DOCX in RenderDrawer
+    - _Requirements: 6.2, 7.1, 10.1, 10.2, 18.7, 18.8_
+
+  - [x] 24.4 Add Import command to UI
+    - Add Import action in RenderDrawer, TopNavBar menu, or QuickSearch command
+    - Opens dialog filtered to `.md` and `.docx`
+    - Calls `exportService.importFile`
+    - Shows warnings if unsupported DOCX elements exist
+    - _Requirements: 8.1, 8.9, 8.10, 18.9, 18.13_
+
+  - [x] 24.5 Wire `ReplaceConfirmationDialog`
+    - Show dialog when Aura_Tag matches existing intent
+    - "Cập nhật Intent" keeps id, syncs content, opens editor clean
+    - "Tạo Intent mới" creates new id, syncs content, opens editor clean
+    - Cancel import performs no side effects
+    - _Requirements: 8.4-8.8, 18.10, 18.11, 18.12_
+
+  - [x] 24.6 UI tests for export/import
+    - Export Markdown success
+    - Export DOCX success
+    - Save dialog cancel
+    - Export failure displays error
+    - Import Markdown no tag creates new intent
+    - Import DOCX no tag creates new intent
+    - Import tag conflict update existing
+    - Import tag conflict create new
+    - Import warnings displayed
+    - _Requirements: 18.14_
+
+- [x] 25. Platform storage path and Preferences polish
+  - [x] 25.1 Add backend command `get_aurabrain_storage_path`
+    - Resolve the same path used by `SqliteStore::new`
+    - Return full absolute path
+    - Use this for Preferences About and status tooltip
+    - _Requirements: 12.1, 12.2, 13.6, 19.4_
+
+  - [x] 25.2 Remove frontend path guessing
+    - Replace `window.__TAURI_INTERNALS__`
+    - Replace hard-coded macOS/Windows guesses in `App.tsx`
+    - Use typed platform/path helper
+    - _Requirements: 12.2, 19.4_
+
+  - [x] 25.3 Complete `about` tab typing
+    - All `Record<Tab, ...>` objects include `about`
+    - QuickSearch can route `about.auraBrainStoragePath` to Preferences About tab
+    - Preferences property tests include `about`
+    - _Requirements: 12.5, 12.6, 19.5_
+
+  - [x] 25.4 Preferences save validation
+    - `autoSyncInterval` values outside 5-60 are rejected before IPC save
+    - UI keeps previous valid value and shows validation message
+    - `defaultExportFormat` rejects anything outside `markdown | docx`
+    - _Requirements: 10.2, 10.4, 10.5_
+
+  - [x] 25.5 Tests Preferences/platform path
+    - `get_aurabrain_storage_path` returns path from backend mock
+    - Reveal button calls `reveal_in_file_manager`
+    - Missing directory shows error
+    - About tab mapping compiles and renders
+    - Invalid autoSyncInterval is rejected
+    - _Requirements: 12.1-12.6, 19.4, 19.5_
+
+- [x] 26. Fix TypeScript build blockers and enforce clean build
+  - [x] 26.1 Remove unused imports/variables
+    - Remove unused `markFilePersisted` in `App.tsx` or wire it only if still needed
+    - Remove unused `UserAvatar` import or restore component usage intentionally
+    - Remove/underscore unused props such as `isAIPanelOpen`, `hasUnsavedChanges`, `userName`
+    - Remove unused test imports like `beforeEach` where not needed
+    - _Requirements: 19.1, 19.6_
+
+  - [x] 26.2 Fix global typing issues
+    - Remove `window.__TAURI_INTERNALS__` usage
+    - If runtime globals are unavoidable, declare them in `vite-env.d.ts` with precise type
+    - Prefer typed Tauri APIs or backend command over globals
+    - _Requirements: 19.4_
+
+  - [x] 26.3 Fix `Tab` record coverage
+    - Add `about` to tab label/order mappings in `QuickSearchPopup`
+    - Add `about` to property test mappings
+    - Ensure `Tab = 'general' | 'ai-engine' | 'typography' | 'privacy' | 'about'` is respected everywhere
+    - _Requirements: 19.5_
+
+  - [x] 26.4 Run and pass frontend build
+    - Command: `cd apps/wordai-editor && npm run build`
+    - Zero TypeScript errors
+    - Zero Vite build failures
+    - _Requirements: 19.1_
+
+- [ ] 27. End-to-end tests and release smoke path
+  - [x] 27.1 Full frontend test suite
+    - Command: `cd apps/wordai-editor && npm test`
+    - All existing tests pass
+    - Add tests for new adapter/store/startup/export/import flows
+    - _Requirements: 19.2_
+
+  - [x] 27.2 Full backend test suite
+    - Command: `cd apps/wordai-editor/src-tauri && cargo test`
+    - Existing SQLite/Markdown/DOCX/property tests pass
+    - Add tests for `get_aurabrain_storage_path` and any new IPC helpers
+    - _Requirements: 19.3_
+
+  - [x] 27.3 Manual QA script
+    - Create new intent
+    - Type paragraph, heading, list, and code block if supported
+    - Press `Cmd+S`; observe title/status clean
+    - Type again; observe dirty indicator
+    - Wait auto-sync interval; observe clean + synced timestamp
+    - Close and reopen app; confirm content restored from AuraBrain
+    - Export Markdown; verify Aura_Tag frontmatter and visible content
+    - Export DOCX; verify Word opens file and Custom Properties contain Aura_Tag
+    - Import Markdown without tag; verify new intent
+    - Import Markdown/DOCX with existing tag; verify update/create-new dialog
+    - Reveal AuraBrain storage path from Preferences About
+    - _Requirements: 19.7_
+
+  - [x] 27.4 Release notes
+    - Document that AuraBrain is primary storage
+    - Document that Markdown/DOCX are legacy export/import formats
+    - Document where AuraBrain storage is located
+    - Document known limits for unsupported DOCX elements
+    - _Requirements: 19.8_
+
+  - [ ] 27.5 Completion gate
+    - Do not mark Completion Pass tasks `[x]` until:
+      - `npm run build` passes
+      - `npm test` passes
+      - `cargo test` passes
+      - Manual QA script passes
+    - Update this task list with exact command results and date when completed
+    - Automated verification on 2026-04-25:
+      - `cd apps/wordai-editor && npm test` → 28 test files passed, 365 tests passed
+      - `cd apps/wordai-editor && npm run build` → TypeScript and Vite production build passed
+      - `cd apps/wordai-editor/src-tauri && cargo test` → 71 tests passed
+      - `cd apps/wordai-editor && npm run tauri -- build` → macOS `.app` and `.dmg` bundle build passed
+    - Manual GUI QA script is documented in `manual-qa.md`; keep this gate unchecked until the script is run against the built app.
+    - _Requirements: 19.9_
