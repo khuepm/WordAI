@@ -11,20 +11,25 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
+import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
+import type { AuraImportResult, AuraIntentDocument } from '../types/auraDocument';
 import type { Document } from '../types/document';
-import { sync } from './auraBrainManager';
+import { auraIntentToDocument, documentToAuraIntent } from './auraDocumentAdapter';
+import { syncDocument } from './auraBrainManager';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export interface ImportResult {
-  document: Document;
-  /** UUID if the file contains an Aura_Tag pointing to an existing Intent */
-  auraIntentId?: string;
-  /** List of Unsupported_Element types encountered during import */
-  warnings: string[];
-}
+export type ExportResult =
+  | { status: 'cancelled' }
+  | { status: 'success'; path: string }
+  | { status: 'error'; message: string };
+
+export type ImportFlowResult =
+  | { status: 'cancelled' }
+  | { status: 'opened'; document: Document; warnings: string[] }
+  | { status: 'error'; message: string };
 
 /**
  * Callback invoked when an imported file's Aura_Tag matches an existing Intent.
@@ -81,14 +86,12 @@ type OpenDialogOptions = {
  * Opens a native save-file dialog.
  * Returns the chosen path string, or null if the user cancelled.
  *
- * Uses @tauri-apps/plugin-dialog at runtime. Falls back to null in
- * non-Tauri environments (browser dev mode, tests).
+ * Uses @tauri-apps/plugin-dialog at runtime. Falls back to null when the
+ * dialog plugin is unavailable (browser dev mode, tests).
  */
 async function openSaveDialog(options: SaveDialogOptions): Promise<string | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dialog = await (Function('return import("@tauri-apps/plugin-dialog")')() as Promise<any>);
-    const result: string | null = await dialog.save(options);
+    const result = await saveDialog(options);
     return result ?? null;
   } catch {
     return null;
@@ -101,9 +104,7 @@ async function openSaveDialog(options: SaveDialogOptions): Promise<string | null
  */
 async function openOpenDialog(options: OpenDialogOptions): Promise<string | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dialog = await (Function('return import("@tauri-apps/plugin-dialog")')() as Promise<any>);
-    const result: string | string[] | null = await dialog.open({ ...options, multiple: false });
+    const result = await openDialog({ ...options, multiple: false });
     if (Array.isArray(result)) return result[0] ?? null;
     return result ?? null;
   } catch {
@@ -131,6 +132,11 @@ async function getDefaultExportPath(): Promise<string> {
   }
 }
 
+function ensureExtension(path: string, extension: 'md' | 'docx'): string {
+  const expected = `.${extension}`;
+  return path.toLowerCase().endsWith(expected) ? path : `${path}${expected}`;
+}
+
 // ---------------------------------------------------------------------------
 // Export to Markdown
 // Requirements: 6.1, 6.2, 6.5, 6.6, 6.7
@@ -142,19 +148,25 @@ async function getDefaultExportPath(): Promise<string> {
  *
  * Does NOT modify AuraBrain state or the Dirty_Bit after export.
  */
-export async function exportMarkdown(document: Document): Promise<void> {
+export async function exportMarkdown(document: Document): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
 
-  const path = await openSaveDialog({
+  const selectedPath = await openSaveDialog({
     defaultPath: defaultPath || undefined,
     filters: [{ name: 'Markdown', extensions: ['md'] }],
   });
 
   // Requirement 6.7: user cancelled — do nothing
-  if (!path) return;
+  if (!selectedPath) return { status: 'cancelled' };
 
-  // Requirement 6.3, 6.5: call IPC; throws on failure so caller can notify user
-  await invoke('export_markdown', { path, document });
+  try {
+    const path = ensureExtension(selectedPath, 'md');
+    const { value: auraDocument } = documentToAuraIntent(document);
+    await invoke('export_markdown', { path, document: auraDocument });
+    return { status: 'success', path };
+  } catch (err) {
+    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+  }
 
   // Requirement 6.5: AuraBrain state is NOT changed here — intentionally no
   // auraBrainManager calls after this point.
@@ -171,19 +183,25 @@ export async function exportMarkdown(document: Document): Promise<void> {
  *
  * Does NOT modify AuraBrain state or the Dirty_Bit after export.
  */
-export async function exportDocx(document: Document): Promise<void> {
+export async function exportDocx(document: Document): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
 
-  const path = await openSaveDialog({
+  const selectedPath = await openSaveDialog({
     defaultPath: defaultPath || undefined,
     filters: [{ name: 'Word Document', extensions: ['docx'] }],
   });
 
   // User cancelled — do nothing
-  if (!path) return;
+  if (!selectedPath) return { status: 'cancelled' };
 
-  // Requirement 7.2, 7.5: call IPC; throws on failure so caller can notify user
-  await invoke('export_docx', { path, document });
+  try {
+    const path = ensureExtension(selectedPath, 'docx');
+    const { value: auraDocument } = documentToAuraIntent(document);
+    await invoke('export_docx', { path, document: auraDocument });
+    return { status: 'success', path };
+  } catch (err) {
+    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+  }
 
   // Requirement 7.5: AuraBrain state is NOT changed here.
 }
@@ -212,7 +230,7 @@ export async function exportDocx(document: Document): Promise<void> {
  *
  * Returns the final Document that was synced, or null if the user cancelled.
  */
-export async function importFile(options: ImportOptions = {}): Promise<Document | null> {
+export async function importFile(options: ImportOptions = {}): Promise<ImportFlowResult> {
   const { onConflict, onOpenIntent } = options;
 
   const path = await openOpenDialog({
@@ -220,10 +238,14 @@ export async function importFile(options: ImportOptions = {}): Promise<Document 
   });
 
   // Requirement 8.1: user cancelled dialog — do nothing
-  if (!path) return null;
+  if (!path) return { status: 'cancelled' };
 
-  // Requirement 8.9: throws if file cannot be read or parsed
-  const result = await invoke<ImportResult>('import_file', { path });
+  let result: AuraImportResult;
+  try {
+    result = await invoke<AuraImportResult>('import_file', { path });
+  } catch (err) {
+    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+  }
 
   // Requirement 8.10: surface warnings about Unsupported_Elements
   if (result.warnings.length > 0) {
@@ -233,14 +255,15 @@ export async function importFile(options: ImportOptions = {}): Promise<Document 
     );
   }
 
-  const { document, auraIntentId } = result;
+  const importedDocument = auraIntentToDocument(result.document).value;
+  const auraIntentId = result.aura_intent_id ?? null;
 
   // ── Aura_Tag conflict detection (Requirements 8.4 – 8.8) ──────────────────
   if (auraIntentId) {
     // Check whether this intent already exists in AuraBrain
-    let existingIntent: Document | null = null;
+    let existingIntent: AuraIntentDocument | null = null;
     try {
-      existingIntent = await invoke<Document | null>('get_intent', { id: auraIntentId });
+      existingIntent = await invoke<AuraIntentDocument | null>('get_intent', { id: auraIntentId });
     } catch {
       // If the IPC call fails we treat it as "not found" and create a new intent
       existingIntent = null;
@@ -249,23 +272,23 @@ export async function importFile(options: ImportOptions = {}): Promise<Document 
     if (existingIntent) {
       // Requirement 8.4: conflict — ask the user what to do
       const choice = onConflict
-        ? await onConflict(existingIntent.title || 'Untitled Intent', auraIntentId)
+        ? await onConflict(existingIntent.intent_name || 'Untitled Intent', auraIntentId)
         : 'create_new'; // safe default when no UI callback is provided
 
-      if (choice === 'cancel') return null;
+      if (choice === 'cancel') return { status: 'cancelled' };
 
       if (choice === 'update') {
         // Requirement 8.5: keep original id and created_at, bump version
         const updatedDoc: Document = {
-          ...document,
+          ...importedDocument,
           id: auraIntentId,
-          metadata: existingIntent.metadata,
+          metadata: importedDocument.metadata,
           lastModified: new Date(),
         };
-        await sync(updatedDoc);
+        await syncDocument(updatedDoc, 'import');
         // Requirement 8.8: open the intent in the editor, clear Unsaved_Indicator
         onOpenIntent?.(updatedDoc);
-        return updatedDoc;
+        return { status: 'opened', document: updatedDoc, warnings: result.warnings };
       }
 
       // choice === 'create_new' — fall through to new-intent creation below
@@ -274,10 +297,11 @@ export async function importFile(options: ImportOptions = {}): Promise<Document 
 
   // Requirement 8.6 / 8.7: no conflict or user chose "create new" — new UUID
   const newDoc: Document = {
-    ...document,
+    ...importedDocument,
     id: crypto.randomUUID(),
     lastModified: new Date(),
   };
-  await sync(newDoc);
-  return newDoc;
+  await syncDocument(newDoc, 'import');
+  onOpenIntent?.(newDoc);
+  return { status: 'opened', document: newDoc, warnings: result.warnings };
 }
