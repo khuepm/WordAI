@@ -109,12 +109,12 @@ export function useAutoSave(
 // Requirements: 2.1, 2.2, 2.3, 2.6, 2.7
 // ---------------------------------------------------------------------------
 
-import { sync, getState } from '../services/auraBrainManager';
+import { getState, isDocumentDirty, syncDocument } from '../services/auraBrainManager';
 
 const BLUR_DEBOUNCE_MS = 2000;
 
 export interface UseAutoSyncOptions {
-  document: Document;
+  document: Document | null;
   autoSyncEnabled: boolean;
   autoSyncInterval: number; // seconds, range [5, 60]
 }
@@ -141,9 +141,13 @@ export function useAutoSync(options: UseAutoSyncOptions): void {
 
     const intervalMs = autoSyncInterval * 1000;
     const id = setInterval(() => {
+      const doc = documentRef.current;
+      if (!doc) return;
       const state = getState();
       if (state.isSyncing) return; // Req 2.7
-      void sync(documentRef.current);
+      void isDocumentDirty(doc).then((dirty) => {
+        if (dirty) void syncDocument(doc, 'auto');
+      });
     }, intervalMs);
 
     return () => clearInterval(id);
@@ -154,11 +158,15 @@ export function useAutoSync(options: UseAutoSyncOptions): void {
     if (!autoSyncEnabled) return;
 
     const handleBlur = () => {
+      const doc = documentRef.current;
+      if (!doc) return;
       const state = getState();
       if (state.isSyncing) return; // Req 2.7
       // Debounce: skip if last sync was within 2000ms (Req 2.6)
       if (state.lastSyncedAt !== null && Date.now() - state.lastSyncedAt < BLUR_DEBOUNCE_MS) return;
-      void sync(documentRef.current);
+      void isDocumentDirty(doc).then((dirty) => {
+        if (dirty) void syncDocument(doc, 'blur');
+      });
     };
 
     window.addEventListener('blur', handleBlur);
