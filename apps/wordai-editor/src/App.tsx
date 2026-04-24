@@ -15,26 +15,85 @@ import { TopNavBar } from './components/TopNavBar';
 import { PreferencesDialog } from './components/PreferencesDialog';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
 import { Tooltip } from './components/Tooltip';
-import { useAutoSave } from './hooks/useAutoSave';
-import { createDocument, loadDocument, getDocumentPath } from './services/documentService';
+import { useAutoSync } from './hooks/useAutoSave';
+import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
+import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import * as auraBrainManager from './services/auraBrainManager';
+import { auraIntentToDocument } from './services/auraDocumentAdapter';
+import { getAuraBrainStoragePath } from './services/platformService';
+import { loadPreferences } from './services/preferencesService';
+import type { AuraIntentDocument, AuraIntentSummary } from './types/auraDocument';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
-import type { SettingEntry, Tab } from './types/preferences';
+import { defaultPreferences, type Preferences, type SettingEntry, type Tab } from './types/preferences';
 import { ensureBlockValue, extractPlainText, replaceTextInBlockValue } from './utils/blockText';
 
-const LAST_PATH_KEY = 'wordai_last_document_path';
+const LAST_INTENT_KEY = 'wordai_last_intent_id';
+const LEGACY_LAST_PATH_KEY = 'wordai_last_document_path';
 const FONT_SIZE_KEY = 'wordai_font_size';
 const DEFAULT_FONT_SIZE = 18;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizePreferences(value: unknown): Preferences {
+  if (!isRecord(value)) return defaultPreferences;
+
+  const general = isRecord(value.general) ? value.general : {};
+  const autoSave = isRecord(general.autoSave) ? general.autoSave : {};
+  const aiEngine = isRecord(value.aiEngine) ? value.aiEngine : {};
+  const typography = isRecord(value.typography) ? value.typography : {};
+  const privacy = isRecord(value.privacy) ? value.privacy : {};
+
+  return {
+    general: {
+      ...defaultPreferences.general,
+      ...general,
+      autoSave: {
+        ...defaultPreferences.general.autoSave,
+        ...autoSave,
+      },
+    } as Preferences['general'],
+    aiEngine: {
+      ...defaultPreferences.aiEngine,
+      ...aiEngine,
+    } as Preferences['aiEngine'],
+    typography: {
+      ...defaultPreferences.typography,
+      ...typography,
+    } as Preferences['typography'],
+    privacy: {
+      ...defaultPreferences.privacy,
+      ...privacy,
+    } as Preferences['privacy'],
+  };
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (isRecord(error) && typeof error.message === 'string') return error.message;
+  return 'AuraBrain storage is not available.';
+}
+
+function createInMemoryDocument(title = 'Untitled Intent'): Document {
+  return {
+    id: crypto.randomUUID(),
+    title,
+    content: '',
+    metadata: { wordCount: 0, readingTime: 0, status: 'draft', tags: [] },
+    version: 1,
+    lastModified: new Date(),
+  };
+}
 
 function App() {
   const {
     state,
     setDocument,
     updateDocument,
-    markSaved,
-    setSaveError,
     openAIPanel,
     closeAIPanel,
     openNegotiation,
@@ -44,7 +103,6 @@ function App() {
     openVersionHistory,
     closeVersionHistory,
     setAiServiceStatus,
-    markFilePersisted,
   } = useAppState();
 
   const [fontSize, setFontSize] = useState<number>(() => {
@@ -57,14 +115,11 @@ function App() {
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
   const [preferencesInitialTab, setPreferencesInitialTab] = useState<Tab | undefined>(undefined);
   const [preferencesTargetSettingId, setPreferencesTargetSettingId] = useState<string | undefined>(undefined);
-
-  // AuraBrain sync state (Req 1.1, 1.2, 1.4, 3.3, 3.4, 13.1–13.8)
-  const [isDirty, setIsDirty] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
-  const [syncErrorMsg, setSyncErrorMsg] = useState<string | null>(null);
-  // Ref to track current content hash for dirty detection
-  const currentHashRef = useRef<string | null>(null);
+  const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
+  const [storagePath, setStoragePath] = useState('');
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [startupRetryKey, setStartupRetryKey] = useState(0);
+  const [syncErrorDismissed, setSyncErrorDismissed] = useState(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -92,17 +147,10 @@ function App() {
         e.preventDefault();
         const doc = documentRef.current;
         if (!doc) return;
-        setIsSyncing(true);
-        setSyncErrorMsg(null);
-        const result = await auraBrainManager.sync(doc);
-        setIsSyncing(false);
-        if (result.success) {
-          // Req 1.2, 3.4: clear dirty indicator on success
-          setIsDirty(false);
-          setLastSyncedAt(Date.now());
-        } else {
-          // Req 1.4: show error notification, keep dirty indicator
-          setSyncErrorMsg(result.error ?? 'Sync failed. Please try again.');
+        setSyncErrorDismissed(false);
+        const result = await auraBrainManager.syncDocument(doc, 'manual');
+        if (result.success && !result.queued) {
+          localStorage.setItem(LAST_INTENT_KEY, doc.id);
         }
       }
     };
@@ -117,80 +165,101 @@ function App() {
     setIsPreferencesOpen(true);
   }, []);
 
+  const refreshPreferences = useCallback(async () => {
+    try {
+      const loaded = await loadPreferences('default');
+      setPreferences(normalizePreferences(loaded));
+    } catch {
+      setPreferences(defaultPreferences);
+    }
+  }, []);
+
   const {
     document,
-    filePath,
-    isFilePersisted,
     isAIPanelOpen,
     isNegotiationOpen,
     isRenderDrawerOpen,
     isVersionHistoryOpen,
     aiSelection,
     selectedSuggestion,
-    saveError,
-    hasUnsavedChanges,
     aiServiceAvailable,
   } = state;
+
+  const syncView = useAuraBrainSyncState(document);
 
   // Keep documentRef in sync for the Cmd+S handler (Req 1.1)
   useEffect(() => {
     documentRef.current = document;
   }, [document]);
 
-  // Initialize: restore last document or create a fresh one (Req 25.1–25.3)
+  useEffect(() => {
+    void refreshPreferences();
+    getAuraBrainStoragePath()
+      .then(setStoragePath)
+      .catch(() => setStoragePath(''));
+  }, [refreshPreferences]);
+
+  // Initialize: restore last AuraBrain intent or create a fresh in-memory intent.
   useEffect(() => {
     let cancelled = false;
+    setStartupError(null);
+    async function openAuraIntent(intent: AuraIntentDocument) {
+      const doc = auraIntentToDocument(intent).value;
+      const normalized = { ...doc, content: ensureBlockValue(doc.content) };
+      if (!cancelled) {
+        setDocument(normalized, '', true);
+        await auraBrainManager.initializeSyncedBaseline(normalized);
+        localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+      }
+    }
+
+    function openNewDocument() {
+      const doc = createInMemoryDocument();
+      setDocument(doc, '', false);
+      auraBrainManager.resetForNewDocument(doc.id);
+    }
+
     async function init() {
-      const savedPath = localStorage.getItem(LAST_PATH_KEY);
-      let doc: Document;
-      let path: string;
       try {
-        if (savedPath) {
-          doc = await loadDocument(savedPath);
-          path = savedPath;
-          const persisted = !!savedPath;
-          if (!cancelled) {
-            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
-            localStorage.setItem(LAST_PATH_KEY, path);
+        const lastIntentId = localStorage.getItem(LAST_INTENT_KEY);
+        if (lastIntentId) {
+          const lastIntent = await invoke<AuraIntentDocument | null>('get_intent', { id: lastIntentId });
+          if (lastIntent) {
+            await openAuraIntent(lastIntent);
+            return;
           }
-          return;
-        } else {
-          doc = await createDocument();
-          path = getDocumentPath(doc.id);
-          // Newly created docs are not yet persisted; keep auto-save disabled until first save.
-          const persisted = false;
+        }
+
+        const intents = await invoke<AuraIntentSummary[]>('list_intents');
+        if (Array.isArray(intents) && intents.length > 0) {
+          const mostRecent = await invoke<AuraIntentDocument | null>('get_intent', { id: intents[0].id });
+          if (mostRecent) {
+            await openAuraIntent(mostRecent);
+            return;
+          }
+        }
+
+        const legacyPath = localStorage.getItem(LEGACY_LAST_PATH_KEY);
+        if (legacyPath) {
+          const legacyDoc = await loadDocument(legacyPath);
+          const normalized = { ...legacyDoc, content: ensureBlockValue(legacyDoc.content) };
+          const syncResult = await auraBrainManager.syncDocument(normalized, 'startup');
           if (!cancelled) {
-            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
-            localStorage.setItem(LAST_PATH_KEY, path);
+            setDocument(normalized, '', syncResult.success);
+            if (syncResult.success) localStorage.setItem(LAST_INTENT_KEY, normalized.id);
           }
           return;
         }
-      } catch {
-        // Always fall back to a new document — never stay stuck on loading
-        try {
-          doc = await createDocument();
-          path = getDocumentPath(doc.id);
-          const persisted = false;
-          if (!cancelled) {
-            setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, persisted);
-            localStorage.setItem(LAST_PATH_KEY, path);
-          }
-          return;
-        } catch (e) {
-          console.error('Failed to create document:', e);
-          return;
-        }
+
+        if (!cancelled) openNewDocument();
+      } catch (err) {
+        if (!cancelled) setStartupError(errorMessage(err));
       }
     }
     init();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Keep localStorage in sync when filePath changes
-  useEffect(() => {
-    if (filePath) localStorage.setItem(LAST_PATH_KEY, filePath);
-  }, [filePath]);
+  }, [startupRetryKey]);
 
   // Check AI service connectivity on startup (Req 25.4) — fire and forget, never blocks loading
   const checkAIHealth = useCallback(async () => {
@@ -210,22 +279,7 @@ function App() {
 
   const handleDocumentChange = useCallback((doc: Document) => {
     updateDocument(doc);
-    // Req 3.3: mark dirty when content changes
-    // Compute hash async and compare with lastSyncedHash
-    auraBrainManager.computeContentHash(doc.content).then((hash) => {
-      currentHashRef.current = hash;
-      const dirty = auraBrainManager.isDirty(hash);
-      setIsDirty(dirty);
-    });
   }, [updateDocument]);
-
-  const handleSaveSuccess = useCallback((doc: Document) => {
-    markSaved(doc);
-  }, [markSaved]);
-
-  const handleSaveError = useCallback(() => {
-    // saveError is surfaced via useAutoSave return value and stored in state
-  }, []);
 
   // Cmd+K triggers AI panel (Req 5.1–5.3, 21.1)
   const handleAITrigger = useCallback((selection: TextSelection) => {
@@ -258,25 +312,88 @@ function App() {
     updateDocument({ ...document, content: ensureBlockValue(content), lastModified: new Date() });
   }, [document, updateDocument]);
 
-  const handleNew = useCallback(async () => {
-    const doc = await createDocument();
-    const path = getDocumentPath(doc.id);
-    setDocument({ ...doc, content: ensureBlockValue(doc.content) }, path, false);
-    localStorage.setItem(LAST_PATH_KEY, path);
+  const handleNew = useCallback(() => {
+    const doc = createInMemoryDocument();
+    setDocument(doc, '', false);
+    auraBrainManager.resetForNewDocument(doc.id);
+    localStorage.removeItem(LAST_INTENT_KEY);
   }, [setDocument]);
 
-  const { saveError: autoSaveError, triggerSave } = useAutoSave(
-    document ?? ({} as Document),
-    document && filePath ? filePath : '',
-    handleSaveSuccess,
-    handleSaveError,
-    isFilePersisted
-  );
+  const handleManualSync = useCallback(async () => {
+    if (!document) return;
+    setSyncErrorDismissed(false);
+    const result = await auraBrainManager.syncDocument(document, 'manual');
+    if (result.success && !result.queued) {
+      localStorage.setItem(LAST_INTENT_KEY, document.id);
+    }
+  }, [document]);
 
-  // Sync auto-save error into global state
+  const handleImportedDocument = useCallback((doc: Document) => {
+    const normalized = { ...doc, content: ensureBlockValue(doc.content) };
+    setDocument(normalized, '', true);
+    void auraBrainManager.initializeSyncedBaseline(normalized);
+    localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+  }, [setDocument]);
+
+  useAutoSync({
+    document,
+    autoSyncEnabled: preferences.general.autoSyncEnabled,
+    autoSyncInterval: preferences.general.autoSyncInterval,
+  });
+
   useEffect(() => {
-    setSaveError(autoSaveError);
-  }, [autoSaveError, setSaveError]);
+    setSyncErrorDismissed(false);
+  }, [syncView.syncError]);
+
+  const handleRevealDiagnostics = useCallback(async () => {
+    if (!storagePath) return;
+    await invoke('reveal_in_file_manager', { path: storagePath }).catch(() => undefined);
+  }, [storagePath]);
+
+  if (startupError) {
+    return (
+      <div
+        data-testid="startup-error"
+        role="alert"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          height: '100vh',
+          padding: '2rem',
+          textAlign: 'center',
+          fontFamily: 'var(--font-family-ui)',
+          color: 'var(--md-sys-color-on-surface)',
+          background: 'var(--md-sys-color-surface)',
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>AuraBrain storage is unavailable</h1>
+        <p style={{ margin: 0, maxWidth: 560, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          {startupError}
+        </p>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setStartupRetryKey((key) => key + 1)}
+            style={{ padding: '0.625rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}
+          >
+            Retry
+          </button>
+          {storagePath && (
+            <button
+              type="button"
+              onClick={handleRevealDiagnostics}
+              style={{ padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid currentColor', cursor: 'pointer' }}
+            >
+              Reveal diagnostics
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (!document) {
     return (
@@ -315,12 +432,12 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <TopNavBar
         documentTitle={document.title}
-        hasUnsavedChanges={hasUnsavedChanges}
+        hasUnsavedChanges={syncView.isDirty}
         onNew={handleNew}
-        onSave={triggerSave}
+        onSave={openRenderDrawer}
         onOpenPreferences={() => setIsPreferencesOpen(true)}
-        isDirty={isDirty}
-        isSyncing={isSyncing}
+        isDirty={syncView.isDirty}
+        isSyncing={syncView.isSyncing}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -406,7 +523,7 @@ function App() {
       )}
 
       {/* Sync error notification (Req 1.4) — non-blocking toast, keeps dirty indicator */}
-      {syncErrorMsg && (
+      {syncView.syncError && !syncErrorDismissed && (
         <div
           data-testid="sync-error-notification"
           role="alert"
@@ -430,10 +547,10 @@ function App() {
           }}
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>Sync failed: {syncErrorMsg}</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>Sync failed: {syncView.syncError}</span>
           <button
             data-testid="sync-error-close-button"
-            onClick={() => setSyncErrorMsg(null)}
+            onClick={() => setSyncErrorDismissed(true)}
             aria-label="Dismiss sync error"
             style={{
               background: 'transparent',
@@ -530,9 +647,9 @@ function App() {
             onDocumentChange={handleDocumentChange}
             onAITrigger={handleAITrigger}
             isAIPanelOpen={isAIPanelOpen}
-            saveError={saveError}
-            hasUnsavedChanges={hasUnsavedChanges}
-            onManualSave={triggerSave}
+            saveError={syncView.syncError ? { code: 'SYNC_ERROR', message: syncView.syncError } : null}
+            hasUnsavedChanges={syncView.isDirty}
+            onManualSave={handleManualSync}
             onOpenExport={openRenderDrawer}
             onOpenVersionHistory={openVersionHistory}
             fontSize={fontSize}
@@ -556,8 +673,8 @@ function App() {
           <RenderDrawer
             isOpen={isRenderDrawerOpen}
             onClose={closeRenderDrawer}
-            documentId={document.id}
-            documentContent={extractPlainText(document.content)}
+            document={document}
+            onImportDocument={handleImportedDocument}
           />
           <VersionHistory
             isOpen={isVersionHistoryOpen}
@@ -568,18 +685,17 @@ function App() {
         </div>
         {/* Editor Status Bar — fixed at bottom of editor area (Req 13.1) */}
         <EditorStatusBar
-          isSyncing={isSyncing}
-          isDirty={isDirty}
-          lastSyncedAt={lastSyncedAt}
-          storagePath={auraBrainManager.getState().lastSyncedAt !== null
-            ? (window.__TAURI_INTERNALS__ ? '~/Library/Application Support/WordAI/AuraBrain/' : 'AppData/Local/WordAI/AuraBrain/')
-            : ''}
+          isSyncing={syncView.isSyncing}
+          isDirty={syncView.isDirty}
+          lastSyncedAt={syncView.lastSyncedAt}
+          storagePath={storagePath}
         />
       </div>
 
       <PreferencesDialog
         isOpen={isPreferencesOpen}
         onClose={() => { setIsPreferencesOpen(false); setPreferencesTargetSettingId(undefined); }}
+        onApply={refreshPreferences}
         initialTab={preferencesInitialTab}
         targetSettingId={preferencesTargetSettingId}
       />
