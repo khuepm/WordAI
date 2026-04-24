@@ -5,6 +5,7 @@
  */
 
 import type { Document, DocumentSnapshot } from '../types/document';
+import type { AuraIntentDocument, AuraIntentSummary } from '../types/auraDocument';
 import { defaultPreferences } from '../types/preferences';
 import type { Preferences } from '../types/preferences';
 
@@ -13,6 +14,7 @@ const versionHistory: Record<string, DocumentSnapshot[]> = {};
 
 // In-memory preferences store keyed by userId
 const preferencesStore: Record<string, Preferences> = {};
+const auraStore: Record<string, AuraIntentDocument> = {};
 
 // In-memory document store (backed by localStorage for persistence)
 function storageKey(path: string) {
@@ -91,6 +93,55 @@ const handlers: Record<string, (args: any) => unknown> = {
     };
     localStorage.setItem(storageKey(path), JSON.stringify(raw));
     return null;
+  },
+
+  sync_intent({ document }: { document: AuraIntentDocument }) {
+    const existing = auraStore[document.id];
+    const now = Date.now();
+    const version = (existing?.version ?? 0) + 1;
+    auraStore[document.id] = {
+      ...document,
+      version,
+      created_at: existing?.created_at ?? document.created_at ?? now,
+      updated_at: now,
+    };
+    return version;
+  },
+
+  get_intent({ id }: { id: string }) {
+    return auraStore[id] ?? null;
+  },
+
+  list_intents() {
+    return Object.values(auraStore)
+      .map((doc): AuraIntentSummary => ({
+        id: doc.id,
+        intent_name: doc.intent_name,
+        created_at: doc.created_at ?? Date.now(),
+        updated_at: doc.updated_at ?? Date.now(),
+        version: doc.version ?? 1,
+      }))
+      .sort((a, b) => b.updated_at - a.updated_at);
+  },
+
+  export_markdown() {
+    return null;
+  },
+
+  export_docx() {
+    return null;
+  },
+
+  import_file() {
+    throw new Error('[mock] import_file requires Tauri runtime or a test mock');
+  },
+
+  reveal_in_file_manager() {
+    return null;
+  },
+
+  get_aurabrain_storage_path() {
+    return '/tmp/WordAI/AuraBrain';
   },
 
   get_version_history({ doc_id }: { doc_id: string }) {
