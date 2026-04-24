@@ -488,11 +488,14 @@ import * as auraBrainManager from '../services/auraBrainManager';
 
 vi.mock('../services/auraBrainManager', () => ({
   sync: vi.fn().mockResolvedValue({ success: true }),
+  syncDocument: vi.fn().mockResolvedValue({ success: true }),
+  isDocumentDirty: vi.fn().mockResolvedValue(true),
   getState: vi.fn(),
 }));
 
-const mockSync = vi.mocked(auraBrainManager.sync);
+const mockSync = vi.mocked(auraBrainManager.syncDocument);
 const mockGetState = vi.mocked(auraBrainManager.getState);
+const mockIsDocumentDirty = vi.mocked(auraBrainManager.isDocumentDirty);
 
 const makeDoc = (content = 'Hello'): Document => ({
   id: 'doc-1',
@@ -505,8 +508,12 @@ const makeDoc = (content = 'Hello'): Document => ({
 
 function idleState(overrides: Partial<auraBrainManager.AuraBrainState> = {}): auraBrainManager.AuraBrainState {
   return {
+    activeDocumentId: null,
     isSyncing: false,
     syncQueue: null,
+    lastSyncedHashByDocumentId: {},
+    lastSyncedAtByDocumentId: {},
+    lastErrorByDocumentId: {},
     lastSyncedHash: null,
     lastSyncedAt: null,
     ...overrides,
@@ -518,6 +525,7 @@ describe('useAutoSync', () => {
     vi.useFakeTimers();
     mockSync.mockResolvedValue({ success: true });
     mockGetState.mockReturnValue(idleState());
+    mockIsDocumentDirty.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -538,7 +546,7 @@ describe('useAutoSync', () => {
     });
 
     expect(mockSync).toHaveBeenCalledTimes(1);
-    expect(mockSync).toHaveBeenCalledWith(doc);
+    expect(mockSync).toHaveBeenCalledWith(doc, 'auto');
   });
 
   it('calls sync multiple times across multiple intervals (Req 2.1)', async () => {
@@ -554,6 +562,27 @@ describe('useAutoSync', () => {
     expect(mockSync).toHaveBeenCalledTimes(3);
   });
 
+  it('updates interval timer when preferences interval changes', async () => {
+    const doc = makeDoc();
+    const { rerender } = renderHookSync(
+      ({ interval }: { interval: number }) =>
+        useAutoSync({ document: doc, autoSyncEnabled: true, autoSyncInterval: interval }),
+      { initialProps: { interval: 30 } },
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(10_000);
+    });
+    expect(mockSync).not.toHaveBeenCalled();
+
+    rerender({ interval: 5 });
+
+    await act(async () => {
+      vi.advanceTimersByTime(5_000);
+    });
+    expect(mockSync).toHaveBeenCalledTimes(1);
+  });
+
   it('calls sync on window blur event (Req 2.2)', async () => {
     const doc = makeDoc();
     renderHookSync(() =>
@@ -565,7 +594,7 @@ describe('useAutoSync', () => {
     });
 
     expect(mockSync).toHaveBeenCalledTimes(1);
-    expect(mockSync).toHaveBeenCalledWith(doc);
+    expect(mockSync).toHaveBeenCalledWith(doc, 'blur');
   });
 
   it('skips blur-triggered sync within 2000ms debounce window (Req 2.6)', async () => {

@@ -7,8 +7,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   sync,
   isDirty,
+  isDocumentDirty,
   computeContentHash,
+  initializeSyncedBaseline,
   getState,
+  resetForNewDocument,
+  setActiveDocument,
   _resetStateForTesting,
 } from './auraBrainManager';
 import type { Document } from '../types/document';
@@ -103,7 +107,15 @@ describe('sync — success', () => {
     mockInvoke.mockResolvedValueOnce(2);
     const doc = makeDoc();
     await sync(doc);
-    expect(mockInvoke).toHaveBeenCalledWith('sync_intent', { document: doc });
+    expect(mockInvoke).toHaveBeenCalledWith('sync_intent', {
+      document: expect.objectContaining({
+        id: doc.id,
+        intent_name: doc.title,
+        content: expect.arrayContaining([
+          expect.objectContaining({ type: 'paragraph', text: doc.content }),
+        ]),
+      }),
+    });
   });
 
   it('returns success with version from IPC', async () => {
@@ -156,6 +168,54 @@ describe('sync — IPC error', () => {
     mockInvoke.mockRejectedValueOnce(new Error('fail'));
     await sync(makeDoc());
     expect(getState().lastSyncedHash).toBeNull();
+  });
+
+  it('stores the sync error for the active document', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('SQLite write failed'));
+    const doc = makeDoc();
+    await sync(doc);
+
+    expect(getState().lastErrorByDocumentId[doc.id]).toBe('SQLite write failed');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Per-document baseline lifecycle
+// ---------------------------------------------------------------------------
+
+describe('per-document sync state', () => {
+  it('isolates synced hashes when switching active documents', async () => {
+    mockInvoke.mockResolvedValue(2);
+    const doc1 = makeDoc({ id: 'doc-1', content: 'alpha' });
+    const doc2 = makeDoc({ id: 'doc-2', content: 'beta' });
+
+    await sync(doc1);
+    await sync(doc2);
+
+    const hash1 = await computeContentHash(doc1.content);
+    const hash2 = await computeContentHash(doc2.content);
+
+    setActiveDocument(doc1.id);
+    expect(getState().lastSyncedHash).toBe(hash1);
+
+    setActiveDocument(doc2.id);
+    expect(getState().lastSyncedHash).toBe(hash2);
+  });
+
+  it('initializes a loaded intent as a clean baseline', async () => {
+    const doc = makeDoc({ id: 'loaded-doc', content: 'loaded content' });
+
+    await initializeSyncedBaseline(doc);
+
+    expect(await isDocumentDirty(doc)).toBe(false);
+    expect(getState().lastSyncedHashByDocumentId[doc.id]).toBe(await computeContentHash(doc.content));
+  });
+
+  it('new documents start clean when empty and dirty after content exists', async () => {
+    resetForNewDocument('new-doc');
+
+    expect(await isDocumentDirty(makeDoc({ id: 'new-doc', content: '' }))).toBe(false);
+    expect(await isDocumentDirty(makeDoc({ id: 'new-doc', content: 'draft text' }))).toBe(true);
   });
 });
 
