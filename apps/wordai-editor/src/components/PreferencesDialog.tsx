@@ -7,10 +7,12 @@ import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
+import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onApply?: () => void | Promise<void>;
   initialTab?: Tab;
   targetSettingId?: string;
 }
@@ -841,12 +843,15 @@ function PrivacyTab() {
 // ─── Tab: About ──────────────────────────────────────────────────────────────
 
 function AboutTab() {
-  const isMac = navigator.platform.toUpperCase().includes('MAC') || navigator.userAgent.includes('Mac');
-  const storagePath = isMac
-    ? '~/Library/Application Support/WordAI/AuraBrain/'
-    : 'AppData/Local/WordAI/AuraBrain/';
-  const revealLabel = isMac ? 'Reveal in Finder' : 'Reveal in Explorer';
+  const [storagePath, setStoragePath] = useState('');
+  const revealLabel = getFileManagerLabel();
   const [revealError, setRevealError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAuraBrainStoragePath()
+      .then(setStoragePath)
+      .catch(() => setStoragePath(''));
+  }, []);
 
   async function handleReveal() {
     try {
@@ -991,7 +996,12 @@ function SearchResultsTab({ query }: { query: string }) {
 
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
-function DialogFooter({ onClose }: { onClose: () => void }) {
+function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () => void | Promise<void> }) {
+  async function handleApply() {
+    await onApply?.();
+    onClose();
+  }
+
   return (
     <footer style={{
       height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -1009,7 +1019,7 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
         }}>
           Cancel
         </button>
-        <button onClick={onClose} style={{
+        <button onClick={handleApply} style={{
           padding: '0.625rem 2rem', fontSize: '0.75rem', fontWeight: 700,
           background: '#4343d5', color: '#ffffff', border: 'none', borderRadius: '0.75rem',
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -1025,7 +1035,7 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
-export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId }: PreferencesDialogProps) {
+export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, targetSettingId }: PreferencesDialogProps) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -1182,7 +1192,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
               {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
             </div>
-            <DialogFooter onClose={onClose} />
+            <DialogFooter onClose={onClose} onApply={onApply} />
           </section>
         </div>
       </div>

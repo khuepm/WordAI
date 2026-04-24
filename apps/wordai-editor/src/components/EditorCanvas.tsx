@@ -147,11 +147,12 @@ export function EditorCanvas({
         onOpenVersionHistory?.();
       }
     },
-    [onAITrigger, onManualSave, onOpenExport, onOpenVersionHistory, plainText]
+    [onAITrigger, onOpenExport, onOpenVersionHistory, plainText]
   );
 
   return (
     <div
+      data-ai-panel-open={isAIPanelOpen}
       style={{
         flex: 1,
         display: 'flex',

@@ -101,6 +101,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           <button
             data-testid="save-button"
             onClick={onSave}
+            title={hasUnsavedChanges ? 'Open export drawer. Unsynced changes present.' : 'Open export drawer'}
             style={{
               background: 'var(--md-sys-color-primary)',
               color: 'var(--md-sys-color-on-primary)',
@@ -113,7 +114,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
               fontWeight: 600,
             }}
           >
-            Render
+            Export
           </button>
           <button
             data-testid="new-button"
@@ -152,7 +153,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          {/*<UserAvatar name={userName} size={32} />*/}
+          <UserAvatar name={userName} size={32} />
           <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
