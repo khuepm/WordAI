@@ -1,58 +1,81 @@
-/**
- * auraBrainManager - AuraBrain sync service for WordAI Intent Engine
- *
- * Manages syncing documents into the local AuraBrain SQLite database.
- * Cmd+S means "sync intent to AuraBrain", not "save file".
- *
- * Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 1.7, 4.1, 4.2, 4.6,
- *               9.1, 9.2, 9.3, 9.4, 9.5
- */
-
 import { invoke } from '@tauri-apps/api/core';
+import type { AuraIntentDocument } from '../types/auraDocument';
 import type { Document } from '../types/document';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+import { documentToAuraIntent } from './auraDocumentAdapter';
 
 export interface SyncEntry {
   document: Document;
+  reason: SyncReason;
   enqueuedAt: number;
 }
+
+export type SyncReason = 'manual' | 'auto' | 'blur' | 'import' | 'startup';
 
 export interface SyncResult {
   success: boolean;
   version?: number;
   error?: string;
+  queued?: boolean;
 }
 
 export interface AuraBrainState {
+  activeDocumentId: string | null;
   isSyncing: boolean;
-  syncQueue: SyncEntry | null; // max 1 entry — last-write-wins
-  lastSyncedHash: string | null; // SHA-256 hex of content at last successful sync
-  lastSyncedAt: number | null; // Date.now() of last successful sync
+  syncQueue: SyncEntry | null;
+  lastSyncedHashByDocumentId: Record<string, string>;
+  lastSyncedAtByDocumentId: Record<string, number>;
+  lastErrorByDocumentId: Record<string, string | null>;
+  lastSyncedHash: string | null;
+  lastSyncedAt: number | null;
 }
 
-// ---------------------------------------------------------------------------
-// Internal mutable state
-// ---------------------------------------------------------------------------
-
 const state: AuraBrainState = {
+  activeDocumentId: null,
   isSyncing: false,
   syncQueue: null,
+  lastSyncedHashByDocumentId: {},
+  lastSyncedAtByDocumentId: {},
+  lastErrorByDocumentId: {},
   lastSyncedHash: null,
   lastSyncedAt: null,
 };
 
-// ---------------------------------------------------------------------------
-// Hash utility
-// ---------------------------------------------------------------------------
+const listeners = new Set<() => void>();
+let snapshotCache: Readonly<AuraBrainState> = createSnapshot();
 
-/**
- * Compute SHA-256 hash of a string using the Web Crypto API.
- * Returns a lowercase hex string.
- * Requirements: 1.3, 4.1
- */
+function syncLegacyDerivedFields(documentId: string | null): void {
+  const activeId = documentId ?? state.activeDocumentId;
+  state.lastSyncedHash = activeId ? state.lastSyncedHashByDocumentId[activeId] ?? null : null;
+  state.lastSyncedAt = activeId ? state.lastSyncedAtByDocumentId[activeId] ?? null : null;
+}
+
+function createSnapshot(): Readonly<AuraBrainState> {
+  return {
+    ...state,
+    lastSyncedHashByDocumentId: { ...state.lastSyncedHashByDocumentId },
+    lastSyncedAtByDocumentId: { ...state.lastSyncedAtByDocumentId },
+    lastErrorByDocumentId: { ...state.lastErrorByDocumentId },
+  };
+}
+
+function notify(): void {
+  snapshotCache = createSnapshot();
+  for (const listener of listeners) listener();
+}
+
+export function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function getSnapshot(): Readonly<AuraBrainState> {
+  return snapshotCache;
+}
+
+export function getState(): Readonly<AuraBrainState> {
+  return getSnapshot();
+}
+
 export async function computeContentHash(content: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
@@ -61,88 +84,116 @@ export async function computeContentHash(content: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ---------------------------------------------------------------------------
-// Dirty-bit check
-// ---------------------------------------------------------------------------
+export function setActiveDocument(documentId: string | null): void {
+  state.activeDocumentId = documentId;
+  syncLegacyDerivedFields(documentId);
+  notify();
+}
 
-/**
- * Returns true when the current content differs from the last synced snapshot.
- * Comparison is done via pre-computed hash stored in state.
- *
- * NOTE: This is a synchronous check against the cached hash.
- * Call computeContentHash + compare manually if you need an async fresh check.
- *
- * Requirements: 4.2, 4.3, 4.4, 4.5
- */
+export async function initializeSyncedBaseline(document: Document): Promise<void> {
+  const hash = await computeContentHash(document.content);
+  state.activeDocumentId = document.id;
+  state.lastSyncedHashByDocumentId[document.id] = hash;
+  state.lastSyncedAtByDocumentId[document.id] = Date.now();
+  state.lastErrorByDocumentId[document.id] = null;
+  syncLegacyDerivedFields(document.id);
+  notify();
+}
+
+export function resetForNewDocument(documentId: string): void {
+  state.activeDocumentId = documentId;
+  delete state.lastSyncedHashByDocumentId[documentId];
+  delete state.lastSyncedAtByDocumentId[documentId];
+  state.lastErrorByDocumentId[documentId] = null;
+  syncLegacyDerivedFields(documentId);
+  notify();
+}
+
 export function isDirty(currentHash: string): boolean {
-  if (state.lastSyncedHash === null) return false; // new doc, no content yet
+  if (state.lastSyncedHash === null) return false;
   return currentHash !== state.lastSyncedHash;
 }
 
-// ---------------------------------------------------------------------------
-// Core sync
-// ---------------------------------------------------------------------------
+export async function isDocumentDirty(document: Document): Promise<boolean> {
+  const baseline = state.lastSyncedHashByDocumentId[document.id];
+  const current = await computeContentHash(document.content);
+  if (!baseline) return document.content.trim().length > 0;
+  return current !== baseline;
+}
 
-/**
- * Execute a single sync IPC call and update state on completion.
- * This is the inner function — callers must manage isSyncing flag.
- */
 async function executeSyncIPC(document: Document): Promise<SyncResult> {
+  const { value: auraDocument } = documentToAuraIntent(document);
   try {
-    const version = await invoke<number>('sync_intent', { document });
+    const payload: AuraIntentDocument = auraDocument;
+    const version = await invoke<number>('sync_intent', { document: payload });
     const newHash = await computeContentHash(document.content);
-    state.lastSyncedHash = newHash;
-    state.lastSyncedAt = Date.now();
+    state.activeDocumentId = document.id;
+    state.lastSyncedHashByDocumentId[document.id] = newHash;
+    state.lastSyncedAtByDocumentId[document.id] = Date.now();
+    state.lastErrorByDocumentId[document.id] = null;
+    syncLegacyDerivedFields(document.id);
+    notify();
     return { success: true, version };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    state.activeDocumentId = document.id;
+    state.lastErrorByDocumentId[document.id] = message;
+    syncLegacyDerivedFields(document.id);
+    notify();
     return { success: false, error: message };
   }
 }
 
-/**
- * Sync a document into AuraBrain SQLite.
- *
- * - If isSyncing = false: execute immediately, then drain queue if present.
- * - If isSyncing = true: enqueue (last-write-wins — replaces any pending entry).
- *
- * Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 9.1, 9.2, 9.3, 9.4, 9.5
- */
-export async function sync(document: Document): Promise<SyncResult> {
+export async function sync(document: Document, reason: SyncReason = 'manual'): Promise<SyncResult> {
+  return syncDocument(document, reason);
+}
+
+export async function syncDocument(document: Document, reason: SyncReason = 'manual'): Promise<SyncResult> {
   if (state.isSyncing) {
-    // Last-write-wins: replace any existing queued entry
-    state.syncQueue = { document, enqueuedAt: Date.now() };
-    return { success: true }; // queued, not yet persisted
+    state.syncQueue = { document, reason, enqueuedAt: Date.now() };
+    notify();
+    return { success: true, queued: true };
   }
 
   state.isSyncing = true;
-  const result = await executeSyncIPC(document);
-  state.isSyncing = false;
+  state.activeDocumentId = document.id;
+  notify();
 
-  // Drain queue after current sync completes (Requirements 1.6, 9.5)
-  if (state.syncQueue !== null) {
+  let result = await executeSyncIPC(document);
+
+  while (state.syncQueue !== null) {
     const queued = state.syncQueue;
     state.syncQueue = null;
-    // Fire-and-forget: recursive call handles its own isSyncing lifecycle
-    void sync(queued.document);
+    notify();
+    result = await executeSyncIPC(queued.document);
   }
 
+  state.isSyncing = false;
+  syncLegacyDerivedFields(state.activeDocumentId);
+  notify();
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// State accessors (read-only snapshot)
-// ---------------------------------------------------------------------------
-
-/** Returns a shallow copy of the current AuraBrain state. */
-export function getState(): Readonly<AuraBrainState> {
-  return { ...state };
+export function getDocumentSyncSnapshot(documentId: string | null | undefined) {
+  if (!documentId) {
+    return { isSyncing: state.isSyncing, isDirty: false, lastSyncedAt: null, syncError: null };
+  }
+  return {
+    isSyncing: state.isSyncing && state.activeDocumentId === documentId,
+    isDirty: false,
+    lastSyncedAt: state.lastSyncedAtByDocumentId[documentId] ?? null,
+    syncError: state.lastErrorByDocumentId[documentId] ?? null,
+  };
 }
 
-/** Reset state — intended for testing only. */
 export function _resetStateForTesting(): void {
+  state.activeDocumentId = null;
   state.isSyncing = false;
   state.syncQueue = null;
+  state.lastSyncedHashByDocumentId = {};
+  state.lastSyncedAtByDocumentId = {};
+  state.lastErrorByDocumentId = {};
   state.lastSyncedHash = null;
   state.lastSyncedAt = null;
+  notify();
 }
