@@ -122,6 +122,8 @@
   },
   "export": {
     "title": "Export Document",
+    "closeAriaLabel": "Close export drawer",
+    "dialogAriaLabel": "Export document",
     "formats": {
       "pdf": "PDF",
       "markdown": "Markdown",
@@ -132,10 +134,39 @@
       "markdown": "Plain-text with formatting",
       "docx": "Microsoft Word document"
     },
+    "sections": {
+      "format": "Format",
+      "pageSize": "Page Size",
+      "margins": "Margins (mm)",
+      "fontSize": "Font Size (pt)"
+    },
+    "ariaLabels": {
+      "formatGroup": "Export format",
+      "pageSizeGroup": "Page size",
+      "marginSide": "{{side}} margin",
+      "fontSize": "Font size"
+    },
+    "margins": {
+      "top": "Top",
+      "bottom": "Bottom",
+      "left": "Left",
+      "right": "Right"
+    },
+    "buttons": {
+      "import": "Import",
+      "importing": "Importing...",
+      "exportAs": "Export as {{format}}",
+      "exporting": "Exporting..."
+    },
+    "complete": "Export complete",
+    "importComplete": "Import complete",
+    "unsupportedElementsPrefix": "Unsupported elements: {{elements}}",
     "exportButton": "Export",
     "cancelled": "Export cancelled.",
     "success": "Export complete: {{path}}",
-    "error": "Export failed: {{message}}"
+    "error": "Export failed: {{message}}",
+    "formatNotSupported": "Export format \"{{format}}\" is not supported.",
+    "failed": "Export failed."
   },
   "import": {
     "title": "Import Document",
