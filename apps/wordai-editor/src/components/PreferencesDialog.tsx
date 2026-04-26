@@ -25,7 +25,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
   const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
     { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
     { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
     { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
     { id: 'about', icon: 'info', label: t('settings.tabs.about') },
@@ -41,7 +41,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
       <div>
         <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
           <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>{t('settings.title')}</h1>
-          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>{t('settings.sidebar.systemConfiguration')}</p>
         </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {items.map(({ id, icon, label }) => {
@@ -83,7 +83,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
                 width: '100%',
               }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
-                Search Results
+                {t('settings.search.results')}
               </button>
             </div>
           )}
@@ -91,8 +91,8 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
       </div>
       <div>
         <div style={{ padding: '1rem', background: 'rgba(67,67,213,0.05)', borderRadius: '0.75rem', border: '1px solid rgba(67,67,213,0.1)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>AuraSphere Pro</p>
-          <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>Unlock larger context windows and exclusive models.</p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>{t('settings.sidebar.proCard.title')}</p>
+          <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>{t('settings.sidebar.proCard.description')}</p>
         </div>
       </div>
     </aside>
@@ -109,12 +109,13 @@ interface CollapsedSidebarProps {
 }
 
 export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
-    { id: 'about', icon: 'info', label: 'About' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -175,9 +176,9 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
         {/* Search state */}
         {isSearching && (
           <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-            <Tooltip text="Search Results" position="right">
+            <Tooltip text={t('settings.search.results')} position="right">
               <button
-                aria-label="Search Results"
+                aria-label={t('settings.search.results')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -195,9 +196,9 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
               </button>
             </Tooltip>
-            <Tooltip text="Clear search" position="right">
+            <Tooltip text={t('settings.search.clear')} position="right">
               <button
-                aria-label="Clear search"
+                aria-label={t('settings.search.clear')}
                 onClick={onClearSearch}
                 style={{
                   display: 'flex',
@@ -231,12 +232,13 @@ export interface HorizontalTabBarProps {
 }
 
 export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarProps) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
-    { id: 'about', icon: 'info', label: 'About' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -484,23 +486,24 @@ function AgentIconBox({ icon, active, fill }: { icon: string; active: boolean; f
 }
 
 function AIEngineTab() {
+  const { t } = useTranslation();
   const [selectedAgent, setSelectedAgent] = useState<string>('claude');
   const [selectedModel, setSelectedModel] = useState<string>('aura-turbo');
 
   const agents = [
-    { id: 'codex', icon: 'terminal', label: 'Codex', desc: 'Advanced code generation and logic.' },
-    { id: 'claude', icon: 'neurology', label: 'Claude Agent', desc: 'Nuanced reasoning and long context.', fill: true },
-    { id: 'gemini', icon: 'token', label: 'Gemini CLI', desc: 'High-performance multimodal tasks.' },
+    { id: 'codex', icon: 'terminal', label: t('settings.aiEngine.agent.codex.label'), desc: t('settings.aiEngine.agent.codex.description') },
+    { id: 'claude', icon: 'neurology', label: t('settings.aiEngine.agent.claude.label'), desc: t('settings.aiEngine.agent.claude.description'), fill: true },
+    { id: 'gemini', icon: 'token', label: t('settings.aiEngine.agent.gemini.label'), desc: t('settings.aiEngine.agent.gemini.description') },
   ];
 
   const models = [
-    { id: 'aura-turbo', icon: 'auto_awesome', label: 'Aura-4-Turbo', desc: 'Optimized for speed and efficiency. Best for daily drafting.', status: 'Available', statusColor: '#10b981', pro: false },
-    { id: 'aura-pro', icon: 'diamond', label: 'Aura-Pro', desc: 'Maximum reasoning power. Ideal for complex research.', status: 'Upgrade Required', statusColor: '#a1a1aa', pro: true },
+    { id: 'aura-turbo', icon: 'auto_awesome', label: t('settings.aiEngine.models.turbo.label'), desc: t('settings.aiEngine.models.turbo.description'), status: t('settings.aiEngine.models.turbo.status'), statusColor: '#10b981', pro: false },
+    { id: 'aura-pro', icon: 'diamond', label: t('settings.aiEngine.models.proModel.label'), desc: t('settings.aiEngine.models.proModel.description'), status: t('settings.aiEngine.models.proModel.status'), statusColor: '#a1a1aa', pro: true },
   ];
 
   const sliders = [
-    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'], settingId: 'ai-engine.creativity' },
-    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
+    { label: t('settings.aiEngine.creativity.label'), desc: t('settings.aiEngine.creativity.description'), badge: t('settings.aiEngine.creativity.badge'), min: 0, max: 100, value: 75, marks: [t('settings.aiEngine.creativity.marks.precise'), t('settings.aiEngine.creativity.marks.balanced'), t('settings.aiEngine.creativity.marks.creative')], settingId: 'ai-engine.creativity' },
+    { label: t('settings.aiEngine.contextWindow.label'), desc: t('settings.aiEngine.contextWindow.description'), badge: t('settings.aiEngine.contextWindow.badge'), min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
   ];
 
   return (
@@ -508,10 +511,10 @@ function AIEngineTab() {
 
       {/* Intro */}
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Intelligence Core</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Cognitive Engine</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.intro.eyebrow')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.aiEngine.intro.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8, margin: '1rem 0 0' }}>
-          "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."
+          "{t('settings.aiEngine.intro.quote')}"
         </p>
       </div>
 
@@ -519,10 +522,10 @@ function AIEngineTab() {
       <div data-setting-id="ai-engine.agent">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Connect your agent</h3>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>The primary intelligence engine for your document generation.</p>
+            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.agent.title')}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{t('settings.aiEngine.agent.description')}</p>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>Claude Active</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{t('settings.aiEngine.agent.activeBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {agents.map(a => {
@@ -552,8 +555,8 @@ function AIEngineTab() {
       {/* Aura Models */}
       <div data-setting-id="ai-engine.model">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Aura Models</h3>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro Required for Aura-Pro</span>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.models.title')}</h3>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.proBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {models.map(m => {
@@ -570,7 +573,7 @@ function AIEngineTab() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <AgentIconBox icon={m.icon} active={active && !m.pro} fill={!m.pro} />
                     {m.pro
-                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>
+                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.pro')}</span>
                       : <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
                     }
                   </div>
@@ -610,30 +613,30 @@ function AIEngineTab() {
       {/* Language + Knowledge */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
         <div data-setting-id="ai-engine.responseLanguage">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Response Language</label>
+          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.label')}</label>
           <div style={{ position: 'relative' }}>
             <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
-              <option>Auto (Detect Language)</option>
-              <option>English (Global)</option>
-              <option>Vietnamese (Tiếng Việt)</option>
+              <option>{t('settings.aiEngine.responseLanguage.auto')}</option>
+              <option>{t('settings.aiEngine.responseLanguage.english')}</option>
+              <option>{t('settings.aiEngine.responseLanguage.vietnamese')}</option>
             </select>
             <span className="material-symbols-outlined" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', pointerEvents: 'none', fontSize: '18px' }}>unfold_more</span>
           </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Overrides document language settings for AI responses.</p>
+          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.description')}</p>
         </div>
         <div data-setting-id="ai-engine.webAccess">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Knowledge Integration</label>
+          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.knowledge.label')}</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>cloud_sync</span>
               <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>Real-time Web Access</span>
-                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>Live data retrieval</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>{t('settings.aiEngine.knowledge.webAccess')}</span>
+                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>{t('settings.aiEngine.knowledge.liveData')}</span>
               </div>
             </div>
             <Toggle checked={true} />
           </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Allows the AI to fetch current information during generation.</p>
+          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.knowledge.description')}</p>
         </div>
       </div>
 
@@ -644,34 +647,35 @@ function AIEngineTab() {
 // ─── Tab: Typography ─────────────────────────────────────────────────────────
 
 function TypographyTab() {
+  const { t } = useTranslation();
   const fonts = [
-    { label: 'Inter (Sans)', sample: 'Aa', style: { fontFamily: 'Inter, sans-serif' } },
-    { label: 'Newsreader (Serif)', sample: 'Aa', style: { fontFamily: 'Newsreader, serif' } },
-    { label: 'Roboto Mono', sample: 'Aa', style: { fontFamily: 'monospace' } },
-    { label: 'Helvetica Neue', sample: 'Aa', style: { fontFamily: 'Helvetica Neue, sans-serif' } },
+    { label: t('settings.typography.font.inter'), sample: 'Aa', style: { fontFamily: 'Inter, sans-serif' } },
+    { label: t('settings.typography.font.newsreader'), sample: 'Aa', style: { fontFamily: 'Newsreader, serif' } },
+    { label: t('settings.typography.font.robotoMono'), sample: 'Aa', style: { fontFamily: 'monospace' } },
+    { label: t('settings.typography.font.helvetica'), sample: 'Aa', style: { fontFamily: 'Helvetica Neue, sans-serif' } },
   ];
 
   const smartFeatures = [
-    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true, settingId: 'typography.smartQuotes' },
-    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false, settingId: 'typography.autoCapitalize' },
-    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true, settingId: 'typography.ligatures' },
+    { icon: 'format_quote', label: t('settings.typography.smart.quotes.label'), desc: t('settings.typography.smart.quotes.description'), on: true, settingId: 'typography.smartQuotes' },
+    { icon: 'match_case', label: t('settings.typography.smart.autoCapitalize.label'), desc: t('settings.typography.smart.autoCapitalize.description'), on: false, settingId: 'typography.autoCapitalize' },
+    { icon: 'join_inner', label: t('settings.typography.smart.ligatures.label'), desc: t('settings.typography.smart.ligatures.description'), on: true, settingId: 'typography.ligatures' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Typography &amp; Formatting</h3>
-        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '0.5rem' }}>Refine the rhythm of your reading and writing experience.</p>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.typography.sectionTitle')}</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '0.5rem' }}>{t('settings.typography.sectionDescription')}</p>
       </div>
 
       {/* Font Family */}
       <div data-setting-id="typography.fontFamily">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Standard Font</h3>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>Editorial grade typefaces optimized for readability.</p>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>{t('settings.typography.font.standardFont')}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{t('settings.typography.font.standardFontDescription')}</p>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.05)', padding: '2px 8px', borderRadius: '4px' }}>PREMIUM TYPE</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{t('settings.typography.font.premiumBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {fonts.map((f, i) => (
@@ -692,8 +696,8 @@ function TypographyTab() {
       {/* Font Size + Line Spacing */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem' }}>
         {[
-          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.', settingId: 'typography.fontSize' },
-          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.', settingId: 'typography.lineSpacing' },
+          { label: t('settings.typography.fontSize.label'), options: [t('settings.typography.fontSize.small'), t('settings.typography.fontSize.medium'), t('settings.typography.fontSize.large'), t('settings.typography.fontSize.xl')], active: 1, note: t('settings.typography.fontSize.note'), settingId: 'typography.fontSize' },
+          { label: t('settings.typography.lineSpacing.label'), options: ['1.15', '1.50', '2.00'], active: 0, note: t('settings.typography.lineSpacing.note'), settingId: 'typography.lineSpacing' },
         ].map(group => (
           <div key={group.label} data-setting-id={group.settingId}>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{group.label}</h3>
@@ -716,7 +720,7 @@ function TypographyTab() {
 
       {/* Smart Formatting */}
       <div>
-        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>Smart Formatting</h3>
+        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{t('settings.typography.smart.title')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {smartFeatures.map(f => (
             <div key={f.label} data-setting-id={f.settingId} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
@@ -736,13 +740,13 @@ function TypographyTab() {
       {/* Preview */}
       <div style={{ padding: '1.5rem', background: 'rgba(243,244,245,0.5)', borderRadius: '1rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Real-time Preview</h4>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#ffffff', padding: '2px 8px', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>16pt / 1.15 LH / INTER</span>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>{t('settings.typography.preview.label')}</h4>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#ffffff', padding: '2px 8px', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>{t('settings.typography.preview.badge')}</span>
         </div>
         <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #f4f4f5' }}>
-          <h2 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#18181b' }}>The Modern Editorial Ethos</h2>
+          <h2 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#18181b' }}>{t('settings.typography.preview.title')}</h2>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.15, color: '#3f3f46', margin: 0 }}>
-            Typography is the voice of the written word. By selecting editorial grade typefaces and refining the rhythm of line spacing, you ensure that every character flows with purpose.
+            {t('settings.typography.preview.body')}
           </p>
         </div>
       </div>
@@ -753,30 +757,31 @@ function TypographyTab() {
 // ─── Tab: Privacy ────────────────────────────────────────────────────────────
 
 function PrivacyTab() {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Security Workspace</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Data Sovereignty</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.privacy.intro.eyebrow')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.privacy.intro.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Your thoughts are private by design. Manage how your data interacts with our curator intelligence."
+          "{t('settings.privacy.intro.quote')}"
         </p>
       </div>
 
       {/* AI Training */}
       <div data-setting-id="privacy.allowAITraining">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-          <SectionHeader label="AI Model Training" description="Anonymized snippets help improve the engine. We never store personal identifiers." />
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>Recommended</span>
+          <SectionHeader label={t('settings.privacy.aiTraining.label')} description={t('settings.privacy.aiTraining.description')} />
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>{t('settings.privacy.aiTraining.recommended')}</span>
         </div>
-        <SettingRow icon="neurology" label="Liquid Intelligence Contribution">
+        <SettingRow icon="neurology" label={t('settings.privacy.aiTraining.liquidIntelligence')}>
           <Toggle checked={true} />
         </SettingRow>
       </div>
 
       {/* Regional Infrastructure */}
       <div data-setting-id="privacy.analyticsEnabled">
-        <SectionHeader label="Regional Data Infrastructure" />
+        <SectionHeader label={t('settings.privacy.regionalInfrastructure.label')} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {/* Singapore - active */}
           <div style={{ padding: '1.25rem', borderRadius: '1rem', background: 'rgba(67,67,213,0.08)', position: 'relative', overflow: 'hidden' }}>
@@ -790,15 +795,15 @@ function PrivacyTab() {
                   />
                 </div>
                 <div>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Primary Node</p>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>Singapore Central</h4>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>{t('settings.privacy.regionalInfrastructure.primary')}</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{t('settings.privacy.regionalInfrastructure.singapore')}</h4>
                 </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#4343d5', fontVariationSettings: "'FILL' 1", fontSize: '20px' }}>check_circle</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 700, color: '#4343d5' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4343d5', animation: 'pulse 2s infinite' }} />
-              ACTIVE CONNECTION
+              {t('settings.privacy.regionalInfrastructure.active')}
             </div>
           </div>
           {/* US - standby */}
@@ -813,13 +818,13 @@ function PrivacyTab() {
                   />
                 </div>
                 <div>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Redundancy Node</p>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>United States East</h4>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>{t('settings.privacy.regionalInfrastructure.redundancy')}</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{t('settings.privacy.regionalInfrastructure.unitedStates')}</h4>
                 </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#d4d4d8', fontSize: '20px' }}>schedule</span>
             </div>
-            <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa' }}>STANDBY MODE</div>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa' }}>{t('settings.privacy.regionalInfrastructure.standby')}</div>
           </div>
         </div>
       </div>
@@ -836,25 +841,25 @@ function PrivacyTab() {
           <div style={{ maxWidth: '70%' }}>
             <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified_user</span>
-              End-to-End Encryption Enabled
+              {t('settings.privacy.encryptionEnabled')}
             </h4>
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: 0 }}>
-              Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.
+              {t('settings.privacy.encryptionDescription')}
             </p>
           </div>
-          <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
+          <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>{t('settings.privacy.auditSecurity')}</button>
         </div>
       </div>
       <div data-setting-id="privacy.localProcessingOnly" style={{ padding: '1.25rem 1.5rem', borderRadius: '1rem', border: '1px solid #e0e0e0', backgroundColor: '#fafafa', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>Local processing only</h3>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{t('settings.privacy.localProcessing.label')}</h3>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#555' }}>
-            When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.
+            {t('settings.privacy.localProcessing.description')}
           </p>
         </div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#333', cursor: 'pointer' }}>
           <input type="checkbox" style={{ width: '14px', height: '14px' }} />
-          <span>Prefer on-device processing only</span>
+          <span>{t('settings.privacy.localProcessing.prefer')}</span>
         </label>
       </div>
     </div>
@@ -864,11 +869,18 @@ function PrivacyTab() {
 // ─── Tab: About ──────────────────────────────────────────────────────────────
 
 function AboutTab() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [storagePath, setStoragePath] = useState('');
   const [revealError, setRevealError] = useState<string | null>(null);
 
-  const revealLabel = i18n.language === 'vi' ? 'Mở trong Finder' : getFileManagerLabel();
+  // Get platform-specific reveal label using translations
+  const platformKey = (() => {
+    const label = getFileManagerLabel();
+    if (label.includes('Finder')) return 'mac';
+    if (label.includes('Explorer')) return 'win';
+    return 'linux';
+  })();
+  const revealLabel = t(`settings.about.revealButton.${platformKey}`);
 
   useEffect(() => {
     getAuraBrainStoragePath()
@@ -938,10 +950,11 @@ function AboutTab() {
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
 function SearchResultsTab({ query }: { query: string }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Showing results for "{query}"</h3>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.search.showingFor', { query })}</h3>
       </div>
 
       <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
@@ -958,7 +971,7 @@ function SearchResultsTab({ query }: { query: string }) {
             <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>High-performance model for real-time editorial suggestions and semantic restructuring.</p>
           </div>
           <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
           </button>
         </div>
 
@@ -975,7 +988,7 @@ function SearchResultsTab({ query }: { query: string }) {
             <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Floating interface for contextual help that adapts to your writing focus level.</p>
           </div>
           <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
           </button>
         </div>
 
@@ -992,7 +1005,7 @@ function SearchResultsTab({ query }: { query: string }) {
             <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Advanced reasoning engine for long-form narrative structure and character tracking.</p>
           </div>
           <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
           </button>
         </div>
 
@@ -1009,7 +1022,7 @@ function SearchResultsTab({ query }: { query: string }) {
             <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Control how local editorial changes are used to fine-tune your personalized instance.</p>
           </div>
           <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
           </button>
         </div>
       </div>

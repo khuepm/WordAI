@@ -73,11 +73,127 @@
     "aiEngine": {
       "sectionTitle": "AI Engine Settings",
       "sectionDescription": "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance.",
-      "active": "Active"
+      "active": "Active",
+      "intro": {
+        "eyebrow": "Intelligence Core",
+        "title": "Cognitive Engine",
+        "quote": "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."
+      },
+      "agent": {
+        "title": "Connect your agent",
+        "description": "The primary intelligence engine for your document generation.",
+        "activeBadge": "Claude Active",
+        "codex": {
+          "label": "Codex",
+          "description": "Advanced code generation and logic."
+        },
+        "claude": {
+          "label": "Claude Agent",
+          "description": "Nuanced reasoning and long context."
+        },
+        "gemini": {
+          "label": "Gemini CLI",
+          "description": "High-performance multimodal tasks."
+        }
+      },
+      "models": {
+        "title": "Aura Models",
+        "proBadge": "Pro Required for Aura-Pro",
+        "pro": "Pro",
+        "turbo": {
+          "label": "Aura-4-Turbo",
+          "description": "Optimized for speed and efficiency. Best for daily drafting.",
+          "status": "Available"
+        },
+        "proModel": {
+          "label": "Aura-Pro",
+          "description": "Maximum reasoning power. Ideal for complex research.",
+          "status": "Upgrade Required"
+        }
+      },
+      "creativity": {
+        "label": "AI Creativity Level",
+        "description": "Adjust the variance of the model's output.",
+        "badge": "Medium-High",
+        "marks": {
+          "precise": "Precise",
+          "balanced": "Balanced",
+          "creative": "Creative"
+        }
+      },
+      "contextWindow": {
+        "label": "Context Window",
+        "description": "Maximum history the AI considers per interaction.",
+        "badge": "16k Tokens"
+      },
+      "responseLanguage": {
+        "label": "Response Language",
+        "description": "Overrides document language settings for AI responses.",
+        "auto": "Auto (Detect Language)",
+        "english": "English (Global)",
+        "vietnamese": "Vietnamese (Tiếng Việt)"
+      },
+      "knowledge": {
+        "label": "Knowledge Integration",
+        "description": "Allows the AI to fetch current information during generation.",
+        "webAccess": "Real-time Web Access",
+        "liveData": "Live data retrieval"
+      }
+    },
+    "typography": {
+      "sectionTitle": "Typography & Formatting",
+      "sectionDescription": "Refine the rhythm of your reading and writing experience.",
+      "font": {
+        "standardFont": "Standard Font",
+        "standardFontDescription": "Editorial grade typefaces optimized for readability.",
+        "premiumBadge": "PREMIUM TYPE",
+        "inter": "Inter (Sans)",
+        "newsreader": "Newsreader (Serif)",
+        "robotoMono": "Roboto Mono",
+        "helvetica": "Helvetica Neue"
+      },
+      "fontSize": {
+        "label": "Font Size",
+        "note": "Base size currently set to 16px.",
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "xl": "XL"
+      },
+      "lineSpacing": {
+        "label": "Line Spacing",
+        "note": "Recommended for long-form editorial."
+      },
+      "smart": {
+        "title": "Smart Formatting",
+        "quotes": {
+          "label": "Smart Quotes",
+          "description": "Convert to curly quotes."
+        },
+        "autoCapitalize": {
+          "label": "Auto-Capitalize",
+          "description": "Sentences start with caps."
+        },
+        "ligatures": {
+          "label": "Ligatures",
+          "description": "Advanced glyph pairing."
+        }
+      },
+      "preview": {
+        "label": "Real-time Preview",
+        "badge": "16pt / 1.15 LH / INTER",
+        "title": "The Modern Editorial Ethos",
+        "body": "Typography is the voice of the written word. By selecting editorial grade typefaces and refining the rhythm of line spacing, you ensure that every character flows with purpose."
+      }
     },
     "privacy": {
       "sectionTitle": "Privacy & Security",
       "sectionDescription": "Manage how your data is handled, stored, and transmitted.",
+      "intro": {
+        "eyebrow": "Security Workspace",
+        "title": "Data Sovereignty",
+        "quote": "Your thoughts are private by design. Manage how your data interacts with our curator intelligence."
+      },
       "encryptionEnabled": "End-to-End Encryption Enabled",
       "encryptionDescription": "Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.",
       "auditSecurity": "Audit Security",
@@ -93,7 +209,13 @@
         "liquidIntelligence": "Liquid Intelligence Contribution"
       },
       "regionalInfrastructure": {
-        "label": "Regional Data Infrastructure"
+        "label": "Regional Data Infrastructure",
+        "primary": "Primary Node",
+        "redundancy": "Redundancy Node",
+        "singapore": "Singapore Central",
+        "unitedStates": "United States East",
+        "active": "ACTIVE CONNECTION",
+        "standby": "STANDBY MODE"
       }
     },
     "about": {
@@ -117,7 +239,15 @@
       "placeholder": "Search preference...",
       "results": "Search Results",
       "clear": "Clear search",
-      "itemsFound": "{{count}} items found"
+      "itemsFound": "{{count}} items found",
+      "showingFor": "Showing results for \"{{query}}\""
+    },
+    "sidebar": {
+      "systemConfiguration": "SYSTEM CONFIGURATION",
+      "proCard": {
+        "title": "AuraSphere Pro",
+        "description": "Unlock larger context windows and exclusive models."
+      }
     }
   },
   "export": {
