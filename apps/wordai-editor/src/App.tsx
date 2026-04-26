@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import './i18n';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
@@ -91,6 +92,7 @@ function createInMemoryDocument(title = 'Untitled Intent'): Document {
 }
 
 function App() {
+  const { t } = useTranslation();
   const {
     state,
     setDocument,
@@ -370,7 +372,7 @@ function App() {
           background: 'var(--md-sys-color-surface)',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>AuraBrain storage is unavailable</h1>
+        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{t('app.startupError.title')}</h1>
         <p style={{ margin: 0, maxWidth: 560, color: 'var(--md-sys-color-on-surface-variant)' }}>
           {startupError}
         </p>
@@ -380,7 +382,7 @@ function App() {
             onClick={() => setStartupRetryKey((key) => key + 1)}
             style={{ padding: '0.625rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}
           >
-            Retry
+            {t('app.startupError.retry')}
           </button>
           {storagePath && (
             <button
@@ -388,7 +390,7 @@ function App() {
               onClick={handleRevealDiagnostics}
               style={{ padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid currentColor', cursor: 'pointer' }}
             >
-              Reveal diagnostics
+              {t('app.startupError.revealDiagnostics')}
             </button>
           )}
         </div>
@@ -422,7 +424,7 @@ function App() {
           }}
           aria-hidden="true"
         />
-        <span>Loading…</span>
+        <span>{t('app.loading')}</span>
       </div>
     );
   }
@@ -464,7 +466,7 @@ function App() {
           role="alert"
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>AI unavailable. Editing continues.</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.aiBanner.message')}</span>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
               data-testid="ai-service-retry-button"
@@ -482,7 +484,7 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Retry
+              {t('app.aiBanner.retry')}
             </button>
             <button
               data-testid="ai-service-preferences-button"
@@ -499,12 +501,12 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Settings
+              {t('app.aiBanner.settings')}
             </button>
             <button
               data-testid="ai-service-close-button"
               onClick={() => setBannerDismissed(true)}
-              aria-label="Close"
+              aria-label={t('app.aiBanner.closeAriaLabel')}
               style={{
                 background: 'transparent',
                 color: '#9ca3af',
@@ -548,11 +550,11 @@ function App() {
           }}
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>Sync failed: {syncView.syncError}</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.syncError.prefix', { error: syncView.syncError })}</span>
           <button
             data-testid="sync-error-close-button"
             onClick={() => setSyncErrorDismissed(true)}
-            aria-label="Dismiss sync error"
+            aria-label={t('app.syncError.dismissAriaLabel')}
             style={{
               background: 'transparent',
               color: '#fca5a5',

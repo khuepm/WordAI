@@ -1,7 +1,23 @@
 {
   "app": {
     "name": "WordAI",
-    "tagline": "Your data, your device. AuraBrain stores everything locally."
+    "tagline": "Your data, your device. AuraBrain stores everything locally.",
+    "loading": "Loading…",
+    "startupError": {
+      "title": "AuraBrain storage is unavailable",
+      "retry": "Retry",
+      "revealDiagnostics": "Reveal diagnostics"
+    },
+    "aiBanner": {
+      "message": "AI unavailable. Editing continues.",
+      "retry": "Retry",
+      "settings": "Settings",
+      "closeAriaLabel": "Close"
+    },
+    "syncError": {
+      "prefix": "Sync failed: {{error}}",
+      "dismissAriaLabel": "Dismiss sync error"
+    }
   },
   "common": {
     "cancel": "Cancel",
