@@ -28,7 +28,19 @@ fn default_json_path(app: &tauri::AppHandle) -> Result<PathBuf, IPCError> {
 
 /// Read and parse default.json, returning an empty object if the file is absent.
 fn read_default_json(app: &tauri::AppHandle) -> Result<Value, IPCError> {
-    let path = default_json_path(app)?;
+    let mut path = default_json_path(app)?;
+    #[cfg(debug_assertions)]
+    if !path.exists() {
+        let source_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("public")
+            .join("preferences")
+            .join("default.json");
+        if source_path.exists() {
+            path = source_path;
+        }
+    }
+
     if !path.exists() {
         // Req 8.4: log warning and fall back to empty object
         eprintln!(
