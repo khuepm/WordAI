@@ -153,26 +153,17 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          <UserAvatar name={userName} size={32} />
           <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <button
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            <span
               style={{
-                background: isUserMenuOpen ? 'rgba(255,255,255,0.5)' : 'none',
-                border: 'none',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isUserMenuOpen ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)',
-                boxShadow: isUserMenuOpen ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+                display: 'inline-flex',
+                boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
+                transition: 'box-shadow 0.15s',
               }}
             >
-              <span className="material-symbols-outlined">account_circle</span>
-            </button>
+              <UserAvatar name={userName} size={32} onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} />
+            </span>
 
             {isUserMenuOpen && (
               <div
