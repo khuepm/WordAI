@@ -3,12 +3,11 @@
  * Requirements: 11.2, 11.3, 11.4, 11.5, 12.5
  */
 
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RenderDrawer } from './RenderDrawer';
-import type { IPCResponse } from '../types/ipc';
-import { exportMarkdown } from '../services/exportService';
+import { exportMarkdown, exportPdf } from '../services/exportService';
 
 // ─── Tauri mock ───────────────────────────────────────────────────────────────
 
@@ -20,6 +19,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('../services/exportService', () => ({
   exportMarkdown: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.md' }),
+  exportPdf: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.pdf' }),
   exportDocx: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.docx' }),
   importFile: vi.fn().mockResolvedValue({ status: 'cancelled' }),
 }));
@@ -79,11 +79,10 @@ describe('RenderDrawer - visibility', () => {
 // ─── Format selection (Req 11.2, 11.3) ───────────────────────────────────────
 
 describe('RenderDrawer - format selection', () => {
-  it('renders all four export format options', () => {
+  it('renders all supported export format options', () => {
     render(<RenderDrawer {...defaultProps} />);
     expect(screen.getByTestId('format-option-pdf')).toBeInTheDocument();
     expect(screen.getByTestId('format-option-markdown')).toBeInTheDocument();
-    expect(screen.getByTestId('format-option-html')).toBeInTheDocument();
     expect(screen.getByTestId('format-option-docx')).toBeInTheDocument();
   });
 
@@ -189,16 +188,14 @@ describe('RenderDrawer - export confirmation', () => {
     expect(screen.getByTestId('export-button')).toBeInTheDocument();
   });
 
-  it('calls export_to_pdf Tauri command when PDF format selected and Export clicked', async () => {
-    mockInvoke.mockResolvedValue({ success: true, data: '/path/to/file.pdf' } satisfies IPCResponse<string>);
+  it('calls exportPdf service when PDF format selected and Export clicked', async () => {
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
     await user.click(screen.getByTestId('format-option-pdf'));
     await user.click(screen.getByTestId('export-button'));
 
-    await waitFor(() => expect(mockInvoke).toHaveBeenCalledOnce());
-    expect((mockInvoke as Mock).mock.calls[0][0]).toBe('export_to_pdf');
+    await waitFor(() => expect(exportPdf).toHaveBeenCalledOnce());
   });
 
   it('calls exportMarkdown service for Markdown format', async () => {
@@ -213,7 +210,6 @@ describe('RenderDrawer - export confirmation', () => {
   });
 
   it('shows success message after successful export', async () => {
-    mockInvoke.mockResolvedValue({ success: true, data: '/path/to/file.pdf' } satisfies IPCResponse<string>);
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
@@ -226,10 +222,7 @@ describe('RenderDrawer - export confirmation', () => {
   });
 
   it('shows error message when export fails (Req 12.5)', async () => {
-    mockInvoke.mockResolvedValue({
-      success: false,
-      error: { code: 'EXPORT_ERROR', message: 'Disk full' },
-    } satisfies IPCResponse<string>);
+    vi.mocked(exportPdf).mockResolvedValueOnce({ status: 'error', message: 'Disk full' });
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
@@ -241,8 +234,8 @@ describe('RenderDrawer - export confirmation', () => {
     );
   });
 
-  it('shows error message when invoke throws', async () => {
-    mockInvoke.mockRejectedValue(new Error('Network error'));
+  it('shows error message when exportPdf throws', async () => {
+    vi.mocked(exportPdf).mockRejectedValueOnce(new Error('Network error'));
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 
@@ -255,7 +248,7 @@ describe('RenderDrawer - export confirmation', () => {
   });
 
   it('disables export button while exporting', async () => {
-    mockInvoke.mockReturnValue(new Promise(() => { })); // never resolves
+    vi.mocked(exportPdf).mockReturnValueOnce(new Promise(() => { })); // never resolves
     const user = userEvent.setup();
     render(<RenderDrawer {...defaultProps} />);
 

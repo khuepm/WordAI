@@ -2,7 +2,7 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
@@ -341,10 +341,19 @@ function SettingRow({ icon, label, children }: { icon: string; label: string; ch
 
 // ─── Tab: General ────────────────────────────────────────────────────────────
 
-function GeneralTab() {
-  const { t, i18n } = useTranslation();
-  const [currentLang, setCurrentLang] = useState(i18n.language || 'en');
-  const themes = ['System', 'Light', 'Dark', 'Glass'];
+interface GeneralTabProps {
+  pendingLang: LanguageCode;
+  onLanguageChange: (lang: LanguageCode) => void;
+}
+
+function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
+  const { t } = useTranslation();
+  const themes = [
+    { key: 'system', label: t('settings.general.interfaceMode.themes.system') },
+    { key: 'light', label: t('settings.general.interfaceMode.themes.light') },
+    { key: 'dark', label: t('settings.general.interfaceMode.themes.dark') },
+    { key: 'glass', label: t('settings.general.interfaceMode.themes.glass') },
+  ];
   const themePreviews = [
     { from: '#f4f4f5', to: '#d4d4d8' },
     { from: '#ffffff', to: '#ffffff' },
@@ -354,9 +363,7 @@ function GeneralTab() {
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value as LanguageCode;
-    setCurrentLang(newLang);
-    i18n.changeLanguage(newLang);
-    saveLanguagePreference(newLang);
+    onLanguageChange(newLang);
   };
 
   return (
@@ -371,10 +378,10 @@ function GeneralTab() {
 
       {/* Interface Mode */}
       <div data-setting-id="general.theme">
-        <SectionHeader label="Interface Mode" description="Adjust the visual appearance of the editor shell." />
+        <SectionHeader label={t('settings.general.interfaceMode.label')} description={t('settings.general.interfaceMode.description')} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {themes.map((theme, i) => (
-            <label key={theme} style={{ cursor: 'pointer' }}>
+            <label key={theme.key} style={{ cursor: 'pointer' }}>
               <input type="radio" name="pref-theme" defaultChecked={i === 0} style={{ display: 'none' }} />
               <div style={{
                 padding: '1rem', borderRadius: '0.75rem', background: '#f3f4f5',
@@ -384,9 +391,9 @@ function GeneralTab() {
                 <div style={{
                   height: '80px', width: '100%', borderRadius: '4px', marginBottom: '0.75rem',
                   background: `linear-gradient(135deg, ${themePreviews[i].from}, ${themePreviews[i].to})`,
-                  opacity: theme === 'Glass' ? 0.6 : 1,
+                  opacity: theme.key === 'glass' ? 0.6 : 1,
                 }} />
-                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme}</p>
+                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme.label}</p>
               </div>
             </label>
           ))}
@@ -395,16 +402,16 @@ function GeneralTab() {
 
       {/* Auto-Save */}
       <div data-setting-id="general.autoSave">
-        <SectionHeader label="Auto-Save" description="Automatically backup your progress to the cloud library as you write." />
+        <SectionHeader label={t('settings.general.autoSave.label')} description={t('settings.general.autoSave.description')} />
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Every</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.every')}</span>
             <input type="number" defaultValue={5} style={{
               width: '64px', height: '32px', borderRadius: '0.75rem',
               border: 'none', padding: '0 0.75rem',
               fontSize: '0.75rem', background: '#f4f4f5',
             }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>minutes</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.minutes')}</span>
           </div>
           <Toggle checked={true} />
         </SettingRow>
@@ -412,8 +419,8 @@ function GeneralTab() {
 
       {/* Focus Mode */}
       <div data-setting-id="general.focusMode">
-        <SectionHeader label="Focus Mode" description="Automatically hide toolbars and secondary panels when you begin typing." />
-        <SettingRow icon="visibility_off" label="Enable distraction-free shell">
+        <SectionHeader label={t('settings.general.focusMode.label')} description={t('settings.general.focusMode.description')} />
+        <SettingRow icon="visibility_off" label={t('settings.general.focusMode.enable')}>
           <Toggle checked={false} />
         </SettingRow>
       </div>
@@ -423,7 +430,7 @@ function GeneralTab() {
         <SectionHeader label={t('settings.general.language.label')} description={t('settings.general.language.description')} />
         <div style={{ position: 'relative', marginTop: '0.5rem' }}>
           <select
-            value={currentLang}
+            value={pendingLang}
             onChange={handleLanguageChange}
             style={{
               width: '100%',
@@ -1013,6 +1020,8 @@ function SearchResultsTab({ query }: { query: string }) {
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
 function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () => void | Promise<void> }) {
+  const { t } = useTranslation();
+
   async function handleApply() {
     await onApply?.();
     onClose();
@@ -1025,7 +1034,7 @@ function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () 
       flexShrink: 0,
     }}>
       <button style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a1a1aa', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'inherit' }}>
-        RESTORE DEFAULTS
+        {t('common.restoreDefaults')}
       </button>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <button onClick={onClose} style={{
@@ -1033,7 +1042,7 @@ function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () 
           background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer',
           fontFamily: 'inherit',
         }}>
-          Cancel
+          {t('common.cancel')}
         </button>
         <button onClick={handleApply} style={{
           padding: '0.625rem 2rem', fontSize: '0.75rem', fontWeight: 700,
@@ -1041,7 +1050,7 @@ function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () 
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
           boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)', transition: 'all 0.2s', fontFamily: 'inherit',
         }}>
-          Apply Changes
+          {t('common.apply')}
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_right_alt</span>
         </button>
       </div>
@@ -1052,22 +1061,61 @@ function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
 export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, targetSettingId }: PreferencesDialogProps) {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Language state management for cancel/apply behavior
+  const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
+  const originalLangRef = useRef<LanguageCode>(i18n.language as LanguageCode || 'en');
 
   const { width } = useViewportSize();
   const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
   const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
 
-  // Sync to initialTab only when the dialog first opens, not on every tab change
+  // Sync to initialTab and capture original language when dialog opens
   const prevIsOpen = useRef(false);
   useEffect(() => {
     const justOpened = isOpen && !prevIsOpen.current;
     prevIsOpen.current = isOpen;
-    if (justOpened && initialTab) {
-      setActiveTab(initialTab);
+    if (justOpened) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
+      // Capture current language as original when dialog opens
+      const currentLang = i18n.language as LanguageCode || 'en';
+      originalLangRef.current = currentLang;
+      setPendingLang(currentLang);
     }
-  }, [isOpen, initialTab]);
+  }, [isOpen, initialTab, i18n.language]);
+
+  // Handle language change from GeneralTab
+  const handleLanguageChange = useCallback((newLang: LanguageCode) => {
+    setPendingLang(newLang);
+    // Apply immediately for preview, will be reverted on cancel if needed
+    i18n.changeLanguage(newLang);
+  }, [i18n]);
+
+  // Handle close with cancel - revert language if changed
+  const handleClose = useCallback(() => {
+    // Revert to original language if user cancelled
+    if (pendingLang !== originalLangRef.current) {
+      i18n.changeLanguage(originalLangRef.current);
+    }
+    onClose();
+  }, [onClose, pendingLang, i18n]);
+
+  // Handle apply - save language preference
+  // Note: DialogFooter.handleApply calls onClose after this, so we don't call it here
+  const handleApply = useCallback(async () => {
+    // Save language preference
+    if (pendingLang !== originalLangRef.current) {
+      saveLanguagePreference(pendingLang);
+      originalLangRef.current = pendingLang;
+    }
+    await onApply?.();
+    // onClose is called by DialogFooter.handleApply after this function completes
+  }, [onApply, pendingLang]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;
@@ -1120,7 +1168,10 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
   if (!isOpen) return null;
 
   const tabContent: Record<Tab, React.ReactNode> = {
-    'general': <GeneralTab />,
+    'general': <GeneralTab
+      pendingLang={pendingLang}
+      onLanguageChange={handleLanguageChange}
+    />,
     'ai-engine': <AIEngineTab />,
     'typography': <TypographyTab />,
     'privacy': <PrivacyTab />,
@@ -1134,7 +1185,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        onClick={onClose}
+        onClick={handleClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 900,
           background: 'rgba(25,28,29,0.05)', backdropFilter: 'blur(4px)',
@@ -1172,16 +1223,22 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
-                  {isSearching ? 'Search Results' : { general: 'General Settings', 'ai-engine': 'AI Engine Settings', typography: 'Typography & Formatting', privacy: 'Privacy & Security', about: 'About' }[activeTab]}
+                  {isSearching ? t('settings.search.results') : {
+                    general: t('settings.general.sectionTitle'),
+                    'ai-engine': t('settings.aiEngine.sectionTitle'),
+                    typography: t('settings.tabs.typography'),
+                    privacy: t('settings.privacy.sectionTitle'),
+                    about: t('settings.about.title')
+                  }[activeTab]}
                 </h2>
                 {!isSearching && activeTab === 'ai-engine' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('settings.aiEngine.active')}</span>
                 )}
                 {!isSearching && activeTab === 'privacy' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Shield Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('common.shieldActive')}</span>
                 )}
                 {isSearching && (
-                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>4 items found</span>
+                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.search.itemsFound', { count: 4 })}</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1189,7 +1246,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#4343d5', fontSize: '14px', fontWeight: 700 }}>search</span>
                   <input
                     type="text"
-                    placeholder="Search preference..."
+                    placeholder={t('settings.search.placeholder')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{
@@ -1199,7 +1256,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
                     }}
                   />
                 </div>
-                <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
+                <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
@@ -1208,7 +1265,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
               {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
             </div>
-            <DialogFooter onClose={onClose} onApply={onApply} />
+            <DialogFooter onClose={handleClose} onApply={handleApply} />
           </section>
         </div>
       </div>

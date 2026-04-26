@@ -10,7 +10,11 @@
     "confirm": "Confirm",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "apply": "Apply Changes",
+    "restoreDefaults": "Restore Defaults",
+    "configure": "Configure",
+    "shieldActive": "Shield Active"
   },
   "settings": {
     "title": "Settings",
@@ -22,9 +26,32 @@
       "about": "About"
     },
     "general": {
+      "sectionTitle": "General Settings",
+      "sectionDescription": "Configure your core workspace environment and interaction patterns.",
+      "interfaceMode": {
+        "label": "Interface Mode",
+        "description": "Adjust the visual appearance of the editor shell.",
+        "themes": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark",
+          "glass": "Glass"
+        }
+      },
+      "autoSave": {
+        "label": "Auto-Save",
+        "description": "Automatically backup your progress to the cloud library as you write.",
+        "every": "Every",
+        "minutes": "minutes"
+      },
+      "focusMode": {
+        "label": "Focus Mode",
+        "description": "Automatically hide toolbars and secondary panels when you begin typing.",
+        "enable": "Enable distraction-free shell"
+      },
       "language": {
-        "label": "Language",
-        "description": "Select your preferred language for the interface."
+        "label": "Interface Language",
+        "description": "Select the primary language for the editor menus and interface elements."
       },
       "defaultExportPath": {
         "label": "Default Export Path",
@@ -43,6 +70,32 @@
         "description": "Time interval between auto-syncs (5–60 seconds)."
       }
     },
+    "aiEngine": {
+      "sectionTitle": "AI Engine Settings",
+      "sectionDescription": "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance.",
+      "active": "Active"
+    },
+    "privacy": {
+      "sectionTitle": "Privacy & Security",
+      "sectionDescription": "Manage how your data is handled, stored, and transmitted.",
+      "encryptionEnabled": "End-to-End Encryption Enabled",
+      "encryptionDescription": "Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.",
+      "auditSecurity": "Audit Security",
+      "localProcessing": {
+        "label": "Local processing only",
+        "description": "When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.",
+        "prefer": "Prefer on-device processing only"
+      },
+      "aiTraining": {
+        "label": "AI Model Training",
+        "description": "Anonymized snippets help improve the engine. We never store personal identifiers.",
+        "recommended": "Recommended",
+        "liquidIntelligence": "Liquid Intelligence Contribution"
+      },
+      "regionalInfrastructure": {
+        "label": "Regional Data Infrastructure"
+      }
+    },
     "about": {
       "title": "About WordAI",
       "storagePath": {
@@ -54,6 +107,17 @@
         "win": "Reveal in Explorer",
         "linux": "Reveal in File Manager"
       }
+    },
+    "footer": {
+      "restoreDefaults": "Restore Defaults",
+      "cancel": "Cancel",
+      "apply": "Apply Changes"
+    },
+    "search": {
+      "placeholder": "Search preference...",
+      "results": "Search Results",
+      "clear": "Clear search",
+      "itemsFound": "{{count}} items found"
     }
   },
   "export": {

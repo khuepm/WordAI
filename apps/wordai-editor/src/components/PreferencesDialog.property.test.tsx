@@ -281,12 +281,13 @@ describe('Property 4: Stacked layout and ARIA roles', () => {
 describe('Property 5: State preservation across resize', () => {
   // Feature: responsive-modal-system, Property 5: State preservation across resize
 
+  // Tab titles now come from i18n translations (default: English)
   const tabTitles: Record<Tab, string> = {
-    general: 'General Settings',
-    'ai-engine': 'AI Engine Settings',
-    typography: 'Typography & Formatting',
-    privacy: 'Privacy & Security',
-    about: 'About',
+    general: 'General Settings',  // t('settings.general.sectionTitle')
+    'ai-engine': 'AI Engine Settings',  // t('settings.aiEngine.sectionTitle')
+    typography: 'Typography',  // t('settings.tabs.typography')
+    privacy: 'Privacy & Security',  // t('settings.privacy.sectionTitle')
+    about: 'About WordAI',  // t('settings.about.title')
   };
 
   it('active tab heading is preserved after viewport resize', () => {
@@ -383,7 +384,7 @@ describe('Property 5: State preservation across resize', () => {
           expect(headerEl).not.toBeNull();
           const heading = headerEl!.querySelector('h2');
           expect(heading).not.toBeNull();
-          expect(heading!.textContent).toBe('General Settings');
+          expect(heading!.textContent).toBe('General Settings'); // matches t('settings.general.sectionTitle')
 
           unmount();
         }

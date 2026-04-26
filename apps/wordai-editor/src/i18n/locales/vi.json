@@ -10,7 +10,11 @@
     "confirm": "Xác nhận",
     "loading": "Đang tải...",
     "error": "Lỗi",
-    "success": "Thành công"
+    "success": "Thành công",
+    "apply": "Áp dụng thay đổi",
+    "restoreDefaults": "Khôi phục mặc định",
+    "configure": "Cấu hình",
+    "shieldActive": "Khiên bảo vệ đang bật"
   },
   "settings": {
     "title": "Cài đặt",
@@ -22,9 +26,32 @@
       "about": "Giới thiệu"
     },
     "general": {
+      "sectionTitle": "Cài đặt Chung",
+      "sectionDescription": "Cấu hình môi trường làm việc và tương tác cốt lõi.",
+      "interfaceMode": {
+        "label": "Chế độ giao diện",
+        "description": "Điều chỉnh giao diện trình chỉnh sửa.",
+        "themes": {
+          "system": "Hệ thống",
+          "light": "Sáng",
+          "dark": "Tối",
+          "glass": "Kính"
+        }
+      },
+      "autoSave": {
+        "label": "Tự động lưu",
+        "description": "Tự động sao lưu tiến trình của bạn khi viết.",
+        "every": "Mỗi",
+        "minutes": "phút"
+      },
+      "focusMode": {
+        "label": "Chế độ tập trung",
+        "description": "Tự động ẩn thanh công cụ và panel phụ khi bạn bắt đầu gõ.",
+        "enable": "Bật chế độ không gây mất tập trung"
+      },
       "language": {
-        "label": "Ngôn ngữ",
-        "description": "Chọn ngôn ngữ ưa thích cho giao diện."
+        "label": "Ngôn ngữ giao diện",
+        "description": "Chọn ngôn ngữ chính cho menu và giao diện."
       },
       "defaultExportPath": {
         "label": "Thư mục xuất mặc định",
@@ -43,6 +70,32 @@
         "description": "Khoảng thời gian giữa các lần auto-sync (5–60 giây)."
       }
     },
+    "aiEngine": {
+      "sectionTitle": "Cài đặt AI Engine",
+      "sectionDescription": "Cấu hình trí tuệ hỗ trợ viết — từ agent backbone đến sự sáng tạo.",
+      "active": "Đang hoạt động"
+    },
+    "privacy": {
+      "sectionTitle": "Riêng tư & Bảo mật",
+      "sectionDescription": "Quản lý cách dữ liệu của bạn được xử lý, lưu trữ và truyền tải.",
+      "encryptionEnabled": "Mã hóa đầu cuối đã bật",
+      "encryptionDescription": "Bản nháp của bạn không bao giờ bị đọc bởi con người. Xử lý AI diễn ra trong môi trường bộ nhớ tạm thời.",
+      "auditSecurity": "Kiểm tra bảo mật",
+      "localProcessing": {
+        "label": "Chỉ xử lý trên thiết bị",
+        "description": "Khi bật, WordAI Editor chỉ xử lý nội dung trên thiết bị này, tránh gửi dữ liệu đến dịch vụ từ xa trừ khi bắt buộc.",
+        "prefer": "Ưu tiên xử lý trên thiết bị"
+      },
+      "aiTraining": {
+        "label": "Huấn luyện AI",
+        "description": "Các đoạn văn ẩn danh giúp cải thiện engine. Chúng tôi không lưu thông tin cá nhân.",
+        "recommended": "Khuyến nghị",
+        "liquidIntelligence": "Đóng góp Liquid Intelligence"
+      },
+      "regionalInfrastructure": {
+        "label": "Cơ sở hạ tầng khu vực"
+      }
+    },
     "about": {
       "title": "Giới thiệu WordAI",
       "storagePath": {
@@ -54,6 +107,17 @@
         "win": "Mở trong Explorer",
         "linux": "Mở trong File Manager"
       }
+    },
+    "footer": {
+      "restoreDefaults": "Khôi phục mặc định",
+      "cancel": "Hủy",
+      "apply": "Áp dụng thay đổi"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm cài đặt...",
+      "results": "Kết quả tìm kiếm",
+      "clear": "Xóa tìm kiếm",
+      "itemsFound": "{{count}} kết quả"
     }
   },
   "export": {
