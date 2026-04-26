@@ -10,26 +10,36 @@
  *               8.7, 8.8, 8.9, 8.10
  */
 
-import { invoke } from '@tauri-apps/api/core';
-import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
-import type { AuraImportResult, AuraIntentDocument } from '../types/auraDocument';
-import type { Document } from '../types/document';
-import { auraIntentToDocument, documentToAuraIntent } from './auraDocumentAdapter';
-import { syncDocument } from './auraBrainManager';
+import { invoke } from "@tauri-apps/api/core";
+import {
+  open as openDialog,
+  save as saveDialog,
+} from "@tauri-apps/plugin-dialog";
+import type {
+  AuraImportResult,
+  AuraIntentDocument,
+} from "../types/auraDocument";
+import type { PDFExportOptions } from "../types/export";
+import type { Document } from "../types/document";
+import {
+  auraIntentToDocument,
+  documentToAuraIntent,
+} from "./auraDocumentAdapter";
+import { syncDocument } from "./auraBrainManager";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export type ExportResult =
-  | { status: 'cancelled' }
-  | { status: 'success'; path: string }
-  | { status: 'error'; message: string };
+  | { status: "cancelled" }
+  | { status: "success"; path: string }
+  | { status: "error"; message: string };
 
 export type ImportFlowResult =
-  | { status: 'cancelled' }
-  | { status: 'opened'; document: Document; warnings: string[] }
-  | { status: 'error'; message: string };
+  | { status: "cancelled" }
+  | { status: "opened"; document: Document; warnings: string[] }
+  | { status: "error"; message: string };
 
 /**
  * Callback invoked when an imported file's Aura_Tag matches an existing Intent.
@@ -41,7 +51,7 @@ export type ImportFlowResult =
 export type ConflictResolutionCallback = (
   intentName: string,
   auraIntentId: string,
-) => Promise<'update' | 'create_new' | 'cancel'>;
+) => Promise<"update" | "create_new" | "cancel">;
 
 /**
  * Options for importFile — allows the caller to inject conflict resolution UI
@@ -89,7 +99,9 @@ type OpenDialogOptions = {
  * Uses @tauri-apps/plugin-dialog at runtime. Falls back to null when the
  * dialog plugin is unavailable (browser dev mode, tests).
  */
-async function openSaveDialog(options: SaveDialogOptions): Promise<string | null> {
+async function openSaveDialog(
+  options: SaveDialogOptions,
+): Promise<string | null> {
   try {
     const result = await saveDialog(options);
     return result ?? null;
@@ -102,7 +114,9 @@ async function openSaveDialog(options: SaveDialogOptions): Promise<string | null
  * Opens a native open-file dialog.
  * Returns the chosen path string, or null if the user cancelled.
  */
-async function openOpenDialog(options: OpenDialogOptions): Promise<string | null> {
+async function openOpenDialog(
+  options: OpenDialogOptions,
+): Promise<string | null> {
   try {
     const result = await openDialog({ ...options, multiple: false });
     if (Array.isArray(result)) return result[0] ?? null;
@@ -122,17 +136,20 @@ async function openOpenDialog(options: OpenDialogOptions): Promise<string | null
  */
 async function getDefaultExportPath(): Promise<string> {
   try {
-    const { loadPreferences } = await import('./preferencesService');
-    const prefs = await loadPreferences('default');
+    const { loadPreferences } = await import("./preferencesService");
+    const prefs = await loadPreferences("default");
     // Cast to access the new field — will be properly typed once task 15.1 lands
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (prefs.general as any).defaultExportPath ?? '';
+    return (prefs.general as any).defaultExportPath ?? "";
   } catch {
-    return '';
+    return "";
   }
 }
 
-function ensureExtension(path: string, extension: 'md' | 'docx'): string {
+function ensureExtension(
+  path: string,
+  extension: "md" | "docx" | "pdf",
+): string {
   const expected = `.${extension}`;
   return path.toLowerCase().endsWith(expected) ? path : `${path}${expected}`;
 }
@@ -148,24 +165,29 @@ function ensureExtension(path: string, extension: 'md' | 'docx'): string {
  *
  * Does NOT modify AuraBrain state or the Dirty_Bit after export.
  */
-export async function exportMarkdown(document: Document): Promise<ExportResult> {
+export async function exportMarkdown(
+  document: Document,
+): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
 
   const selectedPath = await openSaveDialog({
     defaultPath: defaultPath || undefined,
-    filters: [{ name: 'Markdown', extensions: ['md'] }],
+    filters: [{ name: "Markdown", extensions: ["md"] }],
   });
 
   // Requirement 6.7: user cancelled — do nothing
-  if (!selectedPath) return { status: 'cancelled' };
+  if (!selectedPath) return { status: "cancelled" };
 
   try {
-    const path = ensureExtension(selectedPath, 'md');
+    const path = ensureExtension(selectedPath, "md");
     const { value: auraDocument } = documentToAuraIntent(document);
-    await invoke('export_markdown', { path, document: auraDocument });
-    return { status: 'success', path };
+    await invoke("export_markdown", { path, document: auraDocument });
+    return { status: "success", path };
   } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
   }
 
   // Requirement 6.5: AuraBrain state is NOT changed here — intentionally no
@@ -188,22 +210,75 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
 
   const selectedPath = await openSaveDialog({
     defaultPath: defaultPath || undefined,
-    filters: [{ name: 'Word Document', extensions: ['docx'] }],
+    filters: [{ name: "Word Document", extensions: ["docx"] }],
   });
 
   // User cancelled — do nothing
-  if (!selectedPath) return { status: 'cancelled' };
+  if (!selectedPath) return { status: "cancelled" };
 
   try {
-    const path = ensureExtension(selectedPath, 'docx');
+    const path = ensureExtension(selectedPath, "docx");
     const { value: auraDocument } = documentToAuraIntent(document);
-    await invoke('export_docx', { path, document: auraDocument });
-    return { status: 'success', path };
+    await invoke("export_docx", { path, document: auraDocument });
+    return { status: "success", path };
   } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
   }
 
   // Requirement 7.5: AuraBrain state is NOT changed here.
+}
+
+// ---------------------------------------------------------------------------
+// Export to PDF
+// Requirements: 12.1, 12.2, 12.3, 12.4, 12.5
+// ---------------------------------------------------------------------------
+
+/**
+ * Opens a Native_File_Dialog for the user to choose a save path, then calls
+ * the IPC command `export_to_pdf` to generate and write the PDF file.
+ *
+ * Flattens the nested `margins` object into the flat shape expected by the
+ * Rust PDFExportOptions struct (snake_case fields, no nesting).
+ *
+ * Does NOT modify AuraBrain state or the Dirty_Bit after export.
+ */
+export async function exportPdf(
+  document: Document,
+  pdfOptions: PDFExportOptions,
+): Promise<ExportResult> {
+  const defaultPath = await getDefaultExportPath();
+
+  const selectedPath = await openSaveDialog({
+    defaultPath: defaultPath || undefined,
+    filters: [{ name: "PDF Document", extensions: ["pdf"] }],
+  });
+
+  if (!selectedPath) return { status: "cancelled" };
+
+  try {
+    const path = ensureExtension(selectedPath, "pdf");
+    await invoke("export_to_pdf", {
+      content: document.content,
+      outputPath: path,
+      options: {
+        page_size: pdfOptions.pageSize,
+        margin_top: pdfOptions.margins.top,
+        margin_bottom: pdfOptions.margins.bottom,
+        margin_left: pdfOptions.margins.left,
+        margin_right: pdfOptions.margins.right,
+        font_size: pdfOptions.fontSize,
+      },
+    });
+    return { status: "success", path };
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -230,27 +305,32 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
  *
  * Returns the final Document that was synced, or null if the user cancelled.
  */
-export async function importFile(options: ImportOptions = {}): Promise<ImportFlowResult> {
+export async function importFile(
+  options: ImportOptions = {},
+): Promise<ImportFlowResult> {
   const { onConflict, onOpenIntent } = options;
 
   const path = await openOpenDialog({
-    filters: [{ name: 'Supported Files', extensions: ['md', 'docx'] }],
+    filters: [{ name: "Supported Files", extensions: ["md", "docx"] }],
   });
 
   // Requirement 8.1: user cancelled dialog — do nothing
-  if (!path) return { status: 'cancelled' };
+  if (!path) return { status: "cancelled" };
 
   let result: AuraImportResult;
   try {
-    result = await invoke<AuraImportResult>('import_file', { path });
+    result = await invoke<AuraImportResult>("import_file", { path });
   } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) };
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
   }
 
   // Requirement 8.10: surface warnings about Unsupported_Elements
   if (result.warnings.length > 0) {
     console.warn(
-      '[exportService] Import warnings — unsupported elements encountered:',
+      "[exportService] Import warnings — unsupported elements encountered:",
       result.warnings,
     );
   }
@@ -263,7 +343,9 @@ export async function importFile(options: ImportOptions = {}): Promise<ImportFlo
     // Check whether this intent already exists in AuraBrain
     let existingIntent: AuraIntentDocument | null = null;
     try {
-      existingIntent = await invoke<AuraIntentDocument | null>('get_intent', { id: auraIntentId });
+      existingIntent = await invoke<AuraIntentDocument | null>("get_intent", {
+        id: auraIntentId,
+      });
     } catch {
       // If the IPC call fails we treat it as "not found" and create a new intent
       existingIntent = null;
@@ -272,12 +354,15 @@ export async function importFile(options: ImportOptions = {}): Promise<ImportFlo
     if (existingIntent) {
       // Requirement 8.4: conflict — ask the user what to do
       const choice = onConflict
-        ? await onConflict(existingIntent.intent_name || 'Untitled Intent', auraIntentId)
-        : 'create_new'; // safe default when no UI callback is provided
+        ? await onConflict(
+            existingIntent.intent_name || "Untitled Intent",
+            auraIntentId,
+          )
+        : "create_new"; // safe default when no UI callback is provided
 
-      if (choice === 'cancel') return { status: 'cancelled' };
+      if (choice === "cancel") return { status: "cancelled" };
 
-      if (choice === 'update') {
+      if (choice === "update") {
         // Requirement 8.5: keep original id and created_at, bump version
         const updatedDoc: Document = {
           ...importedDocument,
@@ -285,10 +370,14 @@ export async function importFile(options: ImportOptions = {}): Promise<ImportFlo
           metadata: importedDocument.metadata,
           lastModified: new Date(),
         };
-        await syncDocument(updatedDoc, 'import');
+        await syncDocument(updatedDoc, "import");
         // Requirement 8.8: open the intent in the editor, clear Unsaved_Indicator
         onOpenIntent?.(updatedDoc);
-        return { status: 'opened', document: updatedDoc, warnings: result.warnings };
+        return {
+          status: "opened",
+          document: updatedDoc,
+          warnings: result.warnings,
+        };
       }
 
       // choice === 'create_new' — fall through to new-intent creation below
@@ -301,7 +390,7 @@ export async function importFile(options: ImportOptions = {}): Promise<ImportFlo
     id: crypto.randomUUID(),
     lastModified: new Date(),
   };
-  await syncDocument(newDoc, 'import');
+  await syncDocument(newDoc, "import");
   onOpenIntent?.(newDoc);
-  return { status: 'opened', document: newDoc, warnings: result.warnings };
+  return { status: "opened", document: newDoc, warnings: result.warnings };
 }

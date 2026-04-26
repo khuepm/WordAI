@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import type { Document } from '../types/document';
-import type { ExportFormat, ExportOptions, PDFExportOptions, PageSize } from '../types/export';
-import type { IPCResponse } from '../types/ipc';
+import type { ExportFormat, PDFExportOptions, PageSize } from '../types/export';
 import { defaultPreferences } from '../types/preferences';
-import { exportDocx, exportMarkdown, importFile, type ConflictResolutionCallback } from '../services/exportService';
+import { exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback } from '../services/exportService';
 import { loadPreferences } from '../services/preferencesService';
 import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
 
@@ -20,7 +18,6 @@ export interface RenderDrawerProps {
 const FORMATS: { id: ExportFormat; label: string; description: string }[] = [
   { id: 'pdf', label: 'PDF', description: 'Portable Document Format' },
   { id: 'markdown', label: 'Markdown', description: 'Plain-text with formatting' },
-  { id: 'html', label: 'HTML', description: 'Web-ready document' },
   { id: 'docx', label: 'DOCX', description: 'Microsoft Word document' },
 ];
 
@@ -121,51 +118,28 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     setExportError(null);
     setStatusText(null);
 
-    const options: ExportOptions = {
-      format: selectedFormat,
-      ...(selectedFormat === 'pdf' ? { pdfOptions } : {}),
-    };
-
     try {
+      let result;
       if (selectedFormat === 'markdown') {
-        const result = await exportMarkdown(currentDocument);
-        if (result.status === 'cancelled') return;
-        if (result.status === 'error') {
-          setExportStatus('error');
-          setExportError(result.message);
-          return;
-        }
-        setStatusText(`Export complete: ${result.path}`);
-        setExportStatus('success');
-        return;
-      }
-
-      if (selectedFormat === 'docx') {
-        const result = await exportDocx(currentDocument);
-        if (result.status === 'cancelled') return;
-        if (result.status === 'error') {
-          setExportStatus('error');
-          setExportError(result.message);
-          return;
-        }
-        setStatusText(`Export complete: ${result.path}`);
-        setExportStatus('success');
-        return;
-      }
-
-      const res = await invoke<IPCResponse<string>>('export_to_pdf', {
-        content: currentDocument.content,
-        outputPath: '',
-        options,
-      });
-
-      if (res.success) {
-        setStatusText(res.data ? `Export complete: ${res.data}` : 'Export complete');
-        setExportStatus('success');
+        result = await exportMarkdown(currentDocument);
+      } else if (selectedFormat === 'docx') {
+        result = await exportDocx(currentDocument);
+      } else if (selectedFormat === 'pdf') {
+        result = await exportPdf(currentDocument, pdfOptions);
       } else {
         setExportStatus('error');
-        setExportError(res.error?.message ?? 'Export failed.');
+        setExportError(`Export format "${selectedFormat}" is not supported.`);
+        return;
       }
+
+      if (result.status === 'cancelled') return;
+      if (result.status === 'error') {
+        setExportStatus('error');
+        setExportError(result.message);
+        return;
+      }
+      setStatusText(`Export complete: ${result.path}`);
+      setExportStatus('success');
     } catch (err: unknown) {
       setExportStatus('error');
       setExportError(err instanceof Error ? err.message : 'Export failed.');
@@ -223,7 +197,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
         <div style={styles.header}>
           <span style={styles.title}>Export Document</span>
           <button style={styles.closeBtn} onClick={onClose} aria-label="Close export drawer" data-testid="drawer-close-button">
-            x
+            <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
@@ -425,13 +399,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'var(--font-family-ui)',
-    background: 'rgba(254, 247, 255, 0.85)',
-    backdropFilter: 'blur(var(--glass-blur))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur))',
-    border: '1px solid var(--glass-border)',
+    background: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: 'none',
     borderBottom: 'none',
     borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-    boxShadow: 'var(--shadow-ambient-strong)',
+    boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 -20px 60px rgba(0,0,0,0.08)',
     transition: 'transform 250ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease',
   },
   drawerOpen: { transform: 'translateY(0)', opacity: 1 },
@@ -440,63 +414,74 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 'var(--spacing-md) var(--spacing-lg)',
-    borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+    height: '64px',
+    padding: '0 2rem',
+    borderBottom: '1px solid rgba(199,196,215,0.12)',
     flexShrink: 0,
   },
   title: {
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '1.125rem',
+    fontWeight: 700,
+    color: '#18181b',
+    letterSpacing: '-0.01em',
   },
   closeBtn: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-base)',
-    padding: 'var(--spacing-xs)',
-    borderRadius: 'var(--radius-sm)',
+    color: '#a1a1aa',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '4px',
+    borderRadius: '0.5rem',
     lineHeight: 1,
   },
   body: {
     flex: 1,
     overflowY: 'auto',
-    padding: 'var(--spacing-lg)',
+    padding: '2rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: 'var(--spacing-lg)',
+    gap: '1.5rem',
   },
   footer: {
-    padding: 'var(--spacing-md) var(--spacing-lg)',
-    borderTop: '1px solid var(--md-sys-color-outline-variant)',
+    height: '80px',
+    padding: '0 2rem',
+    borderTop: '1px solid rgba(199,196,215,0.1)',
+    background: '#fafafa',
     flexShrink: 0,
     display: 'flex',
-    gap: 'var(--spacing-sm)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '0.75rem',
   },
   exportBtn: {
-    flex: 1,
-    padding: 'var(--spacing-sm) var(--spacing-lg)',
-    background: 'var(--md-sys-color-primary)',
-    color: 'var(--md-sys-color-on-primary)',
+    padding: '0.625rem 2rem',
+    background: '#4343d5',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '0.75rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 500,
+    fontSize: '0.75rem',
+    fontWeight: 700,
     cursor: 'pointer',
-    transition: 'opacity var(--transition-fast)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)',
+    transition: 'all 0.2s',
   },
   secondaryBtn: {
-    padding: 'var(--spacing-sm) var(--spacing-lg)',
-    background: 'rgba(255,255,255,0.7)',
-    color: 'var(--md-sys-color-primary)',
-    border: '1px solid var(--md-sys-color-outline-variant)',
-    borderRadius: 'var(--radius-md)',
+    padding: '0.625rem 1.5rem',
+    background: 'none',
+    color: '#52525b',
+    border: 'none',
+    borderRadius: '0.75rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 500,
+    fontSize: '0.75rem',
+    fontWeight: 700,
     cursor: 'pointer',
   },
   exportBtnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
@@ -516,120 +501,135 @@ const styles: Record<string, React.CSSProperties> = {
     animation: 'spin 0.8s linear infinite',
   },
   successMsg: {
-    background: '#d4edda',
-    color: '#155724',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
+    background: 'rgba(16,185,129,0.08)',
+    color: '#065f46',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
   },
   errorMsg: {
-    background: 'var(--md-sys-color-error-container)',
-    color: 'var(--md-sys-color-on-error-container)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
+    background: 'rgba(239,68,68,0.08)',
+    color: '#991b1b',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
   },
   warningMsg: {
-    background: 'rgba(180,120,0,0.1)',
-    color: '#7a4d00',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
+    background: 'rgba(245,158,11,0.08)',
+    color: '#92400e',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
   },
 };
 
 const subStyles: Record<string, React.CSSProperties> = {
-  section: { display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' },
+  section: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   sectionLabel: {
-    fontSize: 'var(--font-size-xs)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface-variant)',
+    fontSize: '10px',
+    fontWeight: 700,
+    color: '#a1a1aa',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.1em',
     fontFamily: 'var(--font-family-ui)',
   },
   formatGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 'var(--spacing-sm)',
+    gap: '1rem',
   },
   formatBtn: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2px',
-    padding: 'var(--spacing-sm)',
-    background: 'rgba(255, 255, 255, 0.5)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-md)',
+    gap: '4px',
+    padding: '1rem',
+    background: '#f3f4f5',
+    border: '2px solid transparent',
+    borderRadius: '0.75rem',
     cursor: 'pointer',
     fontFamily: 'var(--font-family-ui)',
+    transition: 'all 0.2s',
   },
   formatBtnSelected: {
-    background: 'var(--md-sys-color-primary-container)',
-    borderColor: 'var(--md-sys-color-primary)',
+    background: 'rgba(67,67,213,0.05)',
+    borderColor: 'rgba(67,67,213,0.4)',
   },
   formatLabel: {
-    fontSize: 'var(--font-size-sm)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: '#18181b',
   },
   formatDesc: {
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
+    fontSize: '11px',
+    color: '#71717a',
     textAlign: 'center',
+    lineHeight: 1.4,
   },
-  pageSizeRow: { display: 'flex', gap: 'var(--spacing-sm)' },
+  pageSizeRow: { display: 'flex', gap: '0.75rem' },
   pageSizeBtn: {
-    padding: 'var(--spacing-xs) var(--spacing-md)',
-    background: 'rgba(255, 255, 255, 0.5)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-md)',
+    padding: '0.5rem 1rem',
+    background: '#f3f4f5',
+    border: '2px solid transparent',
+    borderRadius: '0.5rem',
     cursor: 'pointer',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: '#18181b',
+    transition: 'all 0.2s',
   },
   pageSizeBtnSelected: {
-    background: 'var(--md-sys-color-primary-container)',
-    borderColor: 'var(--md-sys-color-primary)',
-    color: 'var(--md-sys-color-on-primary-container)',
+    background: 'rgba(67,67,213,0.05)',
+    borderColor: 'rgba(67,67,213,0.4)',
+    color: '#4343d5',
   },
   marginsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 'var(--spacing-sm)',
+    gap: '1rem',
   },
   marginLabel: {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+    color: '#71717a',
   },
-  marginSideLabel: { textTransform: 'capitalize' },
+  marginSideLabel: { textTransform: 'capitalize', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' },
   marginInput: {
-    padding: 'var(--spacing-xs)',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid var(--glass-border)',
-    background: 'rgba(255, 255, 255, 0.6)',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '0.5rem',
+    border: 'none',
+    background: '#f3f4f5',
     fontFamily: 'var(--font-family-ui)',
+    fontSize: '0.875rem',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   fontSizeRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 'var(--spacing-md)',
+    gap: '1rem',
   },
-  fontSizeSlider: { flex: 1 },
+  fontSizeSlider: { flex: 1, accentColor: '#4343d5' },
   fontSizeValue: {
     minWidth: '48px',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    color: '#4343d5',
+    background: 'rgba(67,67,213,0.08)',
+    padding: '2px 8px',
+    borderRadius: '4px',
   },
 };
 
