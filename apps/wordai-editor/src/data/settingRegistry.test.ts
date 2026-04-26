@@ -7,7 +7,7 @@ import type { Tab } from '../types/preferences';
  * Validates: Requirements 5.6
  */
 
-const VALID_TABS: Tab[] = ['general', 'ai-engine', 'typography', 'privacy'];
+const VALID_TABS: Tab[] = ['general', 'ai-engine', 'typography', 'privacy', 'about'];
 
 describe('SettingRegistry — Property 1: Every SettingEntry has all required fields non-empty', () => {
   it('every entry has a non-empty id', () => {
@@ -84,5 +84,98 @@ describe('SettingRegistry — Property 2: Every id follows "tab.settingName" for
     const ids = SETTING_REGISTRY.map((e) => e.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
+  });
+});
+
+/**
+ * Tests for new AuraBrain Persistence & Legacy Export SettingEntries
+ * Validates: Requirements 10.6, 10.7, 10.8, 10.9, 10.10
+ */
+
+function searchSettings(query: string): typeof SETTING_REGISTRY {
+  const q = query.toLowerCase();
+  return SETTING_REGISTRY.filter(
+    (e) =>
+      e.label.toLowerCase().includes(q) ||
+      e.keywords.some((kw) => kw.toLowerCase().includes(q))
+  );
+}
+
+describe('SettingRegistry — new AuraBrain entries: QuickSearch integration', () => {
+  it('searching "auto sync" returns at least 1 new entry (Requirements 10.8, 10.9, 10.10)', () => {
+    const results = searchSettings('auto sync');
+    const ids = results.map((e) => e.id);
+    expect(ids.some((id) => id === 'general.autoSyncEnabled' || id === 'general.autoSyncInterval')).toBe(true);
+  });
+
+  it('searching "export" returns at least 1 new entry (Requirements 10.6, 10.7, 10.10)', () => {
+    const results = searchSettings('export');
+    const ids = results.map((e) => e.id);
+    expect(
+      ids.some(
+        (id) => id === 'general.defaultExportPath' || id === 'general.defaultExportFormat'
+      )
+    ).toBe(true);
+  });
+
+  it('general.defaultExportPath entry has correct label and keywords', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'general.defaultExportPath');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('Default Export Path');
+    expect(entry!.keywords).toContain('export path');
+    expect(entry!.keywords).toContain('thư mục xuất');
+  });
+
+  it('general.defaultExportFormat entry has correct label and keywords', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'general.defaultExportFormat');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('Default Export Format');
+    expect(entry!.keywords).toContain('markdown');
+    expect(entry!.keywords).toContain('định dạng xuất');
+  });
+
+  it('general.autoSyncEnabled entry has correct label and keywords', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'general.autoSyncEnabled');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('Auto Sync');
+    expect(entry!.keywords).toContain('autosync');
+    expect(entry!.keywords).toContain('tự động đồng bộ');
+  });
+
+  it('general.autoSyncInterval entry has correct label and keywords', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'general.autoSyncInterval');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('Auto Sync Interval');
+    expect(entry!.keywords).toContain('sync frequency');
+    expect(entry!.keywords).toContain('khoảng thời gian đồng bộ');
+  });
+});
+
+/**
+ * Tests for AuraBrain Storage Path SettingEntry
+ * Validates: Requirements 12.5, 12.6
+ */
+describe('SettingRegistry — about.auraBrainStoragePath entry: QuickSearch integration', () => {
+  it('searching "aurabrain" returns the storage path entry (Requirement 12.6)', () => {
+    const results = searchSettings('aurabrain');
+    const ids = results.map((e) => e.id);
+    expect(ids).toContain('about.auraBrainStoragePath');
+  });
+
+  it('searching "storage" returns the storage path entry (Requirement 12.6)', () => {
+    const results = searchSettings('storage');
+    const ids = results.map((e) => e.id);
+    expect(ids).toContain('about.auraBrainStoragePath');
+  });
+
+  it('about.auraBrainStoragePath entry has correct label, tab, and keywords (Requirement 12.5)', () => {
+    const entry = SETTING_REGISTRY.find((e) => e.id === 'about.auraBrainStoragePath');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('AuraBrain Storage Location');
+    expect(entry!.tab).toBe('about');
+    expect(entry!.keywords).toContain('aurabrain');
+    expect(entry!.keywords).toContain('storage path');
+    expect(entry!.keywords).toContain('nơi lưu dữ liệu');
+    expect(entry!.keywords).toContain('thư mục dữ liệu');
   });
 });

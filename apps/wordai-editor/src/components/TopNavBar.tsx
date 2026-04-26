@@ -4,6 +4,7 @@
  */
 
 import { UserAvatar } from './UserAvatar';
+import { DocumentTitleBar } from './DocumentTitleBar';
 import { useState, useRef, useEffect } from 'react';
 
 interface TopNavBarProps {
@@ -14,9 +15,13 @@ interface TopNavBarProps {
   onOpenPreferences?: () => void;
   /** Authenticated user's display name; omit for anonymous/guest. */
   userName?: string;
+  /** AuraBrain dirty state — true when content differs from last sync (Req 3.3, 3.4) */
+  isDirty?: boolean;
+  /** AuraBrain syncing state — true while sync is in progress (Req 1.1) */
+  isSyncing?: boolean;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false }: TopNavBarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -76,29 +81,27 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           </nav>
         </div>
 
-        {/* Center: doc title */}
-        <span
-          data-testid="document-title"
+        {/* Center: doc title via DocumentTitleBar (Req 3.1–3.4) */}
+        <div
           style={{
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--md-sys-color-on-surface-variant)',
-            fontWeight: 500,
           }}
         >
-          {documentTitle}
-          {hasUnsavedChanges && (
-            <span data-testid="unsaved-indicator" style={{ marginLeft: '4px', color: 'var(--md-sys-color-primary)' }} aria-label="unsaved changes">•</span>
-          )}
-        </span>
+          <DocumentTitleBar
+            intentName={documentTitle || null}
+            isDirty={isDirty}
+            isSyncing={isSyncing}
+          />
+        </div>
 
         {/* Right: actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             data-testid="save-button"
             onClick={onSave}
+            title={hasUnsavedChanges ? 'Open export drawer. Unsynced changes present.' : 'Open export drawer'}
             style={{
               background: 'var(--md-sys-color-primary)',
               color: 'var(--md-sys-color-on-primary)',
@@ -111,7 +114,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
               fontWeight: 600,
             }}
           >
-            Render
+            Export
           </button>
           <button
             data-testid="new-button"
@@ -150,26 +153,17 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          {/*<UserAvatar name={userName} size={32} />*/}
           <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <button
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            <span
               style={{
-                background: isUserMenuOpen ? 'rgba(255,255,255,0.5)' : 'none',
-                border: 'none',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isUserMenuOpen ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)',
-                boxShadow: isUserMenuOpen ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+                display: 'inline-flex',
+                boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
+                transition: 'box-shadow 0.15s',
               }}
             >
-              <span className="material-symbols-outlined">account_circle</span>
-            </button>
+              <UserAvatar name={userName} size={32} onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} />
+            </span>
 
             {isUserMenuOpen && (
               <div

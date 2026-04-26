@@ -30,6 +30,19 @@ describe('Overlay aria-hidden', () => {
     expect(backdrop).not.toBeNull();
     expect(backdrop!.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('calls onApply before closing when Apply Changes is clicked', async () => {
+    const onApply = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
+    render(<PreferencesDialog isOpen={true} onClose={onClose} onApply={onApply} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /apply changes/i }));
+
+    await waitFor(() => {
+      expect(onApply).toHaveBeenCalledOnce();
+      expect(onClose).toHaveBeenCalledOnce();
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

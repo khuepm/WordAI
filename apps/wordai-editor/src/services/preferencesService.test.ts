@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadPreferences, savePreferences, resetPreferences } from './preferencesService';
+import { loadPreferences, savePreferences, resetPreferences, validateAutoSyncInterval } from './preferencesService';
 import { defaultPreferences } from '../types/preferences';
 
 // Mock Tauri IPC
@@ -78,5 +78,34 @@ describe('resetPreferences', () => {
       userId: 'user1',
       group: 'general',
     });
+  });
+});
+
+/**
+ * validateAutoSyncInterval unit tests
+ * Requirements: 10.4, 10.5
+ */
+describe('validateAutoSyncInterval', () => {
+  it('accepts value at lower boundary (5)', () => {
+    expect(validateAutoSyncInterval(5, 30)).toBe(5);
+  });
+
+  it('accepts value at upper boundary (60)', () => {
+    expect(validateAutoSyncInterval(60, 30)).toBe(60);
+  });
+
+  it('accepts value within range', () => {
+    expect(validateAutoSyncInterval(30, 10)).toBe(30);
+  });
+
+  it('rejects value below 5 and returns previous', () => {
+    expect(validateAutoSyncInterval(4, 30)).toBe(30);
+    expect(validateAutoSyncInterval(0, 15)).toBe(15);
+    expect(validateAutoSyncInterval(-1, 20)).toBe(20);
+  });
+
+  it('rejects value above 60 and returns previous', () => {
+    expect(validateAutoSyncInterval(61, 30)).toBe(30);
+    expect(validateAutoSyncInterval(100, 45)).toBe(45);
   });
 });

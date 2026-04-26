@@ -13,6 +13,7 @@ const TAB_LABELS: Record<Tab, string> = {
   'ai-engine': 'AI Engine',
   'typography': 'Typography',
   'privacy': 'Privacy',
+  'about': 'About',
 };
 
 export function filterSettings(query: string): SettingEntry[] {

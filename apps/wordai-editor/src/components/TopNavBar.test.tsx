@@ -27,18 +27,21 @@ describe('TopNavBar - rendering', () => {
 
   it('renders the document title from props', () => {
     render(<TopNavBar {...defaultProps} documentTitle="My Test Doc" />);
-    expect(screen.getByTestId('document-title')).toHaveTextContent('My Test Doc');
+    // DocumentTitleBar renders the title in data-testid="document-title-text"
+    expect(screen.getByTestId('document-title-text')).toHaveTextContent('My Test Doc');
   });
 
-  it('shows unsaved indicator "•" when hasUnsavedChanges=true', () => {
-    render(<TopNavBar {...defaultProps} hasUnsavedChanges={true} />);
-    expect(screen.getByTestId('unsaved-indicator')).toBeInTheDocument();
-    expect(screen.getByTestId('unsaved-indicator')).toHaveTextContent('•');
+  it('shows dirty indicator "●" when isDirty=true', () => {
+    render(<TopNavBar {...defaultProps} isDirty={true} />);
+    // DocumentTitleBar shows ● prefix when isDirty
+    const titleText = screen.getByTestId('document-title-text').textContent ?? '';
+    expect(titleText).toContain('●');
   });
 
-  it('does NOT show "•" when hasUnsavedChanges=false', () => {
-    render(<TopNavBar {...defaultProps} hasUnsavedChanges={false} />);
-    expect(screen.queryByTestId('unsaved-indicator')).not.toBeInTheDocument();
+  it('does NOT show "●" when isDirty=false', () => {
+    render(<TopNavBar {...defaultProps} isDirty={false} />);
+    const titleText = screen.getByTestId('document-title-text').textContent ?? '';
+    expect(titleText).not.toContain('●');
   });
 });
 

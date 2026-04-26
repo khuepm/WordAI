@@ -2,14 +2,19 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
+import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
+import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onApply?: () => void | Promise<void>;
   initialTab?: Tab;
   targetSettingId?: string;
 }
@@ -17,11 +22,13 @@ interface PreferencesDialogProps {
 // ─── Sidebar ────────────────────────────────────────────────────────────────
 
 function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activeTab: Tab; onTabChange: (t: Tab) => void; isSearching: boolean; onClearSearch: () => void }) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -33,7 +40,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
     }}>
       <div>
         <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>{t('settings.title')}</h1>
           <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
         </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -107,6 +114,7 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
     { id: 'typography', icon: 'format_size', label: 'Typography' },
     { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'about', icon: 'info', label: 'About' },
   ];
 
   return (
@@ -228,6 +236,7 @@ export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarPro
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
     { id: 'typography', icon: 'format_size', label: 'Typography' },
     { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'about', icon: 'info', label: 'About' },
   ];
 
   return (
@@ -332,8 +341,19 @@ function SettingRow({ icon, label, children }: { icon: string; label: string; ch
 
 // ─── Tab: General ────────────────────────────────────────────────────────────
 
-function GeneralTab() {
-  const themes = ['System', 'Light', 'Dark', 'Glass'];
+interface GeneralTabProps {
+  pendingLang: LanguageCode;
+  onLanguageChange: (lang: LanguageCode) => void;
+}
+
+function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
+  const { t } = useTranslation();
+  const themes = [
+    { key: 'system', label: t('settings.general.interfaceMode.themes.system') },
+    { key: 'light', label: t('settings.general.interfaceMode.themes.light') },
+    { key: 'dark', label: t('settings.general.interfaceMode.themes.dark') },
+    { key: 'glass', label: t('settings.general.interfaceMode.themes.glass') },
+  ];
   const themePreviews = [
     { from: '#f4f4f5', to: '#d4d4d8' },
     { from: '#ffffff', to: '#ffffff' },
@@ -341,22 +361,27 @@ function GeneralTab() {
     { from: '#6366f1', to: '#a855f7' },
   ];
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value as LanguageCode;
+    onLanguageChange(newLang);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Environment Workspace</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>General Settings</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.general')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Configure your core workspace environment and interaction patterns."
+          {t('app.tagline')}
         </p>
       </div>
 
       {/* Interface Mode */}
       <div data-setting-id="general.theme">
-        <SectionHeader label="Interface Mode" description="Adjust the visual appearance of the editor shell." />
+        <SectionHeader label={t('settings.general.interfaceMode.label')} description={t('settings.general.interfaceMode.description')} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {themes.map((theme, i) => (
-            <label key={theme} style={{ cursor: 'pointer' }}>
+            <label key={theme.key} style={{ cursor: 'pointer' }}>
               <input type="radio" name="pref-theme" defaultChecked={i === 0} style={{ display: 'none' }} />
               <div style={{
                 padding: '1rem', borderRadius: '0.75rem', background: '#f3f4f5',
@@ -366,9 +391,9 @@ function GeneralTab() {
                 <div style={{
                   height: '80px', width: '100%', borderRadius: '4px', marginBottom: '0.75rem',
                   background: `linear-gradient(135deg, ${themePreviews[i].from}, ${themePreviews[i].to})`,
-                  opacity: theme === 'Glass' ? 0.6 : 1,
+                  opacity: theme.key === 'glass' ? 0.6 : 1,
                 }} />
-                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme}</p>
+                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme.label}</p>
               </div>
             </label>
           ))}
@@ -377,16 +402,16 @@ function GeneralTab() {
 
       {/* Auto-Save */}
       <div data-setting-id="general.autoSave">
-        <SectionHeader label="Auto-Save" description="Automatically backup your progress to the cloud library as you write." />
+        <SectionHeader label={t('settings.general.autoSave.label')} description={t('settings.general.autoSave.description')} />
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Every</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.every')}</span>
             <input type="number" defaultValue={5} style={{
               width: '64px', height: '32px', borderRadius: '0.75rem',
               border: 'none', padding: '0 0.75rem',
               fontSize: '0.75rem', background: '#f4f4f5',
             }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>minutes</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.minutes')}</span>
           </div>
           <Toggle checked={true} />
         </SettingRow>
@@ -394,34 +419,36 @@ function GeneralTab() {
 
       {/* Focus Mode */}
       <div data-setting-id="general.focusMode">
-        <SectionHeader label="Focus Mode" description="Automatically hide toolbars and secondary panels when you begin typing." />
-        <SettingRow icon="visibility_off" label="Enable distraction-free shell">
+        <SectionHeader label={t('settings.general.focusMode.label')} description={t('settings.general.focusMode.description')} />
+        <SettingRow icon="visibility_off" label={t('settings.general.focusMode.enable')}>
           <Toggle checked={false} />
         </SettingRow>
       </div>
 
       {/* Interface Language */}
       <div data-setting-id="general.language">
-        <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
+        <SectionHeader label={t('settings.general.language.label')} description={t('settings.general.language.description')} />
         <div style={{ position: 'relative', marginTop: '0.5rem' }}>
-          <select style={{
-            width: '100%',
-            background: 'rgba(243,244,245,0.5)',
-            border: 'none',
-            borderRadius: '1rem',
-            padding: '1.25rem',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            appearance: 'none',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-          }}>
-            <option>English (US)</option>
-            <option>Vietnamese (Tiếng Việt)</option>
-            <option>Japanese (日本語)</option>
-            <option>French (Français)</option>
-            <option>German (Deutsch)</option>
+          <select
+            value={pendingLang}
+            onChange={handleLanguageChange}
+            style={{
+              width: '100%',
+              background: 'rgba(243,244,245,0.5)',
+              border: 'none',
+              borderRadius: '1rem',
+              padding: '1.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              appearance: 'none',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+            }}
+          >
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code}>{lang.label}</option>
+            ))}
           </select>
           <span className="material-symbols-outlined" style={{
             position: 'absolute',
@@ -834,6 +861,80 @@ function PrivacyTab() {
   );
 }
 
+// ─── Tab: About ──────────────────────────────────────────────────────────────
+
+function AboutTab() {
+  const { t, i18n } = useTranslation();
+  const [storagePath, setStoragePath] = useState('');
+  const [revealError, setRevealError] = useState<string | null>(null);
+
+  const revealLabel = i18n.language === 'vi' ? 'Mở trong Finder' : getFileManagerLabel();
+
+  useEffect(() => {
+    getAuraBrainStoragePath()
+      .then(setStoragePath)
+      .catch(() => setStoragePath(''));
+  }, []);
+
+  async function handleReveal() {
+    try {
+      setRevealError(null);
+      await invoke('reveal_in_file_manager', { path: storagePath });
+    } catch (err) {
+      setRevealError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      {/* Header */}
+      <div>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.about')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.about.title')}</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
+          "{t('app.tagline')}"
+        </p>
+      </div>
+
+      {/* AuraBrain Storage Path */}
+      <div data-setting-id="about.auraBrainStoragePath">
+        <SectionHeader label={t('settings.about.storagePath.label')} description={t('settings.about.storagePath.description')} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          padding: '1.25rem', background: 'rgba(243,244,245,0.5)',
+          borderRadius: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+        }}>
+          <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '24px', flexShrink: 0 }}>folder</span>
+          <code style={{
+            flex: 1, fontSize: '0.8125rem', fontFamily: 'monospace',
+            color: '#18181b', wordBreak: 'break-all',
+          }}>{storagePath}</code>
+          <button
+            onClick={handleReveal}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1rem', borderRadius: '0.5rem',
+              fontSize: '0.75rem', fontWeight: 700,
+              background: '#4343d5', color: '#ffffff',
+              border: 'none', cursor: 'pointer', flexShrink: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+            {revealLabel}
+          </button>
+        </div>
+        {revealError && (
+          <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
+            {revealError}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
 function SearchResultsTab({ query }: { query: string }) {
@@ -918,7 +1019,14 @@ function SearchResultsTab({ query }: { query: string }) {
 
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
-function DialogFooter({ onClose }: { onClose: () => void }) {
+function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () => void | Promise<void> }) {
+  const { t } = useTranslation();
+
+  async function handleApply() {
+    await onApply?.();
+    onClose();
+  }
+
   return (
     <footer style={{
       height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -926,7 +1034,7 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
       flexShrink: 0,
     }}>
       <button style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a1a1aa', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'inherit' }}>
-        RESTORE DEFAULTS
+        {t('common.restoreDefaults')}
       </button>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <button onClick={onClose} style={{
@@ -934,15 +1042,15 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
           background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer',
           fontFamily: 'inherit',
         }}>
-          Cancel
+          {t('common.cancel')}
         </button>
-        <button onClick={onClose} style={{
+        <button onClick={handleApply} style={{
           padding: '0.625rem 2rem', fontSize: '0.75rem', fontWeight: 700,
           background: '#4343d5', color: '#ffffff', border: 'none', borderRadius: '0.75rem',
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
           boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)', transition: 'all 0.2s', fontFamily: 'inherit',
         }}>
-          Apply Changes
+          {t('common.apply')}
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_right_alt</span>
         </button>
       </div>
@@ -952,23 +1060,62 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
-export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId }: PreferencesDialogProps) {
+export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, targetSettingId }: PreferencesDialogProps) {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Language state management for cancel/apply behavior
+  const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
+  const originalLangRef = useRef<LanguageCode>(i18n.language as LanguageCode || 'en');
 
   const { width } = useViewportSize();
   const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
   const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
 
-  // Sync to initialTab only when the dialog first opens, not on every tab change
+  // Sync to initialTab and capture original language when dialog opens
   const prevIsOpen = useRef(false);
   useEffect(() => {
     const justOpened = isOpen && !prevIsOpen.current;
     prevIsOpen.current = isOpen;
-    if (justOpened && initialTab) {
-      setActiveTab(initialTab);
+    if (justOpened) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
+      // Capture current language as original when dialog opens
+      const currentLang = i18n.language as LanguageCode || 'en';
+      originalLangRef.current = currentLang;
+      setPendingLang(currentLang);
     }
-  }, [isOpen, initialTab]);
+  }, [isOpen, initialTab, i18n.language]);
+
+  // Handle language change from GeneralTab
+  const handleLanguageChange = useCallback((newLang: LanguageCode) => {
+    setPendingLang(newLang);
+    // Apply immediately for preview, will be reverted on cancel if needed
+    i18n.changeLanguage(newLang);
+  }, [i18n]);
+
+  // Handle close with cancel - revert language if changed
+  const handleClose = useCallback(() => {
+    // Revert to original language if user cancelled
+    if (pendingLang !== originalLangRef.current) {
+      i18n.changeLanguage(originalLangRef.current);
+    }
+    onClose();
+  }, [onClose, pendingLang, i18n]);
+
+  // Handle apply - save language preference
+  // Note: DialogFooter.handleApply calls onClose after this, so we don't call it here
+  const handleApply = useCallback(async () => {
+    // Save language preference
+    if (pendingLang !== originalLangRef.current) {
+      saveLanguagePreference(pendingLang);
+      originalLangRef.current = pendingLang;
+    }
+    await onApply?.();
+    // onClose is called by DialogFooter.handleApply after this function completes
+  }, [onApply, pendingLang]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;
@@ -1021,10 +1168,14 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
   if (!isOpen) return null;
 
   const tabContent: Record<Tab, React.ReactNode> = {
-    'general': <GeneralTab />,
+    'general': <GeneralTab
+      pendingLang={pendingLang}
+      onLanguageChange={handleLanguageChange}
+    />,
     'ai-engine': <AIEngineTab />,
     'typography': <TypographyTab />,
     'privacy': <PrivacyTab />,
+    'about': <AboutTab />,
   };
 
   const isSearching = searchQuery.trim().length > 0;
@@ -1034,7 +1185,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        onClick={onClose}
+        onClick={handleClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 900,
           background: 'rgba(25,28,29,0.05)', backdropFilter: 'blur(4px)',
@@ -1072,16 +1223,22 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
-                  {isSearching ? 'Search Results' : { general: 'General Settings', 'ai-engine': 'AI Engine Settings', typography: 'Typography & Formatting', privacy: 'Privacy & Security' }[activeTab]}
+                  {isSearching ? t('settings.search.results') : {
+                    general: t('settings.general.sectionTitle'),
+                    'ai-engine': t('settings.aiEngine.sectionTitle'),
+                    typography: t('settings.tabs.typography'),
+                    privacy: t('settings.privacy.sectionTitle'),
+                    about: t('settings.about.title')
+                  }[activeTab]}
                 </h2>
                 {!isSearching && activeTab === 'ai-engine' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('settings.aiEngine.active')}</span>
                 )}
                 {!isSearching && activeTab === 'privacy' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Shield Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('common.shieldActive')}</span>
                 )}
                 {isSearching && (
-                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>4 items found</span>
+                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.search.itemsFound', { count: 4 })}</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1089,7 +1246,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#4343d5', fontSize: '14px', fontWeight: 700 }}>search</span>
                   <input
                     type="text"
-                    placeholder="Search preference..."
+                    placeholder={t('settings.search.placeholder')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{
@@ -1099,7 +1256,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
                     }}
                   />
                 </div>
-                <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
+                <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
@@ -1108,7 +1265,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
               {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
             </div>
-            <DialogFooter onClose={onClose} />
+            <DialogFooter onClose={handleClose} onApply={handleApply} />
           </section>
         </div>
       </div>

@@ -1,9 +1,16 @@
 {
   "general": {
     "theme": "system",
-    "autoSave": { "enabled": true, "intervalMinutes": 5 },
+    "autoSave": {
+      "enabled": true,
+      "intervalMinutes": 5
+    },
     "focusMode": false,
-    "language": "en-US"
+    "language": "en-US",
+    "defaultExportPath": "",
+    "defaultExportFormat": "markdown",
+    "autoSyncEnabled": true,
+    "autoSyncInterval": 30
   },
   "aiEngine": {
     "agent": "claude",

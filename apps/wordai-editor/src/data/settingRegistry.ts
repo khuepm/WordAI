@@ -38,6 +38,42 @@ export const SETTING_REGISTRY: SettingEntry[] = [
     type: 'select',
     defaultValue: 'en-US',
   },
+  {
+    id: 'general.defaultExportPath',
+    label: 'Default Export Path',
+    description: 'Thư mục mặc định khi xuất file ra Markdown hoặc DOCX',
+    tab: 'general',
+    keywords: ['export path', 'default folder', 'export location', 'thư mục xuất'],
+    type: 'text',
+    defaultValue: '',
+  },
+  {
+    id: 'general.defaultExportFormat',
+    label: 'Default Export Format',
+    description: 'Định dạng file mặc định khi xuất document',
+    tab: 'general',
+    keywords: ['export format', 'file format', 'markdown', 'docx', 'định dạng xuất'],
+    type: 'select',
+    defaultValue: 'markdown',
+  },
+  {
+    id: 'general.autoSyncEnabled',
+    label: 'Auto Sync',
+    description: 'Tự động đồng bộ ý niệm vào AuraBrain theo định kỳ',
+    tab: 'general',
+    keywords: ['auto sync', 'autosync', 'automatic sync', 'tự động đồng bộ'],
+    type: 'toggle',
+    defaultValue: true,
+  },
+  {
+    id: 'general.autoSyncInterval',
+    label: 'Auto Sync Interval',
+    description: 'Khoảng thời gian giữa các lần auto-sync (5–60 giây)',
+    tab: 'general',
+    keywords: ['auto sync interval', 'sync frequency', 'autosync timer', 'khoảng thời gian đồng bộ'],
+    type: 'number',
+    defaultValue: 30,
+  },
 
   // AI Engine tab
   {
@@ -187,5 +223,16 @@ export const SETTING_REGISTRY: SettingEntry[] = [
     keywords: ['local processing', 'offline', 'on-device', 'no cloud', 'private'],
     type: 'toggle',
     defaultValue: false,
+  },
+
+  // About tab
+  {
+    id: 'about.auraBrainStoragePath',
+    label: 'AuraBrain Storage Location',
+    description: 'Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này',
+    tab: 'about',
+    keywords: ['aurabrain', 'storage path', 'data location', 'database path', 'nơi lưu dữ liệu', 'thư mục dữ liệu'],
+    type: 'text',
+    defaultValue: '',
   },
 ];

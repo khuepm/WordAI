@@ -1,0 +1,170 @@
+{
+  "app": {
+    "name": "WordAI",
+    "tagline": "Dữ liệu của bạn, thiết bị của bạn. AuraBrain lưu trữ mọi thứ trên máy."
+  },
+  "common": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "apply": "Áp dụng thay đổi",
+    "restoreDefaults": "Khôi phục mặc định",
+    "configure": "Cấu hình",
+    "shieldActive": "Khiên bảo vệ đang bật"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "tabs": {
+      "general": "Chung",
+      "aiEngine": "AI Engine",
+      "typography": "Kiểu chữ",
+      "privacy": "Riêng tư",
+      "about": "Giới thiệu"
+    },
+    "general": {
+      "sectionTitle": "Cài đặt Chung",
+      "sectionDescription": "Cấu hình môi trường làm việc và tương tác cốt lõi.",
+      "interfaceMode": {
+        "label": "Chế độ giao diện",
+        "description": "Điều chỉnh giao diện trình chỉnh sửa.",
+        "themes": {
+          "system": "Hệ thống",
+          "light": "Sáng",
+          "dark": "Tối",
+          "glass": "Kính"
+        }
+      },
+      "autoSave": {
+        "label": "Tự động lưu",
+        "description": "Tự động sao lưu tiến trình của bạn khi viết.",
+        "every": "Mỗi",
+        "minutes": "phút"
+      },
+      "focusMode": {
+        "label": "Chế độ tập trung",
+        "description": "Tự động ẩn thanh công cụ và panel phụ khi bạn bắt đầu gõ.",
+        "enable": "Bật chế độ không gây mất tập trung"
+      },
+      "language": {
+        "label": "Ngôn ngữ giao diện",
+        "description": "Chọn ngôn ngữ chính cho menu và giao diện."
+      },
+      "defaultExportPath": {
+        "label": "Thư mục xuất mặc định",
+        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX."
+      },
+      "defaultExportFormat": {
+        "label": "Định dạng xuất mặc định",
+        "description": "Định dạng file mặc định khi xuất tài liệu."
+      },
+      "autoSync": {
+        "label": "Tự động đồng bộ",
+        "description": "Tự động đồng bộ ý niệm vào AuraBrain theo định kỳ."
+      },
+      "autoSyncInterval": {
+        "label": "Khoảng thời gian đồng bộ",
+        "description": "Khoảng thời gian giữa các lần auto-sync (5–60 giây)."
+      }
+    },
+    "aiEngine": {
+      "sectionTitle": "Cài đặt AI Engine",
+      "sectionDescription": "Cấu hình trí tuệ hỗ trợ viết — từ agent backbone đến sự sáng tạo.",
+      "active": "Đang hoạt động"
+    },
+    "privacy": {
+      "sectionTitle": "Riêng tư & Bảo mật",
+      "sectionDescription": "Quản lý cách dữ liệu của bạn được xử lý, lưu trữ và truyền tải.",
+      "encryptionEnabled": "Mã hóa đầu cuối đã bật",
+      "encryptionDescription": "Bản nháp của bạn không bao giờ bị đọc bởi con người. Xử lý AI diễn ra trong môi trường bộ nhớ tạm thời.",
+      "auditSecurity": "Kiểm tra bảo mật",
+      "localProcessing": {
+        "label": "Chỉ xử lý trên thiết bị",
+        "description": "Khi bật, WordAI Editor chỉ xử lý nội dung trên thiết bị này, tránh gửi dữ liệu đến dịch vụ từ xa trừ khi bắt buộc.",
+        "prefer": "Ưu tiên xử lý trên thiết bị"
+      },
+      "aiTraining": {
+        "label": "Huấn luyện AI",
+        "description": "Các đoạn văn ẩn danh giúp cải thiện engine. Chúng tôi không lưu thông tin cá nhân.",
+        "recommended": "Khuyến nghị",
+        "liquidIntelligence": "Đóng góp Liquid Intelligence"
+      },
+      "regionalInfrastructure": {
+        "label": "Cơ sở hạ tầng khu vực"
+      }
+    },
+    "about": {
+      "title": "Giới thiệu WordAI",
+      "storagePath": {
+        "label": "Vị trí lưu trữ AuraBrain",
+        "description": "Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này."
+      },
+      "revealButton": {
+        "mac": "Mở trong Finder",
+        "win": "Mở trong Explorer",
+        "linux": "Mở trong File Manager"
+      }
+    },
+    "footer": {
+      "restoreDefaults": "Khôi phục mặc định",
+      "cancel": "Hủy",
+      "apply": "Áp dụng thay đổi"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm cài đặt...",
+      "results": "Kết quả tìm kiếm",
+      "clear": "Xóa tìm kiếm",
+      "itemsFound": "{{count}} kết quả"
+    }
+  },
+  "export": {
+    "title": "Xuất Tài liệu",
+    "formats": {
+      "pdf": "PDF",
+      "markdown": "Markdown",
+      "docx": "DOCX"
+    },
+    "descriptions": {
+      "pdf": "Định dạng tài liệu di động",
+      "markdown": "Văn bản thuần có định dạng",
+      "docx": "Tài liệu Microsoft Word"
+    },
+    "exportButton": "Xuất",
+    "cancelled": "Đã hủy xuất.",
+    "success": "Xuất thành công: {{path}}",
+    "error": "Xuất thất bại: {{message}}"
+  },
+  "import": {
+    "title": "Nhập Tài liệu",
+    "conflict": {
+      "title": "Ý niệm đã tồn tại",
+      "message": "File này thuộc về Ý niệm \"{{intentName}}\". Bạn có muốn cập nhật Ý niệm đó với nội dung mới không?",
+      "update": "Cập nhật Ý niệm",
+      "createNew": "Tạo Ý niệm mới",
+      "cancel": "Hủy"
+    },
+    "unsupportedElements": "Phát hiện thành phần không hỗ trợ: {{elements}}"
+  },
+  "ai": {
+    "negotiation": {
+      "title": "So sánh đề xuất AI",
+      "original": "Bản gốc",
+      "suggested": "Bản đề xuất AI",
+      "reject": "Từ chối",
+      "editRequest": "Yêu cầu lại",
+      "accept": "Chấp nhận"
+    }
+  },
+  "statusBar": {
+    "syncing": "Đang đồng bộ...",
+    "unsaved": "Chưa lưu thay đổi",
+    "synced": "Đã đồng bộ · {{seconds}}s trước"
+  },
+  "document": {
+    "untitled": "Ý niệm chưa đặt tên",
+    "dirtyIndicator": "●"
+  }
+}

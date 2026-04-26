@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc efec2432afb98f1c6a07b2511fbcdbd353ba9cc519d0220393d2b630be95293d # shrinks to doc = AuraDocument { id: "--a-aa0a--a0a00a--0--a--a-00a-00a-00", intent_name: "a", content: [ListItem { ordered: false, text: "A", inline: [] }, Paragraph { text: "0", inline: [] }], version: Some(1), created_at: Some(0), updated_at: Some(0) }
