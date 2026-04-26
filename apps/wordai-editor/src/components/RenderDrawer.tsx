@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Document } from '../types/document';
 import type { ExportFormat, PDFExportOptions, PageSize } from '../types/export';
 import { defaultPreferences } from '../types/preferences';
@@ -15,11 +16,7 @@ export interface RenderDrawerProps {
   onImportDocument?: (document: Document) => void;
 }
 
-const FORMATS: { id: ExportFormat; label: string; description: string }[] = [
-  { id: 'pdf', label: 'PDF', description: 'Portable Document Format' },
-  { id: 'markdown', label: 'Markdown', description: 'Plain-text with formatting' },
-  { id: 'docx', label: 'DOCX', description: 'Microsoft Word document' },
-];
+const FORMAT_IDS: ExportFormat[] = ['pdf', 'markdown', 'docx'];
 
 const PAGE_SIZES: PageSize[] = ['A4', 'Letter', 'Legal'];
 
@@ -30,6 +27,12 @@ const DEFAULT_PDF_OPTIONS: PDFExportOptions = {
 };
 
 export function RenderDrawer({ isOpen, onClose, document: documentProp, documentId, documentContent, onImportDocument }: RenderDrawerProps) {
+  const { t } = useTranslation();
+  const formats: { id: ExportFormat; label: string; description: string }[] = FORMAT_IDS.map((id) => ({
+    id,
+    label: t(`export.formats.${id}`),
+    description: t(`export.descriptions.${id}`),
+  }));
   const currentDocument: Document = documentProp ?? {
     id: documentId ?? 'unsaved-document',
     title: 'Untitled Intent',
@@ -128,7 +131,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
         result = await exportPdf(currentDocument, pdfOptions);
       } else {
         setExportStatus('error');
-        setExportError(`Export format "${selectedFormat}" is not supported.`);
+        setExportError(t('export.formatNotSupported', { format: selectedFormat }));
         return;
       }
 
@@ -138,15 +141,15 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
         setExportError(result.message);
         return;
       }
-      setStatusText(`Export complete: ${result.path}`);
+      setStatusText(t('export.success', { path: result.path }));
       setExportStatus('success');
     } catch (err: unknown) {
       setExportStatus('error');
-      setExportError(err instanceof Error ? err.message : 'Export failed.');
+      setExportError(err instanceof Error ? err.message : t('export.failed'));
     } finally {
       setIsExporting(false);
     }
-  }, [selectedFormat, pdfOptions, currentDocument]);
+  }, [selectedFormat, pdfOptions, currentDocument, t]);
 
   const handleImport = useCallback(async () => {
     setIsImporting(true);
@@ -168,12 +171,12 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
       }
       setImportWarnings(result.warnings);
       onImportDocument?.(result.document);
-      setStatusText('Import complete');
+      setStatusText(t('export.importComplete'));
       setExportStatus('success');
     } finally {
       setIsImporting(false);
     }
-  }, [onImportDocument]);
+  }, [onImportDocument, t]);
 
   return (
     <div
@@ -186,7 +189,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     >
       <div
         role="dialog"
-        aria-label="Export document"
+        aria-label={t('export.dialogAriaLabel')}
         aria-modal="true"
         data-testid="render-drawer"
         style={{
@@ -195,14 +198,14 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
         }}
       >
         <div style={styles.header}>
-          <span style={styles.title}>Export Document</span>
-          <button style={styles.closeBtn} onClick={onClose} aria-label="Close export drawer" data-testid="drawer-close-button">
+          <span style={styles.title}>{t('export.title')}</span>
+          <button style={styles.closeBtn} onClick={onClose} aria-label={t('export.closeAriaLabel')} data-testid="drawer-close-button">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
         <div style={styles.body}>
-          <FormatSelector formats={FORMATS} selected={selectedFormat} onSelect={handleFormatSelect} />
+          <FormatSelector formats={formats} selected={selectedFormat} onSelect={handleFormatSelect} />
 
           {selectedFormat === 'pdf' && (
             <PDFOptions
@@ -214,7 +217,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
 
           {exportStatus === 'success' && (
             <div style={styles.successMsg} role="status" data-testid="export-success">
-              {statusText ?? 'Export complete'}
+              {statusText ?? t('export.complete')}
             </div>
           )}
           {exportStatus === 'error' && exportError && (
@@ -224,7 +227,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
           )}
           {importWarnings.length > 0 && (
             <div style={styles.warningMsg} role="status" data-testid="import-warnings">
-              Unsupported elements: {importWarnings.join(', ')}
+              {t('export.unsupportedElementsPrefix', { elements: importWarnings.join(', ') })}
             </div>
           )}
         </div>
@@ -236,22 +239,22 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
             disabled={isImporting}
             data-testid="import-button"
           >
-            {isImporting ? 'Importing...' : 'Import'}
+            {isImporting ? t('export.buttons.importing') : t('export.buttons.import')}
           </button>
           <button
             style={{ ...styles.exportBtn, ...(isExporting ? styles.exportBtnDisabled : {}) }}
             onClick={handleExport}
             disabled={isExporting}
-            aria-label={`Export as ${selectedFormat.toUpperCase()}`}
+            aria-label={t('export.buttons.exportAs', { format: selectedFormat.toUpperCase() })}
             data-testid="export-button"
           >
             {isExporting ? (
               <span style={styles.exportingRow}>
                 <span style={styles.spinner} aria-hidden="true" />
-                Exporting...
+                {t('export.buttons.exporting')}
               </span>
             ) : (
-              `Export as ${selectedFormat.toUpperCase()}`
+              t('export.buttons.exportAs', { format: selectedFormat.toUpperCase() })
             )}
           </button>
         </div>
@@ -278,17 +281,24 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
   );
 }
 
+interface FormatOption {
+  id: ExportFormat;
+  label: string;
+  description: string;
+}
+
 interface FormatSelectorProps {
-  formats: typeof FORMATS;
+  formats: FormatOption[];
   selected: ExportFormat;
   onSelect: (f: ExportFormat) => void;
 }
 
 function FormatSelector({ formats, selected, onSelect }: FormatSelectorProps) {
+  const { t } = useTranslation();
   return (
     <div style={subStyles.section}>
-      <div style={subStyles.sectionLabel}>Format</div>
-      <div style={subStyles.formatGrid} role="radiogroup" aria-label="Export format">
+      <div style={subStyles.sectionLabel}>{t('export.sections.format')}</div>
+      <div style={subStyles.formatGrid} role="radiogroup" aria-label={t('export.ariaLabels.formatGroup')}>
         {formats.map((f) => (
           <button
             key={f.id}
@@ -314,10 +324,11 @@ interface PDFOptionsProps {
 }
 
 function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps) {
+  const { t } = useTranslation();
   return (
     <div style={subStyles.section} data-testid="pdf-options">
-      <div style={subStyles.sectionLabel}>Page Size</div>
-      <div style={subStyles.pageSizeRow} role="radiogroup" aria-label="Page size">
+      <div style={subStyles.sectionLabel}>{t('export.sections.pageSize')}</div>
+      <div style={subStyles.pageSizeRow} role="radiogroup" aria-label={t('export.ariaLabels.pageSizeGroup')}>
         {PAGE_SIZES.map((size) => (
           <button
             key={size}
@@ -332,11 +343,11 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
         ))}
       </div>
 
-      <div style={subStyles.sectionLabel}>Margins (mm)</div>
+      <div style={subStyles.sectionLabel}>{t('export.sections.margins')}</div>
       <div style={subStyles.marginsGrid}>
         {(['top', 'bottom', 'left', 'right'] as const).map((side) => (
           <label key={side} style={subStyles.marginLabel}>
-            <span style={subStyles.marginSideLabel}>{side.charAt(0).toUpperCase() + side.slice(1)}</span>
+            <span style={subStyles.marginSideLabel}>{t(`export.margins.${side}`)}</span>
             <input
               type="number"
               min={0}
@@ -344,14 +355,14 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
               value={options.margins[side]}
               onChange={(e) => onMarginChange(side, Number(e.target.value))}
               style={subStyles.marginInput}
-              aria-label={`${side} margin`}
+              aria-label={t('export.ariaLabels.marginSide', { side: t(`export.margins.${side}`) })}
               data-testid={`margin-${side}`}
             />
           </label>
         ))}
       </div>
 
-      <div style={subStyles.sectionLabel}>Font Size (pt)</div>
+      <div style={subStyles.sectionLabel}>{t('export.sections.fontSize')}</div>
       <div style={subStyles.fontSizeRow}>
         <input
           type="range"
@@ -361,7 +372,7 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
           value={options.fontSize}
           onChange={(e) => onOptionChange('fontSize', Number(e.target.value))}
           style={subStyles.fontSizeSlider}
-          aria-label="Font size"
+          aria-label={t('export.ariaLabels.fontSize')}
           data-testid="font-size-slider"
         />
         <span style={subStyles.fontSizeValue} data-testid="font-size-value">{options.fontSize}pt</span>

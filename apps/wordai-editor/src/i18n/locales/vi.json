@@ -122,6 +122,8 @@
   },
   "export": {
     "title": "Xuất Tài liệu",
+    "closeAriaLabel": "Đóng cửa sổ xuất",
+    "dialogAriaLabel": "Xuất tài liệu",
     "formats": {
       "pdf": "PDF",
       "markdown": "Markdown",
@@ -132,10 +134,39 @@
       "markdown": "Văn bản thuần có định dạng",
       "docx": "Tài liệu Microsoft Word"
     },
+    "sections": {
+      "format": "Định dạng",
+      "pageSize": "Kích thước trang",
+      "margins": "Lề (mm)",
+      "fontSize": "Cỡ chữ (pt)"
+    },
+    "ariaLabels": {
+      "formatGroup": "Định dạng xuất",
+      "pageSizeGroup": "Kích thước trang",
+      "marginSide": "Lề {{side}}",
+      "fontSize": "Cỡ chữ"
+    },
+    "margins": {
+      "top": "Trên",
+      "bottom": "Dưới",
+      "left": "Trái",
+      "right": "Phải"
+    },
+    "buttons": {
+      "import": "Nhập",
+      "importing": "Đang nhập...",
+      "exportAs": "Xuất dạng {{format}}",
+      "exporting": "Đang xuất..."
+    },
+    "complete": "Xuất thành công",
+    "importComplete": "Nhập thành công",
+    "unsupportedElementsPrefix": "Thành phần không hỗ trợ: {{elements}}",
     "exportButton": "Xuất",
     "cancelled": "Đã hủy xuất.",
     "success": "Xuất thành công: {{path}}",
-    "error": "Xuất thất bại: {{message}}"
+    "error": "Xuất thất bại: {{message}}",
+    "formatNotSupported": "Định dạng xuất \"{{format}}\" không được hỗ trợ.",
+    "failed": "Xuất thất bại."
   },
   "import": {
     "title": "Nhập Tài liệu",
