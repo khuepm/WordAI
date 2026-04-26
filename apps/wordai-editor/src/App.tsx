@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
+import './i18n';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';

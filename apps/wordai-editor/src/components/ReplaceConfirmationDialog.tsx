@@ -5,6 +5,7 @@
  * Requirements: 8.4
  */
 
+import { useTranslation } from 'react-i18next';
 import type { CSSProperties } from 'react';
 
 export interface ReplaceConfirmationDialogProps {
@@ -66,6 +67,7 @@ export function ReplaceConfirmationDialog({
   onCreateNew,
   onCancel,
 }: ReplaceConfirmationDialogProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -97,12 +99,10 @@ export function ReplaceConfirmationDialog({
               id="rcd-title"
               style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 700, color: '#18181b', lineHeight: 1.3 }}
             >
-              Intent already exists
+              {t('import.conflict.title')}
             </h2>
             <p style={{ margin: '0.375rem 0 0', fontSize: '0.8125rem', color: '#71717a', lineHeight: 1.5 }}>
-              File này thuộc Intent{' '}
-              <strong style={{ color: '#18181b' }}>"{intentName}"</strong>.
-              Bạn có muốn cập nhật Intent đó với nội dung mới không?
+              {t('import.conflict.message', { intentName })}
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export function ReplaceConfirmationDialog({
             style={{ ...btnBase, background: '#4343d5', color: '#ffffff', justifyContent: 'center' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>sync</span>
-            Cập nhật Intent
+            {t('import.conflict.update')}
           </button>
 
           {/* Secondary: create new */}
@@ -131,7 +131,7 @@ export function ReplaceConfirmationDialog({
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add_circle</span>
-            Tạo Intent mới
+            {t('import.conflict.createNew')}
           </button>
 
           {/* Cancel */}
@@ -145,7 +145,7 @@ export function ReplaceConfirmationDialog({
               justifyContent: 'center',
             }}
           >
-            Hủy
+            {t('import.conflict.cancel')}
           </button>
         </div>
       </div>

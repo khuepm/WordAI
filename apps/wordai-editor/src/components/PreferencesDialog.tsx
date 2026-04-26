@@ -3,11 +3,13 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
+import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -20,12 +22,13 @@ interface PreferencesDialogProps {
 // ─── Sidebar ────────────────────────────────────────────────────────────────
 
 function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activeTab: Tab; onTabChange: (t: Tab) => void; isSearching: boolean; onClearSearch: () => void }) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
     { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
-    { id: 'about', icon: 'info', label: 'About' },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -37,7 +40,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
     }}>
       <div>
         <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>{t('settings.title')}</h1>
           <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
         </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -339,6 +342,8 @@ function SettingRow({ icon, label, children }: { icon: string; label: string; ch
 // ─── Tab: General ────────────────────────────────────────────────────────────
 
 function GeneralTab() {
+  const { t, i18n } = useTranslation();
+  const [currentLang, setCurrentLang] = useState(i18n.language || 'en');
   const themes = ['System', 'Light', 'Dark', 'Glass'];
   const themePreviews = [
     { from: '#f4f4f5', to: '#d4d4d8' },
@@ -347,13 +352,20 @@ function GeneralTab() {
     { from: '#6366f1', to: '#a855f7' },
   ];
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value as LanguageCode;
+    setCurrentLang(newLang);
+    i18n.changeLanguage(newLang);
+    saveLanguagePreference(newLang);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Environment Workspace</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>General Settings</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.general')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Configure your core workspace environment and interaction patterns."
+          {t('app.tagline')}
         </p>
       </div>
 
@@ -408,26 +420,28 @@ function GeneralTab() {
 
       {/* Interface Language */}
       <div data-setting-id="general.language">
-        <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
+        <SectionHeader label={t('settings.general.language.label')} description={t('settings.general.language.description')} />
         <div style={{ position: 'relative', marginTop: '0.5rem' }}>
-          <select style={{
-            width: '100%',
-            background: 'rgba(243,244,245,0.5)',
-            border: 'none',
-            borderRadius: '1rem',
-            padding: '1.25rem',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            appearance: 'none',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-          }}>
-            <option>English (US)</option>
-            <option>Vietnamese (Tiếng Việt)</option>
-            <option>Japanese (日本語)</option>
-            <option>French (Français)</option>
-            <option>German (Deutsch)</option>
+          <select
+            value={currentLang}
+            onChange={handleLanguageChange}
+            style={{
+              width: '100%',
+              background: 'rgba(243,244,245,0.5)',
+              border: 'none',
+              borderRadius: '1rem',
+              padding: '1.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              appearance: 'none',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+            }}
+          >
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code}>{lang.label}</option>
+            ))}
           </select>
           <span className="material-symbols-outlined" style={{
             position: 'absolute',
@@ -843,9 +857,11 @@ function PrivacyTab() {
 // ─── Tab: About ──────────────────────────────────────────────────────────────
 
 function AboutTab() {
+  const { t, i18n } = useTranslation();
   const [storagePath, setStoragePath] = useState('');
-  const revealLabel = getFileManagerLabel();
   const [revealError, setRevealError] = useState<string | null>(null);
+
+  const revealLabel = i18n.language === 'vi' ? 'Mở trong Finder' : getFileManagerLabel();
 
   useEffect(() => {
     getAuraBrainStoragePath()
@@ -866,16 +882,16 @@ function AboutTab() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       {/* Header */}
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>System Information</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>About WordAI</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.about')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.about.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Your data, your device. AuraBrain stores everything locally."
+          "{t('app.tagline')}"
         </p>
       </div>
 
       {/* AuraBrain Storage Path */}
       <div data-setting-id="about.auraBrainStoragePath">
-        <SectionHeader label="AuraBrain Storage Location" description="Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này." />
+        <SectionHeader label={t('settings.about.storagePath.label')} description={t('settings.about.storagePath.description')} />
         <div style={{
           display: 'flex', alignItems: 'center', gap: '1rem',
           padding: '1.25rem', background: 'rgba(243,244,245,0.5)',

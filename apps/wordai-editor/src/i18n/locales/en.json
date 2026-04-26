@@ -1,0 +1,106 @@
+{
+  "app": {
+    "name": "WordAI",
+    "tagline": "Your data, your device. AuraBrain stores everything locally."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "general": "General",
+      "aiEngine": "AI Engine",
+      "typography": "Typography",
+      "privacy": "Privacy",
+      "about": "About"
+    },
+    "general": {
+      "language": {
+        "label": "Language",
+        "description": "Select your preferred language for the interface."
+      },
+      "defaultExportPath": {
+        "label": "Default Export Path",
+        "description": "Default folder when exporting files to Markdown or DOCX."
+      },
+      "defaultExportFormat": {
+        "label": "Default Export Format",
+        "description": "Default file format when exporting documents."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "description": "Automatically sync intents to AuraBrain periodically."
+      },
+      "autoSyncInterval": {
+        "label": "Auto Sync Interval",
+        "description": "Time interval between auto-syncs (5–60 seconds)."
+      }
+    },
+    "about": {
+      "title": "About WordAI",
+      "storagePath": {
+        "label": "AuraBrain Storage Location",
+        "description": "The folder path where AuraBrain database is stored on this device."
+      },
+      "revealButton": {
+        "mac": "Reveal in Finder",
+        "win": "Reveal in Explorer",
+        "linux": "Reveal in File Manager"
+      }
+    }
+  },
+  "export": {
+    "title": "Export Document",
+    "formats": {
+      "pdf": "PDF",
+      "markdown": "Markdown",
+      "docx": "DOCX"
+    },
+    "descriptions": {
+      "pdf": "Portable Document Format",
+      "markdown": "Plain-text with formatting",
+      "docx": "Microsoft Word document"
+    },
+    "exportButton": "Export",
+    "cancelled": "Export cancelled.",
+    "success": "Export complete: {{path}}",
+    "error": "Export failed: {{message}}"
+  },
+  "import": {
+    "title": "Import Document",
+    "conflict": {
+      "title": "Intent already exists",
+      "message": "This file belongs to Intent \"{{intentName}}\". Do you want to update that Intent with new content?",
+      "update": "Update Intent",
+      "createNew": "Create New Intent",
+      "cancel": "Cancel"
+    },
+    "unsupportedElements": "Unsupported elements found: {{elements}}"
+  },
+  "ai": {
+    "negotiation": {
+      "title": "Compare AI Suggestions",
+      "original": "Original",
+      "suggested": "AI Suggestion",
+      "reject": "Reject",
+      "editRequest": "Edit Request",
+      "accept": "Accept"
+    }
+  },
+  "statusBar": {
+    "syncing": "Syncing...",
+    "unsaved": "Unsaved changes",
+    "synced": "Synced · {{seconds}}s ago"
+  },
+  "document": {
+    "untitled": "Untitled Intent",
+    "dirtyIndicator": "●"
+  }
+}
