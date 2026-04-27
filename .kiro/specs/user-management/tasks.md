@@ -34,7 +34,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - Create rollback scripts for 003_entitlements_sessions
     - _Requirements: 12.1, 12.2, 12.9, 12.10, 12.11_
 
-  - [~] 1.6 Write property test for database constraint enforcement (Property 37)
+  - [x] 1.6 Write property test for database constraint enforcement (Property 37)
     - **Property 37: Database Constraint Enforcement**
     - **Validates: Requirements 12.10, 12.11**
 
