@@ -48,7 +48,7 @@ Implement the User Management system for the WordAI desktop application, integra
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Implement Bridge API project structure and Firebase token verification
-  - [~] 3.1 Set up Bridge API project (Node.js + TypeScript + Express/Fastify)
+  - [x] 3.1 Set up Bridge API project (Node.js + TypeScript + Express/Fastify)
     - Initialize project with TypeScript config, ESLint, Prettier
     - Install dependencies: firebase-admin, @directus/sdk, express, winston, fast-check (dev)
     - Define TypeScript interfaces: `ExchangeRequest`, `ExchangeResponse`, `AccessContext`, `ErrorResponse`, and all data model types

@@ -1,0 +1,31 @@
+{
+  "name": "bridge-api",
+  "version": "0.1.0",
+  "description": "Bridge API — authentication synchronization service for WordAI",
+  "private": true,
+  "license": "BUSL-1.1",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "vitest --run",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@directus/sdk": "^17.0.0",
+    "express": "^4.18.2",
+    "firebase-admin": "^12.0.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "fast-check": "^3.15.0",
+    "prettier": "^3.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  }
+}
