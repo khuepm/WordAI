@@ -6,7 +6,7 @@ Implement the User Management system for the WordAI desktop application, integra
 
 ## Tasks
 
-- [-] 1. Set up database schema with Lumibase migrations
+- [x] 1. Set up database schema with Lumibase migrations
   - [x] 1.1 Create migration group 001_users_core
     - Create `users` table with all fields, constraints, and indexes (firebase_uid UNIQUE, email UNIQUE, status CHECK, risk_level CHECK)
     - Create rollback script for 001_users_core
@@ -44,7 +44,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - Create rollback script for 004_audit
     - _Requirements: 10.1, 10.6, 12.1, 12.2_
 
-- [~] 2. Checkpoint — Ensure all migrations apply and roll back cleanly
+- [x] 2. Checkpoint — Ensure all migrations apply and roll back cleanly
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 3. Implement Bridge API project structure and Firebase token verification
