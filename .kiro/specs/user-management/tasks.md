@@ -16,7 +16,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 35: Migration Idempotence**
     - **Validates: Requirements 12.3**
 
-  - [~] 1.3 Write property test for migration rollback correctness (Property 36)
+  - [x] 1.3 Write property test for migration rollback correctness (Property 36)
     - **Property 36: Migration Rollback Correctness**
     - **Validates: Requirements 12.4, 12.5**
 
