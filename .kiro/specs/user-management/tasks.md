@@ -141,31 +141,31 @@ Implement the User Management system for the WordAI desktop application, integra
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Implement user lifecycle state machine
-  - [~] 8.1 Implement `validateStatusTransition(from: UserStatus, to: UserStatus): boolean`
+  - [x] 8.1 Implement `validateStatusTransition(from: UserStatus, to: UserStatus): boolean`
     - Allow: pending→active, active→suspended, suspended→active, active→deleted, suspended→deleted
     - Deny: deleted→any, pending→suspended, pending→deleted, and all other unlisted transitions
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10_
 
-  - [~] 8.2 Write property test for state machine validity (Property 9)
+  - [x] 8.2 Write property test for state machine validity (Property 9)
     - **Property 9: State Machine Validity**
     - **Validates: Requirements 3.1–3.10**
 
-  - [~] 8.3 Write property test for deleted status irreversibility (Property 11)
+  - [x] 8.3 Write property test for deleted status irreversibility (Property 11)
     - **Property 11: Deleted Status Irreversibility**
     - **Validates: Requirements 3.8**
 
-  - [~] 8.4 Implement `changeUserStatus(actorId, userId, newStatus)` with audit logging
+  - [x] 8.4 Implement `changeUserStatus(actorId, userId, newStatus)` with audit logging
     - Validate transition using `validateStatusTransition`
     - Perform soft delete (retain record with status="deleted") when transitioning to deleted
     - Create audit_log entry with action "user_status_changed", actor_user_id, before_data, after_data
     - Prevent new session creation for suspended/deleted users
     - _Requirements: 3.11, 3.12, 3.13, 3.14_
 
-  - [~] 8.5 Write property test for status change audit completeness (Property 10)
+  - [x] 8.5 Write property test for status change audit completeness (Property 10)
     - **Property 10: Status Change Audit Completeness**
     - **Validates: Requirements 3.11, 3.12, 10.2**
 
-  - [~] 8.6 Write property test for suspended user session prevention (Property 12)
+  - [x] 8.6 Write property test for suspended user session prevention (Property 12)
     - **Property 12: Suspended User Session Prevention**
     - **Validates: Requirements 3.14**
 
