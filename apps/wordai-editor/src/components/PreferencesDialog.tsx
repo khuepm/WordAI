@@ -951,7 +951,7 @@ function AboutTab() {
 
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
-function SearchResultsTab({ query }: { query: string }) {
+function SearchResultsTab({ query, onNavigate }: { query: string; onNavigate: (tab: Tab, settingId: string) => void }) {
   const { t } = useTranslation();
 
   // Build translated entries for bilingual matching
@@ -1016,7 +1016,6 @@ function SearchResultsTab({ query }: { query: string }) {
             return (
               <div
                 key={entry.id}
-                data-setting-id={entry.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '1.5rem',
                   padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5',
@@ -1025,12 +1024,7 @@ function SearchResultsTab({ query }: { query: string }) {
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#fafafa'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                onClick={() => {
-                  const el = document.querySelector(`[data-setting-id="${entry.id}"]`);
-                  if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
-                    (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
-                }}
+                onClick={() => onNavigate(entry.tab, entry.id)}
               >
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '0.5rem',
@@ -1058,12 +1052,14 @@ function SearchResultsTab({ query }: { query: string }) {
                     {displayDesc}
                   </p>
                 </div>
-                <button style={{
-                  fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none',
-                  border: 'none', cursor: 'pointer', textTransform: 'uppercase',
-                  letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px',
-                  flexShrink: 0, fontFamily: 'inherit',
-                }}>
+                <button
+                  tabIndex={-1}
+                  style={{
+                    fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none',
+                    border: 'none', cursor: 'pointer', textTransform: 'uppercase',
+                    letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px',
+                    flexShrink: 0, fontFamily: 'inherit', pointerEvents: 'none',
+                  }}>
                   {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
                 </button>
               </div>
@@ -1121,6 +1117,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
 
   // Language state management for cancel/apply behavior
   const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
@@ -1173,6 +1170,32 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
     await onApply?.();
     // onClose is called by DialogFooter.handleApply after this function completes
   }, [onApply, pendingLang]);
+
+  // Navigate from search result to the actual setting: switch tab, clear search, then scroll
+  const handleNavigateToSetting = useCallback((tab: Tab, settingId: string) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setPendingScrollId(settingId);
+  }, []);
+
+  // After tab content renders, scroll to the pending setting and highlight it
+  useEffect(() => {
+    if (!pendingScrollId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-setting-id="${pendingScrollId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Brief highlight animation
+        el.style.transition = 'background 0.2s';
+        el.style.background = 'rgba(67,67,213,0.08)';
+        setTimeout(() => {
+          el.style.background = '';
+        }, 1200);
+      }
+      setPendingScrollId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [pendingScrollId]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;
@@ -1320,7 +1343,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
             </header>
             {/* Scrollable content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
-              {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
+              {isSearching ? <SearchResultsTab query={searchQuery} onNavigate={handleNavigateToSetting} /> : tabContent[activeTab]}
             </div>
             <DialogFooter onClose={handleClose} onApply={handleApply} />
           </section>
