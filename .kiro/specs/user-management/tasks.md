@@ -122,7 +122,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 29: Access Context Consistency**
     - **Validates: Requirements 8.8**
 
-- [ ] 6. Implement POST /auth/exchange endpoint
+- [x] 6. Implement POST /auth/exchange endpoint
   - [x] 6.1 Implement the token exchange handler
     - Verify Firebase ID token, upsert user, upsert user_sessions record (session_state="active", last_seen_at=now)
     - Build and return Access Context
@@ -137,7 +137,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 34: Rate Limiting Effectiveness**
     - **Validates: Requirements 11.8–11.10**
 
-- [~] 7. Checkpoint — Ensure all tests pass for authentication foundation
+- [x] 7. Checkpoint — Ensure all tests pass for authentication foundation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Implement user lifecycle state machine
