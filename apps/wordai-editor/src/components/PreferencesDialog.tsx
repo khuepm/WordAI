@@ -10,6 +10,8 @@ import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
 import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
+import { SETTING_REGISTRY } from '../data/settingRegistry';
+import { filterSettings, SETTING_I18N_MAP } from './QuickSearchPopup';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -949,87 +951,125 @@ function AboutTab() {
 
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
-function SearchResultsTab({ query }: { query: string }) {
+function SearchResultsTab({ query, onNavigate }: { query: string; onNavigate: (tab: Tab, settingId: string) => void }) {
   const { t } = useTranslation();
+
+  // Build translated entries for bilingual matching
+  const translatedEntries = SETTING_REGISTRY.map((entry) => {
+    const keys = SETTING_I18N_MAP[entry.id];
+    return {
+      id: entry.id,
+      label: keys ? t(keys.label) : entry.label,
+      description: keys ? t(keys.description) : entry.description,
+    };
+  });
+
+  const results = filterSettings(query, translatedEntries);
+
+  const tabLabels: Record<Tab, string> = {
+    'general': t('settings.tabs.general'),
+    'ai-engine': t('settings.tabs.aiEngine'),
+    'typography': t('settings.tabs.typography'),
+    'privacy': t('settings.tabs.privacy'),
+    'about': t('settings.tabs.about'),
+  };
+
+  const tabIcons: Record<Tab, string> = {
+    'general': 'settings',
+    'ai-engine': 'psychology',
+    'typography': 'format_size',
+    'privacy': 'security',
+    'about': 'info',
+  };
+
+  const tabColors: Record<Tab, { bg: string; color: string }> = {
+    'general': { bg: '#f4f4f5', color: '#52525b' },
+    'ai-engine': { bg: '#eef2ff', color: '#4343d5' },
+    'typography': { bg: '#f0fdf4', color: '#16a34a' },
+    'privacy': { bg: '#fff7ed', color: '#ea580c' },
+    'about': { bg: '#f0f9ff', color: '#0284c7' },
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.search.showingFor', { query })}</h3>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>
+          {t('settings.search.showingFor', { query })}
+        </h3>
+        <p style={{ fontSize: '0.75rem', color: '#a1a1aa', marginTop: '4px' }}>
+          {t('settings.search.itemsFound', { count: results.length })}
+        </p>
       </div>
 
-      <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
-        {/* Result 1 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4343d5', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>psychology</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura-4-Turbo</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.1)', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Engine</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>High-performance model for real-time editorial suggestions and semantic restructuring.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
+      {results.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '0.75rem', color: '#a1a1aa', paddingTop: '3rem' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '40px', opacity: 0.4 }}>search_off</span>
+          <p style={{ margin: 0, fontSize: '0.875rem' }}>{t('settings.search.noResults', 'Không tìm thấy cài đặt nào.')}</p>
         </div>
-
-        {/* Result 2 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#f4f4f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525b', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>assistant</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>AuraSphere Assistant</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#52525b', background: '#f4f4f5', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>General</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Floating interface for contextual help that adapts to your writing focus level.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
+      ) : (
+        <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
+          {results.map((entry) => {
+            const colors = tabColors[entry.tab];
+            const translated = translatedEntries.find((te) => te.id === entry.id);
+            const displayLabel = translated?.label ?? entry.label;
+            const displayDesc = translated?.description ?? entry.description;
+            return (
+              <div
+                key={entry.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '1.5rem',
+                  padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5',
+                  cursor: 'pointer', transition: 'background 0.15s',
+                  margin: '0 -0.5rem', borderRadius: '0.5rem',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fafafa'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onClick={() => onNavigate(entry.tab, entry.id)}
+              >
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '0.5rem',
+                  background: colors.bg, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', color: colors.color, flexShrink: 0,
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>
+                    {tabIcons[entry.tab]}
+                  </span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {displayLabel}
+                    </h4>
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, color: colors.color,
+                      background: colors.bg, padding: '2px 8px', borderRadius: '9999px',
+                      textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
+                    }}>
+                      {tabLabels[entry.tab]}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {displayDesc}
+                  </p>
+                </div>
+                <button
+                  tabIndex={-1}
+                  style={{
+                    fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none',
+                    border: 'none', cursor: 'pointer', textTransform: 'uppercase',
+                    letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px',
+                    flexShrink: 0, fontFamily: 'inherit', pointerEvents: 'none',
+                  }}>
+                  {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Result 3 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4343d5', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>bolt</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura-Pro</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.1)', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Engine</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Advanced reasoning engine for long-form narrative structure and character tracking.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
-        </div>
-
-        {/* Result 4 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>security</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura Model Training</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#ea580c', background: '#fff7ed', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Privacy</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Control how local editorial changes are used to fine-tune your personalized instance.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
 function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () => void | Promise<void> }) {
@@ -1077,6 +1117,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
 
   // Language state management for cancel/apply behavior
   const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
@@ -1129,6 +1170,32 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
     await onApply?.();
     // onClose is called by DialogFooter.handleApply after this function completes
   }, [onApply, pendingLang]);
+
+  // Navigate from search result to the actual setting: switch tab, clear search, then scroll
+  const handleNavigateToSetting = useCallback((tab: Tab, settingId: string) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setPendingScrollId(settingId);
+  }, []);
+
+  // After tab content renders, scroll to the pending setting and highlight it
+  useEffect(() => {
+    if (!pendingScrollId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-setting-id="${pendingScrollId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Brief highlight animation
+        el.style.transition = 'background 0.2s';
+        el.style.background = 'rgba(67,67,213,0.08)';
+        setTimeout(() => {
+          el.style.background = '';
+        }, 1200);
+      }
+      setPendingScrollId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [pendingScrollId]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;
@@ -1276,7 +1343,7 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
             </header>
             {/* Scrollable content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
-              {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
+              {isSearching ? <SearchResultsTab query={searchQuery} onNavigate={handleNavigateToSetting} /> : tabContent[activeTab]}
             </div>
             <DialogFooter onClose={handleClose} onApply={handleApply} />
           </section>

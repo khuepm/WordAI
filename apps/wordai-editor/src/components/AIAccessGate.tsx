@@ -8,6 +8,7 @@
  */
 
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAIAccessState, useAccessContext } from '../services/authStore';
 import type { AIAccessState } from '../types/auth';
 
@@ -83,6 +84,7 @@ function AIAccessBlockedMessage({
 // ---------------------------------------------------------------------------
 
 function GuestMessage({ onSignInClick }: { onSignInClick?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div style={styles.messageCard} data-testid="ai-access-guest-message">
       <div style={styles.iconContainer}>
@@ -93,18 +95,15 @@ function GuestMessage({ onSignInClick }: { onSignInClick?: () => void }) {
           auto_awesome
         </span>
       </div>
-      <h3 style={styles.title}>Sign in to use AI features</h3>
-      <p style={styles.description}>
-        AuraSphere AI is available to authenticated users. Sign in to access AI
-        writing assistance, suggestions, and more.
-      </p>
+      <h3 style={styles.title}>{t('aiAccess.guest.title')}</h3>
+      <p style={styles.description}>{t('aiAccess.guest.description')}</p>
       {onSignInClick && (
         <button
           data-testid="ai-access-sign-in-button"
           onClick={onSignInClick}
           style={styles.primaryButton}
         >
-          Sign In
+          {t('aiAccess.guest.signIn')}
         </button>
       )}
     </div>
@@ -116,6 +115,7 @@ function GuestMessage({ onSignInClick }: { onSignInClick?: () => void }) {
 // ---------------------------------------------------------------------------
 
 function QuotaExceededMessage({ quotaResetAt }: { quotaResetAt?: string }) {
+  const { t } = useTranslation();
   const resetDate = quotaResetAt ? new Date(quotaResetAt) : null;
   const formattedResetDate = resetDate
     ? resetDate.toLocaleDateString(undefined, {
@@ -123,7 +123,7 @@ function QuotaExceededMessage({ quotaResetAt }: { quotaResetAt?: string }) {
       day: 'numeric',
       year: 'numeric',
     })
-    : 'the next billing cycle';
+    : t('aiAccess.quotaExceeded.nextCycle', 'kỳ thanh toán tiếp theo');
 
   return (
     <div
@@ -138,14 +138,11 @@ function QuotaExceededMessage({ quotaResetAt }: { quotaResetAt?: string }) {
           hourglass_empty
         </span>
       </div>
-      <h3 style={styles.title}>AI quota exceeded</h3>
+      <h3 style={styles.title}>{t('aiAccess.quotaExceeded.title')}</h3>
       <p style={styles.description}>
-        You've reached your monthly AI usage limit. Your quota will reset on{' '}
-        <strong>{formattedResetDate}</strong>.
+        {t('aiAccess.quotaExceeded.description', { date: formattedResetDate })}
       </p>
-      <p style={styles.hint}>
-        Upgrade your plan for higher limits and priority access.
-      </p>
+      <p style={styles.hint}>{t('aiAccess.quotaExceeded.hint')}</p>
     </div>
   );
 }
@@ -155,6 +152,7 @@ function QuotaExceededMessage({ quotaResetAt }: { quotaResetAt?: string }) {
 // ---------------------------------------------------------------------------
 
 function SuspendedMessage() {
+  const { t } = useTranslation();
   return (
     <div style={styles.messageCard} data-testid="ai-access-suspended-message">
       <div style={styles.iconContainer}>
@@ -165,13 +163,9 @@ function SuspendedMessage() {
           block
         </span>
       </div>
-      <h3 style={styles.title}>Account suspended</h3>
-      <p style={styles.description}>
-        Your account has been suspended. AI features are currently unavailable.
-      </p>
-      <p style={styles.hint}>
-        Please contact support for assistance with your account.
-      </p>
+      <h3 style={styles.title}>{t('aiAccess.suspended.title')}</h3>
+      <p style={styles.description}>{t('aiAccess.suspended.description')}</p>
+      <p style={styles.hint}>{t('aiAccess.suspended.hint')}</p>
     </div>
   );
 }

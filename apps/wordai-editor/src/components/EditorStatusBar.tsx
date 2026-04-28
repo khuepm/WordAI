@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface EditorStatusBarProps {
   isSyncing: boolean;
@@ -25,6 +26,7 @@ export function EditorStatusBar({
   lastSyncedAt,
   storagePath,
 }: EditorStatusBarProps) {
+  const { t } = useTranslation();
   // Tick every second to update "Synced · Ns ago" (Req 13.7)
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -35,14 +37,14 @@ export function EditorStatusBar({
   let statusText: string;
   if (isSyncing) {
     // Req 13.3
-    statusText = 'Syncing...';
+    statusText = t('statusBar.syncing');
   } else if (isDirty || lastSyncedAt === null) {
     // Req 13.4, 13.8
-    statusText = 'Unsaved changes';
+    statusText = t('statusBar.unsaved');
   } else {
     // Req 13.2, 13.7
     const n = secondsSince(lastSyncedAt);
-    statusText = `Synced · ${n}s ago`;
+    statusText = t('statusBar.synced', { seconds: n });
   }
 
   return (

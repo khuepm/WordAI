@@ -5,6 +5,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react';
 import './i18n';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
@@ -93,6 +94,7 @@ function createInMemoryDocument(title = 'Untitled Intent'): Document {
 }
 
 function App() {
+  const { t } = useTranslation();
   const {
     state,
     setDocument,
@@ -380,7 +382,7 @@ function App() {
           background: 'var(--md-sys-color-surface)',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>AuraBrain storage is unavailable</h1>
+        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{t('startup.unavailable')}</h1>
         <p style={{ margin: 0, maxWidth: 560, color: 'var(--md-sys-color-on-surface-variant)' }}>
           {startupError}
         </p>
@@ -390,7 +392,7 @@ function App() {
             onClick={() => setStartupRetryKey((key) => key + 1)}
             style={{ padding: '0.625rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}
           >
-            Retry
+            {t('startup.retry')}
           </button>
           {storagePath && (
             <button
@@ -398,7 +400,7 @@ function App() {
               onClick={handleRevealDiagnostics}
               style={{ padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid currentColor', cursor: 'pointer' }}
             >
-              Reveal diagnostics
+              {t('startup.revealDiagnostics')}
             </button>
           )}
         </div>
@@ -432,7 +434,7 @@ function App() {
           }}
           aria-hidden="true"
         />
-        <span>Loading…</span>
+        <span>{t('startup.loading')}</span>
       </div>
     );
   }
@@ -475,7 +477,7 @@ function App() {
           role="alert"
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>AI unavailable. Editing continues.</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('toast.aiUnavailable')}</span>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
               data-testid="ai-service-retry-button"
@@ -493,7 +495,7 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Retry
+              {t('toast.retry')}
             </button>
             <button
               data-testid="ai-service-preferences-button"
@@ -510,12 +512,12 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Settings
+              {t('toast.settings')}
             </button>
             <button
               data-testid="ai-service-close-button"
               onClick={() => setBannerDismissed(true)}
-              aria-label="Close"
+              aria-label={t('toast.dismissAriaLabel')}
               style={{
                 background: 'transparent',
                 color: '#9ca3af',
@@ -559,11 +561,11 @@ function App() {
           }}
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>Sync failed: {syncView.syncError}</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('toast.syncFailed', { error: syncView.syncError })}</span>
           <button
             data-testid="sync-error-close-button"
             onClick={() => setSyncErrorDismissed(true)}
-            aria-label="Dismiss sync error"
+            aria-label={t('toast.dismissAriaLabel')}
             style={{
               background: 'transparent',
               color: '#fca5a5',
@@ -597,7 +599,7 @@ function App() {
         gap: '1.5rem',
         zIndex: 40,
       }}>
-        <Tooltip text="AuraSphere AI">
+        <Tooltip text={t('sidebar.auraSphereAI')}>
           <button
             onClick={() => {
               // Req 13.8 — only open AI panel when access is "active"
@@ -610,12 +612,12 @@ function App() {
             }}
             aria-label={
               aiAccessState === 'guest'
-                ? 'Sign in to use AuraSphere AI'
+                ? t('sidebar.signInToUseAI')
                 : aiAccessState === 'quota_exceeded'
-                  ? 'AI quota exceeded'
+                  ? t('sidebar.aiQuotaExceeded')
                   : aiAccessState === 'suspended'
-                    ? 'AI features unavailable — account suspended'
-                    : 'AuraSphere AI'
+                    ? t('sidebar.aiUnavailable')
+                    : t('sidebar.auraSphereAI')
             }
             style={{
               padding: '0.75rem',
@@ -634,14 +636,14 @@ function App() {
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
           </button>
         </Tooltip>
-        <Tooltip text="Analytics">
+        <Tooltip text={t('sidebar.analytics')}>
           <button
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
           >
             <span className="material-symbols-outlined">analytics</span>
           </button>
         </Tooltip>
-        <Tooltip text="Version History">
+        <Tooltip text={t('sidebar.versionHistory')}>
           <button
             onClick={openVersionHistory}
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
@@ -649,7 +651,7 @@ function App() {
             <span className="material-symbols-outlined">history</span>
           </button>
         </Tooltip>
-        <Tooltip text="Settings">
+        <Tooltip text={t('sidebar.settings')}>
           <button
             onClick={() => setIsPreferencesOpen(true)}
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}

@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useRef, useEffect, KeyboardEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useTranslation } from 'react-i18next';
 import type { AISuggestion, ChatMessage } from '../types/ai';
 import type { TextSelection } from '../types/document';
 import { AIAccessGate } from './AIAccessGate';
@@ -33,6 +34,7 @@ export function AuraSpherePanel({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const { t } = useTranslation();
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
@@ -171,11 +173,11 @@ export function AuraSpherePanel({
           </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#4343d5', lineHeight: 1.2 }}>AuraSphere</h2>
-            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#767586', opacity: 0.7, marginTop: 2 }}>AI Writing Partner</p>
+            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#767586', opacity: 0.7, marginTop: 2 }}>{t('auraPanel.subtitle')}</p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close AI panel"
+            aria-label={t('auraPanel.closeAriaLabel')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#767586', padding: 4, display: 'flex' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
@@ -208,7 +210,7 @@ export function AuraSpherePanel({
                   onClick={loadSuggestions}
                   style={{ marginTop: 8, padding: '6px 12px', background: '#4343d5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12 }}
                 >
-                  Retry
+                  {t('auraPanel.retryButton')}
                 </button>
               </div>
             )}
@@ -238,7 +240,7 @@ export function AuraSpherePanel({
                       {s.explanation}
                     </span>
                     <button
-                      aria-label="Dismiss suggestion"
+                      aria-label={t('auraPanel.dismissSuggestion')}
                       onClick={(e) => { e.stopPropagation(); handleDismiss(s.id); }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#767586', padding: 2, display: 'flex' }}
                     >
@@ -289,7 +291,7 @@ export function AuraSpherePanel({
                 onChange={e => setChatInput(e.target.value)}
                 onKeyDown={handleChatKeyDown}
                 disabled={isLoading}
-                placeholder="Ask AuraSphere..."
+                placeholder={t('auraPanel.chatPlaceholder')}
                 rows={3}
                 style={{
                   width: '100%',
