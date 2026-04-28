@@ -189,43 +189,43 @@ Implement the User Management system for the WordAI desktop application, integra
     - _Requirements: 4.14_
 
 - [~] 10. Implement AI quota management
-  - [ ] 10.1 Implement `validateAIAccess(userId, model)` pre-check
+  - [x] 10.1 Implement `validateAIAccess(userId, model)` pre-check
     - Verify user status is "active", has "ai.use" permission, used_quota < monthly_quota, and model is in allowed_models
     - Return appropriate error code on failure: ACCOUNT_SUSPENDED, PERMISSION_DENIED, AI_QUOTA_EXCEEDED, MODEL_NOT_ALLOWED
     - _Requirements: 5.5, 5.6, 5.7, 5.8, 5.9_
 
-  - [ ] 10.2 Write property test for model validation (Property 20)
+  - [-] 10.2 Write property test for model validation (Property 20)
     - **Property 20: Model Validation**
     - **Validates: Requirements 5.8, 5.9**
 
-  - [ ] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
+  - [-] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
     - Use SQL transaction: `UPDATE user_entitlements SET used_quota = used_quota + 1 WHERE id = ? AND used_quota < monthly_quota`
     - If UPDATE affects 0 rows, rollback and return AI_QUOTA_EXCEEDED
     - Apply rate limiting on this endpoint
     - _Requirements: 5.10, 5.11, 11.9_
 
-  - [ ] 10.4 Write property test for quota constraint invariant (Property 16)
+  - [-] 10.4 Write property test for quota constraint invariant (Property 16)
     - **Property 16: Quota Constraint Invariant**
     - **Validates: Requirements 5.4, 5.10, 5.11**
 
-  - [ ] 10.5 Write property test for quota atomicity (Property 17)
+  - [-] 10.5 Write property test for quota atomicity (Property 17)
     - **Property 17: Quota Atomicity**
     - **Validates: Requirements 5.10, 5.11**
 
-  - [ ] 10.6 Write property test for no negative quota (Property 18)
+  - [-] 10.6 Write property test for no negative quota (Property 18)
     - **Property 18: No Negative Quota**
     - **Validates: Requirements 5.4**
 
-  - [ ] 10.7 Implement quota reset scheduler
+  - [-] 10.7 Implement quota reset scheduler
     - When current date reaches quota_reset_at: set used_quota=0, set quota_reset_at to first day of next month
     - Implement as idempotent operation safe to run multiple times
     - _Requirements: 5.12, 5.13_
 
-  - [ ] 10.8 Write property test for quota reset idempotence (Property 19)
+  - [-] 10.8 Write property test for quota reset idempotence (Property 19)
     - **Property 19: Quota Reset Idempotence**
     - **Validates: Requirements 5.12, 5.13, 15.4**
 
-  - [ ] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
+  - [-] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
     - Update user_entitlements fields
     - Create audit_log entry with action "entitlement_overridden"
     - _Requirements: 5.14, 9.6_
@@ -234,38 +234,38 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 21: Entitlement Override Audit**
     - **Validates: Requirements 5.14, 10.2**
 
-- [~] 11. Checkpoint — Ensure all tests pass for authorization and quota
+- [x] 11. Checkpoint — Ensure all tests pass for authorization and quota
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 12. Implement session management endpoints
-  - [ ] 12.1 Implement GET /users/me/sessions
+- [x] 12. Implement session management endpoints
+  - [x] 12.1 Implement GET /users/me/sessions
     - Return all sessions where session_state="active" and revoked_at is null for the authenticated user
     - _Requirements: 6.5_
 
-  - [ ] 12.2 Implement `revokeSession(actorId, sessionId)` and POST /users/me/sessions/revoke
+  - [x] 12.2 Implement `revokeSession(actorId, sessionId)` and POST /users/me/sessions/revoke
     - Set revoked_at=now() and session_state="revoked" for specified session(s)
     - Support revokeAll flag to revoke all sessions except current
     - Create audit_log entry with action "session_revoked" for each revoked session
     - Reject new token exchange requests for revoked sessions with SESSION_REVOKED
     - _Requirements: 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 9.7, 9.8_
 
-  - [ ] 12.3 Write property test for session revocation effectiveness (Property 22)
+  - [x] 12.3 Write property test for session revocation effectiveness (Property 22)
     - **Property 22: Session Revocation Effectiveness**
     - **Validates: Requirements 6.9, 6.10**
 
-  - [ ] 12.4 Write property test for session isolation (Property 23)
+  - [x] 12.4 Write property test for session isolation (Property 23)
     - **Property 23: Session Isolation**
     - **Validates: Requirements 6.11**
 
-  - [ ] 12.5 Write property test for session revocation audit (Property 24)
+  - [x] 12.5 Write property test for session revocation audit (Property 24)
     - **Property 24: Session Revocation Audit**
     - **Validates: Requirements 6.8, 10.2**
 
-  - [ ] 12.6 Write property test for session uniqueness (Property 25)
+  - [x] 12.6 Write property test for session uniqueness (Property 25)
     - **Property 25: Session Uniqueness**
     - **Validates: Requirements 6.12**
 
-- [~] 13. Implement logout endpoint
+- [ ] 13. Implement logout endpoint
   - [ ] 13.1 Implement POST /auth/logout
     - Revoke the specified session (set revoked_at, session_state="revoked")
     - Create audit_log entry with action "session_revoked"
@@ -280,7 +280,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 27: Logout Idempotence**
     - **Validates: Requirements 7.3, 7.4, 15.3**
 
-- [~] 14. Implement user profile endpoints
+- [ ] 14. Implement user profile endpoints
   - [ ] 14.1 Implement GET /users/me
     - Return current user profile from Directus for the authenticated user
     - _Requirements: 2.5_
