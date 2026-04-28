@@ -280,7 +280,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 27: Logout Idempotence**
     - **Validates: Requirements 7.3, 7.4, 15.3**
 
-- [-] 14. Implement user profile endpoints
+- [x] 14. Implement user profile endpoints
   - [x] 14.1 Implement GET /users/me
     - Return current user profile from Directus for the authenticated user
     - _Requirements: 2.5_
@@ -294,22 +294,22 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 8: Profile Update Idempotence**
     - **Validates: Requirements 2.6, 2.7, 15.2**
 
-- [ ] 15. Implement GET /auth/context and authorization source-of-truth enforcement
-  - [ ] 15.1 Implement GET /auth/context
+- [x] 15. Implement GET /auth/context and authorization source-of-truth enforcement
+  - [x] 15.1 Implement GET /auth/context
     - Always fetch fresh Access Context from Directus (no caching)
     - Return same structure as ExchangeResponse
     - _Requirements: 8.8_
 
-  - [ ] 15.2 Enforce server-side authorization source of truth
+  - [x] 15.2 Enforce server-side authorization source of truth
     - Ensure Bridge API never trusts role, permission, or quota data from Client_App requests
     - All authorization data retrieved from Directus on every request
     - _Requirements: 8.6, 8.7_
 
-  - [ ] 15.3 Write property test for authorization source of truth (Property 28)
+  - [x] 15.3 Write property test for authorization source of truth (Property 28)
     - **Property 28: Authorization Source of Truth**
     - **Validates: Requirements 8.6, 8.7**
 
-  - [ ] 15.4 Write property test for error code determinism (Property 30)
+  - [x] 15.4 Write property test for error code determinism (Property 30)
     - **Property 30: Error Code Determinism**
     - **Validates: Requirements 8.10**
 
