@@ -313,7 +313,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 30: Error Code Determinism**
     - **Validates: Requirements 8.10**
 
-- [ ] 16. Implement GET /ai/entitlement endpoint
+- [x] 16. Implement GET /ai/entitlement endpoint
   - Retrieve current AI entitlement and quota status for authenticated user
   - Include computed `remaining_quota` field (monthly_quota - used_quota)
   - _Requirements: 5.1, 5.2_
