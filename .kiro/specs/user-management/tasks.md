@@ -318,24 +318,24 @@ Implement the User Management system for the WordAI desktop application, integra
   - Include computed `remaining_quota` field (monthly_quota - used_quota)
   - _Requirements: 5.1, 5.2_
 
-- [ ] 17. Implement audit log immutability and query support
-  - [ ] 17.1 Verify audit_logs immutability rules are enforced at the application layer
+- [x] 17. Implement audit log immutability and query support
+  - [x] 17.1 Verify audit_logs immutability rules are enforced at the application layer
     - Ensure no code path allows UPDATE or DELETE on audit_logs (rely on PostgreSQL rules from migration 004_audit)
     - _Requirements: 10.6, 10.7_
 
-  - [ ] 17.2 Write property test for audit log immutability (Property 31)
+  - [x] 17.2 Write property test for audit log immutability (Property 31)
     - **Property 31: Audit Log Immutability**
     - **Validates: Requirements 10.6**
 
-  - [ ] 17.3 Write property test for audit completeness (Property 32)
+  - [x] 17.3 Write property test for audit completeness (Property 32)
     - **Property 32: Audit Completeness**
     - **Validates: Requirements 10.2, 10.3**
 
-  - [ ] 17.4 Write property test for audit temporal ordering (Property 33)
+  - [x] 17.4 Write property test for audit temporal ordering (Property 33)
     - **Property 33: Audit Temporal Ordering**
     - **Validates: Requirements 10.5**
 
-- [ ] 18. Checkpoint — Ensure all tests pass for user management and audit
+- [x] 18. Checkpoint — Ensure all tests pass for user management and audit
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 19. Implement Client App authentication state management
