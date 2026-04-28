@@ -103,7 +103,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 5: User Creation Audit Log**
     - **Validates: Requirements 1.11, 10.2**
 
-- [ ] 5. Implement Access Context construction
+- [x] 5. Implement Access Context construction
   - [x] 5.1 Implement `buildAccessContext(userId: string): AccessContext`
     - Query user record, roles (via user_roles JOIN roles), permissions (via role_permissions), and entitlement from Directus
     - Compute permission set as union of all role permissions
@@ -123,17 +123,17 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Validates: Requirements 8.8**
 
 - [ ] 6. Implement POST /auth/exchange endpoint
-  - [~] 6.1 Implement the token exchange handler
+  - [x] 6.1 Implement the token exchange handler
     - Verify Firebase ID token, upsert user, upsert user_sessions record (session_state="active", last_seen_at=now)
     - Build and return Access Context
     - Apply rate limiting (reject with RATE_LIMIT_EXCEEDED when exceeded)
     - _Requirements: 1.1, 1.2, 1.3, 6.2, 6.3, 6.4, 11.8, 11.10_
 
-  - [~] 6.2 Write property test for token exchange idempotence (Property 1)
+  - [x] 6.2 Write property test for token exchange idempotence (Property 1)
     - **Property 1: Token Exchange Idempotence**
     - **Validates: Requirements 1.1, 1.5, 15.1**
 
-  - [~] 6.3 Write property test for rate limiting effectiveness (Property 34)
+  - [x] 6.3 Write property test for rate limiting effectiveness (Property 34)
     - **Property 34: Rate Limiting Effectiveness**
     - **Validates: Requirements 11.8–11.10**
 
