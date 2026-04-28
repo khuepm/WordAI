@@ -1,6 +1,6 @@
 /**
  * App - Application root wired to global state manager
- * Requirements: 1.1, 1.2, 1.4, 3.3, 3.4, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
+ * Requirements: 1.1, 1.2, 1.4, 3.3, 3.4, 5.1–5.5, 13.2, 13.3, 13.8–13.11, 17.1–17.5, 21.1, 25.1–25.3
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -10,6 +10,7 @@ import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
+import { AIAccessGate } from './components/AIAccessGate';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
@@ -21,6 +22,7 @@ import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
+import { useAIAccessState } from './services/authStore';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -97,6 +99,7 @@ function App() {
     state,
     setDocument,
     updateDocument,
+    renameDocument,
     openAIPanel,
     closeAIPanel,
     openNegotiation,
@@ -107,6 +110,9 @@ function App() {
     closeVersionHistory,
     setAiServiceStatus,
   } = useAppState();
+
+  // Req 13.8–13.11 — derive AI access state to gate AI features
+  const aiAccessState = useAIAccessState();
 
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -315,6 +321,10 @@ function App() {
     updateDocument({ ...document, content: ensureBlockValue(content), lastModified: new Date() });
   }, [document, updateDocument]);
 
+  const handleRename = useCallback((newTitle: string) => {
+    renameDocument(newTitle);
+  }, [renameDocument]);
+
   const handleNew = useCallback(() => {
     const doc = createInMemoryDocument();
     setDocument(doc, '', false);
@@ -383,7 +393,7 @@ function App() {
             style={{ padding: '0.625rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}
           >
             {t('app.startupError.retry')}
-          </button>
+          </button >
           {storagePath && (
             <button
               type="button"
@@ -391,10 +401,11 @@ function App() {
               style={{ padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid currentColor', cursor: 'pointer' }}
             >
               {t('app.startupError.revealDiagnostics')}
-            </button>
-          )}
-        </div>
-      </div>
+            </button >
+          )
+          }
+        </div >
+      </div >
     );
   }
 
@@ -425,7 +436,7 @@ function App() {
           aria-hidden="true"
         />
         <span>{t('app.loading')}</span>
-      </div>
+      </div >
     );
   }
 
@@ -441,6 +452,7 @@ function App() {
         onOpenPreferences={() => setIsPreferencesOpen(true)}
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
+        onRename={handleRename}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -485,7 +497,7 @@ function App() {
               }}
             >
               {t('app.aiBanner.retry')}
-            </button>
+            </button >
             <button
               data-testid="ai-service-preferences-button"
               onClick={() => setIsPreferencesOpen(true)}
@@ -502,7 +514,7 @@ function App() {
               }}
             >
               {t('app.aiBanner.settings')}
-            </button>
+            </button >
             <button
               data-testid="ai-service-close-button"
               onClick={() => setBannerDismissed(true)}
@@ -521,56 +533,58 @@ function App() {
             >
               ✕
             </button>
-          </div>
-        </div>
+          </div >
+        </div >
       )}
 
       {/* Sync error notification (Req 1.4) — non-blocking toast, keeps dirty indicator */}
-      {syncView.syncError && !syncErrorDismissed && (
-        <div
-          data-testid="sync-error-notification"
-          role="alert"
-          aria-live="assertive"
-          style={{
-            position: 'fixed',
-            bottom: aiServiceAvailable === false && !bannerDismissed ? '80px' : '24px',
-            left: '24px',
-            zIndex: 200,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 14px',
-            background: '#7f1d1d',
-            color: '#fef2f2',
-            fontFamily: 'var(--font-family-ui)',
-            fontSize: '12px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            maxWidth: '360px',
-          }}
-        >
-          <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.syncError.prefix', { error: syncView.syncError })}</span>
-          <button
-            data-testid="sync-error-close-button"
-            onClick={() => setSyncErrorDismissed(true)}
-            aria-label={t('app.syncError.dismissAriaLabel')}
+      {
+        syncView.syncError && !syncErrorDismissed && (
+          <div
+            data-testid="sync-error-notification"
+            role="alert"
+            aria-live="assertive"
             style={{
-              background: 'transparent',
-              color: '#fca5a5',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '2px 4px',
-              cursor: 'pointer',
+              position: 'fixed',
+              bottom: aiServiceAvailable === false && !bannerDismissed ? '80px' : '24px',
+              left: '24px',
+              zIndex: 200,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              background: '#7f1d1d',
+              color: '#fef2f2',
               fontFamily: 'var(--font-family-ui)',
-              fontSize: '14px',
-              lineHeight: 1,
+              fontSize: '12px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              maxWidth: '360px',
             }}
           >
-            ✕
-          </button>
-        </div>
-      )}
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+            <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.syncError.prefix', { error: syncView.syncError })}</span>
+            <button
+              data-testid="sync-error-close-button"
+              onClick={() => setSyncErrorDismissed(true)}
+              aria-label={t('app.syncError.dismissAriaLabel')}
+              style={{
+                background: 'transparent',
+                color: '#fca5a5',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '2px 4px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: '14px',
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          </div >
+        )
+      }
       <aside style={{
         position: 'fixed',
         left: 0,
@@ -588,9 +602,26 @@ function App() {
         gap: '1.5rem',
         zIndex: 40,
       }}>
-        <Tooltip text="AuraSphere AI">
+        <Tooltip text={t('sidebar.auraSphereAI')}>
           <button
-            onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
+            onClick={() => {
+              // Req 13.8 — only open AI panel when access is "active"
+              if (aiAccessState === 'active') {
+                openAIPanel({ start: 0, end: 0, text: '' });
+              } else {
+                // Open the panel to show the gated message
+                openAIPanel({ start: 0, end: 0, text: '' });
+              }
+            }}
+            aria-label={
+              aiAccessState === 'guest'
+                ? t('sidebar.signInToUseAI')
+                : aiAccessState === 'quota_exceeded'
+                  ? t('sidebar.aiQuotaExceeded')
+                  : aiAccessState === 'suspended'
+                    ? t('sidebar.aiUnavailable')
+                    : t('sidebar.auraSphereAI')
+            }
             style={{
               padding: '0.75rem',
               background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
@@ -602,19 +633,20 @@ function App() {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
+              opacity: aiAccessState !== 'active' ? 0.5 : 1,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
           </button>
         </Tooltip>
-        <Tooltip text="Analytics">
+        <Tooltip text={t('sidebar.analytics')}>
           <button
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
           >
             <span className="material-symbols-outlined">analytics</span>
           </button>
         </Tooltip>
-        <Tooltip text="Version History">
+        <Tooltip text={t('sidebar.versionHistory')}>
           <button
             onClick={openVersionHistory}
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
@@ -622,7 +654,7 @@ function App() {
             <span className="material-symbols-outlined">history</span>
           </button>
         </Tooltip>
-        <Tooltip text="Settings">
+        <Tooltip text={t('sidebar.settings')}>
           <button
             onClick={() => setIsPreferencesOpen(true)}
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}

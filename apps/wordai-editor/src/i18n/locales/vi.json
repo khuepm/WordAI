@@ -89,11 +89,127 @@
     "aiEngine": {
       "sectionTitle": "Cài đặt AI Engine",
       "sectionDescription": "Cấu hình trí tuệ hỗ trợ viết — từ agent backbone đến sự sáng tạo.",
-      "active": "Đang hoạt động"
+      "active": "Đang hoạt động",
+      "intro": {
+        "eyebrow": "Lõi trí tuệ",
+        "title": "Động cơ nhận thức",
+        "quote": "Cấu hình trí tuệ hỗ trợ viết — từ nền tảng agent đến mức độ sáng tạo."
+      },
+      "agent": {
+        "title": "Kết nối agent của bạn",
+        "description": "Engine trí tuệ chính để tạo tài liệu.",
+        "activeBadge": "Claude đang dùng",
+        "codex": {
+          "label": "Codex",
+          "description": "Tạo mã và logic nâng cao."
+        },
+        "claude": {
+          "label": "Claude Agent",
+          "description": "Lập luận tinh tế và ngữ cảnh dài."
+        },
+        "gemini": {
+          "label": "Gemini CLI",
+          "description": "Tác vụ đa phương tiện hiệu suất cao."
+        }
+      },
+      "models": {
+        "title": "Mô hình Aura",
+        "proBadge": "Cần Pro cho Aura-Pro",
+        "pro": "Pro",
+        "turbo": {
+          "label": "Aura-4-Turbo",
+          "description": "Tối ưu cho tốc độ và hiệu quả. Phù hợp cho soạn thảo hàng ngày.",
+          "status": "Khả dụng"
+        },
+        "proModel": {
+          "label": "Aura-Pro",
+          "description": "Sức mạnh lập luận tối đa. Lý tưởng cho nghiên cứu phức tạp.",
+          "status": "Cần nâng cấp"
+        }
+      },
+      "creativity": {
+        "label": "Mức độ sáng tạo AI",
+        "description": "Điều chỉnh độ biến thiên của đầu ra mô hình.",
+        "badge": "Trung-Cao",
+        "marks": {
+          "precise": "Chính xác",
+          "balanced": "Cân bằng",
+          "creative": "Sáng tạo"
+        }
+      },
+      "contextWindow": {
+        "label": "Cửa sổ ngữ cảnh",
+        "description": "Lịch sử tối đa AI xem xét mỗi lần tương tác.",
+        "badge": "16k Tokens"
+      },
+      "responseLanguage": {
+        "label": "Ngôn ngữ phản hồi",
+        "description": "Ghi đè cài đặt ngôn ngữ tài liệu cho phản hồi AI.",
+        "auto": "Tự động (Phát hiện ngôn ngữ)",
+        "english": "Tiếng Anh (Toàn cầu)",
+        "vietnamese": "Tiếng Việt"
+      },
+      "knowledge": {
+        "label": "Tích hợp kiến thức",
+        "description": "Cho phép AI lấy thông tin hiện tại khi tạo nội dung.",
+        "webAccess": "Truy cập web thời gian thực",
+        "liveData": "Truy xuất dữ liệu trực tiếp"
+      }
+    },
+    "typography": {
+      "sectionTitle": "Kiểu chữ & Định dạng",
+      "sectionDescription": "Tinh chỉnh nhịp điệu đọc và viết của bạn.",
+      "font": {
+        "standardFont": "Font chuẩn",
+        "standardFontDescription": "Các font chữ biên tập được tối ưu cho khả năng đọc.",
+        "premiumBadge": "FONT CAO CẤP",
+        "inter": "Inter (Sans)",
+        "newsreader": "Newsreader (Serif)",
+        "robotoMono": "Roboto Mono",
+        "helvetica": "Helvetica Neue"
+      },
+      "fontSize": {
+        "label": "Cỡ chữ",
+        "note": "Cỡ cơ bản hiện tại là 16px.",
+        "small": "Nhỏ",
+        "medium": "Vừa",
+        "large": "Lớn",
+        "xl": "XL"
+      },
+      "lineSpacing": {
+        "label": "Khoảng cách dòng",
+        "note": "Khuyến nghị cho văn bản dài."
+      },
+      "smart": {
+        "title": "Định dạng thông minh",
+        "quotes": {
+          "label": "Dấu ngoặc thông minh",
+          "description": "Chuyển thành dấu ngoặc cong."
+        },
+        "autoCapitalize": {
+          "label": "Tự viết hoa",
+          "description": "Câu bắt đầu bằng chữ hoa."
+        },
+        "ligatures": {
+          "label": "Ghép chữ (Ligatures)",
+          "description": "Ghép ký tự nâng cao."
+        }
+      },
+      "preview": {
+        "label": "Xem trước trực tiếp",
+        "badge": "16pt / 1.15 LH / INTER",
+        "title": "Tinh thần biên tập hiện đại",
+        "body": "Kiểu chữ là giọng nói của ngôn từ. Bằng cách chọn các font chữ biên tập và tinh chỉnh nhịp điệu khoảng cách dòng, bạn đảm bảo mọi ký tự đều có mục đích."
+      }
     },
     "privacy": {
       "sectionTitle": "Riêng tư & Bảo mật",
       "sectionDescription": "Quản lý cách dữ liệu của bạn được xử lý, lưu trữ và truyền tải.",
+      "intro": {
+        "eyebrow": "Không gian bảo mật",
+        "title": "Chủ quyền dữ liệu",
+        "quote": "Suy nghĩ của bạn được thiết kế riêng tư. Quản lý cách dữ liệu tương tác với trí tuệ của chúng tôi."
+      },
       "encryptionEnabled": "Mã hóa đầu cuối đã bật",
       "encryptionDescription": "Bản nháp của bạn không bao giờ bị đọc bởi con người. Xử lý AI diễn ra trong môi trường bộ nhớ tạm thời.",
       "auditSecurity": "Kiểm tra bảo mật",
@@ -109,7 +225,13 @@
         "liquidIntelligence": "Đóng góp Liquid Intelligence"
       },
       "regionalInfrastructure": {
-        "label": "Cơ sở hạ tầng khu vực"
+        "label": "Cơ sở hạ tầng khu vực",
+        "primary": "Node chính",
+        "redundancy": "Node dự phòng",
+        "singapore": "Singapore Central",
+        "unitedStates": "Hoa Kỳ miền Đông",
+        "active": "ĐANG KẾT NỐI",
+        "standby": "CHẾ ĐỘ CHỜ"
       }
     },
     "about": {
@@ -133,7 +255,15 @@
       "placeholder": "Tìm kiếm cài đặt...",
       "results": "Kết quả tìm kiếm",
       "clear": "Xóa tìm kiếm",
-      "itemsFound": "{{count}} kết quả"
+      "itemsFound": "{{count}} kết quả",
+      "showingFor": "Kết quả cho \"{{query}}\""
+    },
+    "sidebar": {
+      "systemConfiguration": "CẤU HÌNH HỆ THỐNG",
+      "proCard": {
+        "title": "AuraSphere Pro",
+        "description": "Mở khóa cửa sổ ngữ cảnh lớn hơn và các mô hình độc quyền."
+      }
     }
   },
   "export": {
@@ -212,6 +342,82 @@
   },
   "document": {
     "untitled": "Ý niệm chưa đặt tên",
-    "dirtyIndicator": "●"
+    "dirtyIndicator": "●",
+    "clickToRename": "Nhấn để đổi tên",
+    "titleAriaLabel": "Tiêu đề tài liệu",
+    "edited": "Đã chỉnh sửa {{time}}",
+    "unsaved": "Chưa lưu",
+    "words": "từ",
+    "word": "từ",
+    "minRead": "phút đọc",
+    "saveFailed": "Lưu thất bại: {{message}}. Đang thử lại..."
+  },
+  "nav": {
+    "drafts": "Bản nháp",
+    "archive": "Lưu trữ",
+    "library": "Thư viện",
+    "export": "Xuất",
+    "newDocument": "Tài liệu mới",
+    "preferences": "Cài đặt",
+    "profile": "Hồ sơ",
+    "subscription": "Gói đăng ký",
+    "signOut": "Đăng xuất"
+  },
+  "sidebar": {
+    "auraSphereAI": "AuraSphere AI",
+    "analytics": "Phân tích",
+    "versionHistory": "Lịch sử phiên bản",
+    "settings": "Cài đặt",
+    "signInToUseAI": "Đăng nhập để dùng AuraSphere AI",
+    "aiQuotaExceeded": "Đã hết hạn mức AI",
+    "aiUnavailable": "Tính năng AI không khả dụng — tài khoản bị tạm khóa"
+  },
+  "auraPanel": {
+    "subtitle": "Trợ lý viết AI",
+    "closeAriaLabel": "Đóng panel AI",
+    "dismissSuggestion": "Bỏ qua đề xuất",
+    "retryButton": "Thử lại",
+    "chatPlaceholder": "Hỏi AuraSphere...",
+    "sendButton": "Gửi"
+  },
+  "aiAccess": {
+    "guest": {
+      "title": "Đăng nhập để dùng tính năng AI",
+      "description": "AuraSphere AI chỉ dành cho người dùng đã đăng nhập. Đăng nhập để truy cập hỗ trợ viết AI, đề xuất và nhiều hơn nữa.",
+      "signIn": "Đăng nhập"
+    },
+    "quotaExceeded": {
+      "title": "Đã hết hạn mức AI",
+      "description": "Bạn đã đạt giới hạn sử dụng AI hàng tháng. Hạn mức sẽ được đặt lại vào {{date}}.",
+      "hint": "Nâng cấp gói để có giới hạn cao hơn và quyền truy cập ưu tiên."
+    },
+    "suspended": {
+      "title": "Tài khoản bị tạm khóa",
+      "description": "Tài khoản của bạn đã bị tạm khóa. Các tính năng AI hiện không khả dụng.",
+      "hint": "Vui lòng liên hệ hỗ trợ để được trợ giúp về tài khoản."
+    }
+  },
+  "versionHistory": {
+    "title": "Lịch sử phiên bản",
+    "closeAriaLabel": "Đóng lịch sử phiên bản",
+    "loading": "Đang tải...",
+    "empty": "Chưa có phiên bản nào được lưu.",
+    "previewHint": "Chọn một phiên bản để xem trước nội dung.",
+    "emptyDocument": "(tài liệu trống)",
+    "restoreButton": "Khôi phục phiên bản này",
+    "restoreAriaLabel": "Khôi phục phiên bản {{version}}"
+  },
+  "startup": {
+    "unavailable": "Bộ nhớ AuraBrain không khả dụng",
+    "retry": "Thử lại",
+    "revealDiagnostics": "Xem chẩn đoán",
+    "loading": "Đang tải…"
+  },
+  "toast": {
+    "aiUnavailable": "AI không khả dụng. Tiếp tục chỉnh sửa.",
+    "retry": "Thử lại",
+    "settings": "Cài đặt",
+    "syncFailed": "Đồng bộ thất bại: {{error}}",
+    "dismissAriaLabel": "Đóng"
   }
 }

@@ -13,6 +13,12 @@ import { blockTextValueFromPlainText, extractPlainText } from '../utils/blockTex
 // Mock @tauri-apps/api to avoid native module errors in jsdom
 vi.mock('@tauri-apps/api', () => ({}));
 vi.mock('@tauri-apps/plugin-opener', () => ({}));
+// Mock authStore so EditorCanvas can render without AuthStateProvider
+vi.mock('../services/authStore', () => ({
+  useAIAccessState: () => 'active',
+  useAuthState: () => ({ authState: { accessContext: null, aiAccessState: 'active', isLoading: false, authError: null } }),
+  useAccessContext: () => null,
+}));
 
 function makeDoc(overrides: Partial<Document> = {}): Document {
   return {

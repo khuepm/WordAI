@@ -6,6 +6,7 @@
 import { UserAvatar } from './UserAvatar';
 import { DocumentTitleBar } from './DocumentTitleBar';
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TopNavBarProps {
   documentTitle: string;
@@ -19,9 +20,12 @@ interface TopNavBarProps {
   isDirty?: boolean;
   /** AuraBrain syncing state — true while sync is in progress (Req 1.1) */
   isSyncing?: boolean;
+  /** Called when the user renames the document via the title bar. */
+  onRename?: (newTitle: string) => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false, onRename }: TopNavBarProps) {
+  const { t } = useTranslation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -74,10 +78,10 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                 paddingBottom: '2px',
               }}
             >
-              Drafts
+              {t('nav.drafts')}
             </a>
-            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>Archive</a>
-            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>Library</a>
+            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>{t('nav.archive')}</a>
+            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>{t('nav.library')}</a>
           </nav>
         </div>
 
@@ -93,6 +97,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
             intentName={documentTitle || null}
             isDirty={isDirty}
             isSyncing={isSyncing}
+            onRename={onRename}
           />
         </div>
 
@@ -101,7 +106,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           <button
             data-testid="save-button"
             onClick={onSave}
-            title={hasUnsavedChanges ? 'Open export drawer. Unsynced changes present.' : 'Open export drawer'}
+            title={hasUnsavedChanges ? t('nav.export') : t('nav.export')}
             style={{
               background: 'var(--md-sys-color-primary)',
               color: 'var(--md-sys-color-on-primary)',
@@ -114,7 +119,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
               fontWeight: 600,
             }}
           >
-            Export
+            {t('nav.export')}
           </button>
           <button
             data-testid="new-button"
@@ -131,13 +136,13 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
               justifyContent: 'center',
               color: 'var(--md-sys-color-on-surface-variant)',
             }}
-            title="New document"
+            title={t('nav.newDocument')}
           >
             <span className="material-symbols-outlined">add</span>
           </button>
           <button
             onClick={onOpenPreferences}
-            title="Preferences"
+            title={t('nav.preferences')}
             style={{
               background: 'none',
               border: 'none',
@@ -222,7 +227,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                     onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>person</span>
-                    Profile
+                    {t('nav.profile')}
                   </button>
                   <button
                     style={{
@@ -244,7 +249,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                     onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>workspace_premium</span>
-                    Subscription
+                    {t('nav.subscription')}
                   </button>
                   <button
                     style={{
@@ -266,7 +271,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                     onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
-                    Sign Out
+                    {t('nav.signOut')}
                   </button>
                 </div>
               </div>

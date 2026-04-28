@@ -24,6 +24,12 @@ const mockInvoke = vi.fn().mockResolvedValue({ success: true, data: [] });
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => mockInvoke(...args) }));
 vi.mock('@tauri-apps/api', () => ({}));
 vi.mock('@tauri-apps/plugin-opener', () => ({}));
+// Mock authStore so components can render without AuthStateProvider
+vi.mock('../services/authStore', () => ({
+  useAIAccessState: () => 'active',
+  useAuthState: () => ({ authState: { accessContext: null, aiAccessState: 'active', isLoading: false, authError: null } }),
+  useAccessContext: () => null,
+}));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

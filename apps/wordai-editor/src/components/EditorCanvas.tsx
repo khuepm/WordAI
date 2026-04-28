@@ -1,14 +1,16 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
+ * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 13.8, 13.9, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import '../utils/reactInternals';
 import ReactBlockText, { headerPlugin, listPlugin, quotePlugin, todoPlugin } from 'react-block-text';
 import type { Document, TextSelection } from '../types/document';
 import type { IPCError } from '../types/ipc';
 import { ensureBlockValue, extractPlainText } from '../utils/blockText';
+import { useAIAccessState } from '../services/authStore';
 
 /** Returns a human-readable relative time string (Req 4.4) */
 function formatRelativeTime(date: Date): string {
@@ -58,10 +60,14 @@ export function EditorCanvas({
 }: EditorCanvasProps) {
   const [fontSize, setFontSize] = useState(fontSizeProp);
   const [blockValue, setBlockValue] = useState(() => ensureBlockValue(document.content));
+  const { t } = useTranslation();
+
+  // Req 13.8, 13.9 — only allow Cmd+K AI trigger when AI access is "active"
+  const aiAccessState = useAIAccessState();
 
   useEffect(() => {
     setBlockValue(ensureBlockValue(document.content));
-  }, [document.content, document.id]);
+  }, [document.id]); // only reset editor when switching to a different document
 
   const handleDecreaseFontSize = useCallback(() => {
     setFontSize((prev) => {
@@ -133,10 +139,19 @@ export function EditorCanvas({
       if (!isMod) return;
       if (e.key === 'k') {
         e.preventDefault();
-        const selectionText = window.getSelection()?.toString() ?? '';
-        const text = selectionText || plainText;
-        const selection: TextSelection = { start: 0, end: text.length, text };
-        onAITrigger(selection);
+        // Req 13.8, 13.9 — only trigger AI panel when access is "active"
+        if (aiAccessState === 'active') {
+          const selectionText = window.getSelection()?.toString() ?? '';
+          const text = selectionText || plainText;
+          const selection: TextSelection = { start: 0, end: text.length, text };
+          onAITrigger(selection);
+        } else {
+          // Open the panel to show the gated message
+          const selectionText = window.getSelection()?.toString() ?? '';
+          const text = selectionText || plainText;
+          const selection: TextSelection = { start: 0, end: text.length, text };
+          onAITrigger(selection);
+        }
       }
       if (e.key === 'e') {
         e.preventDefault();
@@ -147,7 +162,7 @@ export function EditorCanvas({
         onOpenVersionHistory?.();
       }
     },
-    [onAITrigger, onOpenExport, onOpenVersionHistory, plainText]
+    [onAITrigger, onOpenExport, onOpenVersionHistory, plainText, aiAccessState]
   );
 
   return (
@@ -163,7 +178,7 @@ export function EditorCanvas({
     >
       {saveError && saveError.message && (
         <div style={styles.errorBanner} role="alert" aria-live="assertive">
-          Save failed: {saveError.message}. Retrying...
+          {t('document.saveFailed', { message: saveError.message })}
         </div>
       )}
       <div style={styles.contentColumn}>
@@ -191,11 +206,10 @@ export function EditorCanvas({
             letterSpacing: '0.12em',
             opacity: 0.6,
           }}>
-            <span>Edited {relativeTime}</span>
-            {hasUnsavedChanges && (
+            <span>{t('document.edited', { time: relativeTime })}</span>            {hasUnsavedChanges && (
               <>
                 <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-                <span style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>Unsaved</span>
+                <span style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>{t('document.unsaved')}</span>
               </>
             )}
           </div>
@@ -223,9 +237,9 @@ export function EditorCanvas({
         </div>
         {/* Document metadata bar (Req 4.1–4.5, 19.2) */}
         <div style={styles.metaBar} aria-label="Document metadata">
-          <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+          <span>{wordCount} {wordCount === 1 ? t('document.word') : t('document.words')}</span>
           <span style={styles.metaSep}>·</span>
-          <span>{readingTime} min read</span>
+          <span>{readingTime} {t('document.minRead')}</span>
           <span style={styles.metaSep}>·</span>
           <button data-testid="font-size-decrease" aria-label="Decrease font size" onClick={handleDecreaseFontSize} style={styles.fontSizeBtn}>A−</button>
           <span data-testid="font-size-display" style={styles.fontSizeDisplay}>{fontSize}px</span>
@@ -233,7 +247,7 @@ export function EditorCanvas({
           {hasUnsavedChanges && (
             <>
               <span style={styles.metaSep}>·</span>
-              <span aria-label="Unsaved changes" style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>Unsaved</span>
+              <span aria-label="Unsaved changes" style={{ color: 'var(--md-sys-color-primary)', opacity: 1 }}>{t('document.unsaved')}</span>
             </>
           )}
           {tags.length > 0 && (
