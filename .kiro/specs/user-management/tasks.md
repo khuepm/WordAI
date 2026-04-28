@@ -54,7 +54,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - Define TypeScript interfaces: `ExchangeRequest`, `ExchangeResponse`, `AccessContext`, `ErrorResponse`, and all data model types
     - _Requirements: 11.1_
 
-  - [~] 3.2 Implement Firebase token verification module
+  - [x] 3.2 Implement Firebase token verification module
     - Implement `verifyFirebaseToken(idToken: string)` using Firebase Admin SDK
     - Validate token signature, expiration, issuer, and audience
     - Return extracted claims (firebase_uid, email, display_name, avatar_url) on success
