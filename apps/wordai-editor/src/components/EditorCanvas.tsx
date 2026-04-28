@@ -65,7 +65,7 @@ export function EditorCanvas({
 
   useEffect(() => {
     setBlockValue(ensureBlockValue(document.content));
-  }, [document.content, document.id]);
+  }, [document.id]); // only reset editor when switching to a different document
 
   const handleDecreaseFontSize = useCallback(() => {
     setFontSize((prev) => {

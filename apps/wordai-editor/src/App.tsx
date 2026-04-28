@@ -97,6 +97,7 @@ function App() {
     state,
     setDocument,
     updateDocument,
+    renameDocument,
     openAIPanel,
     closeAIPanel,
     openNegotiation,
@@ -318,6 +319,10 @@ function App() {
     updateDocument({ ...document, content: ensureBlockValue(content), lastModified: new Date() });
   }, [document, updateDocument]);
 
+  const handleRename = useCallback((newTitle: string) => {
+    renameDocument(newTitle);
+  }, [renameDocument]);
+
   const handleNew = useCallback(() => {
     const doc = createInMemoryDocument();
     setDocument(doc, '', false);
@@ -444,6 +449,7 @@ function App() {
         onOpenPreferences={() => setIsPreferencesOpen(true)}
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
+        onRename={handleRename}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (

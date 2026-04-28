@@ -154,6 +154,20 @@ function ensureExtension(
   return path.toLowerCase().endsWith(expected) ? path : `${path}${expected}`;
 }
 
+/**
+ * Converts a document title into a safe filename stem.
+ * e.g. "My Great Article!" → "My Great Article"
+ *      "Hello / World"     → "Hello - World"
+ */
+function titleToFilename(title: string): string {
+  return title
+    .trim()
+    .replace(/[/\\:*?"<>|]/g, '-') // replace path-unsafe chars with dash
+    .replace(/-{2,}/g, '-')         // collapse consecutive dashes
+    .replace(/^-+|-+$/g, '')        // trim leading/trailing dashes
+    || 'Untitled Intent';
+}
+
 // ---------------------------------------------------------------------------
 // Export to Markdown
 // Requirements: 6.1, 6.2, 6.5, 6.6, 6.7
@@ -169,9 +183,11 @@ export async function exportMarkdown(
   document: Document,
 ): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
+  const filename = titleToFilename(document.title) + '.md';
+  const suggestedPath = defaultPath ? `${defaultPath}/${filename}` : filename;
 
   const selectedPath = await openSaveDialog({
-    defaultPath: defaultPath || undefined,
+    defaultPath: suggestedPath,
     filters: [{ name: "Markdown", extensions: ["md"] }],
   });
 
@@ -207,9 +223,11 @@ export async function exportMarkdown(
  */
 export async function exportDocx(document: Document): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
+  const filename = titleToFilename(document.title) + '.docx';
+  const suggestedPath = defaultPath ? `${defaultPath}/${filename}` : filename;
 
   const selectedPath = await openSaveDialog({
-    defaultPath: defaultPath || undefined,
+    defaultPath: suggestedPath,
     filters: [{ name: "Word Document", extensions: ["docx"] }],
   });
 
@@ -250,9 +268,11 @@ export async function exportPdf(
   pdfOptions: PDFExportOptions,
 ): Promise<ExportResult> {
   const defaultPath = await getDefaultExportPath();
+  const filename = titleToFilename(document.title) + '.pdf';
+  const suggestedPath = defaultPath ? `${defaultPath}/${filename}` : filename;
 
   const selectedPath = await openSaveDialog({
-    defaultPath: defaultPath || undefined,
+    defaultPath: suggestedPath,
     filters: [{ name: "PDF Document", extensions: ["pdf"] }],
   });
 
