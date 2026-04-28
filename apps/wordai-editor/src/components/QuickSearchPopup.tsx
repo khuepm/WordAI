@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SETTING_REGISTRY } from '../data/settingRegistry';
 import type { SettingEntry, Tab } from '../types/preferences';
 
@@ -8,34 +9,61 @@ export interface QuickSearchPopupProps {
   onSelect: (entry: SettingEntry) => void;
 }
 
-const TAB_LABELS: Record<Tab, string> = {
-  'general': 'General',
-  'ai-engine': 'AI Engine',
-  'typography': 'Typography',
-  'privacy': 'Privacy',
-  'about': 'About',
-};
+const MAX_VISIBLE = 8;
 
-export function filterSettings(query: string): SettingEntry[] {
+export function filterSettings(
+  query: string,
+  translatedEntries?: Array<{ id: string; label: string; description: string }>
+): SettingEntry[] {
   if (!query.trim()) return SETTING_REGISTRY;
-  const q = query.toLowerCase();
-  return SETTING_REGISTRY.filter(
-    (entry) =>
+  const q = query.toLowerCase().trim();
+  return SETTING_REGISTRY.filter((entry) => {
+    // Match against registry label, description, keywords (English)
+    const baseMatch =
       entry.label.toLowerCase().includes(q) ||
       entry.description.toLowerCase().includes(q) ||
-      entry.keywords.some((kw) => kw.toLowerCase().includes(q))
-  );
+      entry.keywords.some((kw) => kw.toLowerCase().includes(q));
+    if (baseMatch) return true;
+
+    // Match against translated label/description (current UI language)
+    if (translatedEntries) {
+      const translated = translatedEntries.find((te) => te.id === entry.id);
+      if (translated) {
+        return (
+          translated.label.toLowerCase().includes(q) ||
+          translated.description.toLowerCase().includes(q)
+        );
+      }
+    }
+    return false;
+  });
 }
 
 const MAX_VISIBLE = 8;
 
 export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopupProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const results = filterSettings(query).slice(0, MAX_VISIBLE);
+  // Build translated entries for bilingual search
+  const translatedEntries = SETTING_REGISTRY.map((entry) => ({
+    id: entry.id,
+    label: t(`settings.${entry.id.replace('.', '.')}.label`, entry.label),
+    description: t(`settings.${entry.id.replace('.', '.')}.description`, entry.description),
+  }));
+
+  const tabLabels: Record<Tab, string> = {
+    'general': t('settings.tabs.general'),
+    'ai-engine': t('settings.tabs.aiEngine'),
+    'typography': t('settings.tabs.typography'),
+    'privacy': t('settings.tabs.privacy'),
+    'about': t('settings.tabs.about'),
+  };
+
+  const results = filterSettings(query, translatedEntries).slice(0, MAX_VISIBLE);
 
   // Reset state when popup opens/closes
   useEffect(() => {
@@ -274,7 +302,7 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {TAB_LABELS[entry.tab]}
+                    {tabLabels[entry.tab]}
                   </span>
                 </li>
               ))}
