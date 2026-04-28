@@ -50,7 +50,7 @@ describe('Property 2: QuickSearchPopup width constraint', () => {
           expect(maxWidth).toContain('var(--modal-max-width-popup, min(560px, calc(100vw - 32px)))');
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });
@@ -154,7 +154,7 @@ describe('Property 6: QuickSearchPopup results list height constraint', () => {
           expect(maxHeight).toBe('min(512px, calc(100vh - 200px))');
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 });

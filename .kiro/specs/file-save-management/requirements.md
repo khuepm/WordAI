@@ -240,3 +240,168 @@ Tính năng này mở rộng Requirement 2 (Auto-Save), Requirement 11 (Render D
 7. THE Export_Module SHALL không áp dụng round-trip guarantee cho AuraBrain core sync — round-trip chỉ là thuộc tính của Export_Module.
 8. THE Export_Module SHALL đảm bảo rằng Aura_Tag được bảo toàn qua round-trip: file export có Aura_Tag → chỉnh sửa bằng công cụ khác → import lại → Aura_Tag vẫn còn nguyên để nhận diện Intent.
 9. WHEN Markdown_Serializer parse file `.md` có YAML frontmatter chứa `aura_intent_id`, THE Markdown_Serializer SHALL bảo toàn trường này và không đưa nó vào `raw_content` của Document object.
+
+---
+
+### Requirement 12: AuraBrain Storage Path trong Preferences
+
+**User Story:** Là một writer, tôi muốn xem đường dẫn AuraBrain storage path trong phần Preferences/About, để tôi biết dữ liệu của mình đang được lưu ở đâu và có thể truy cập thư mục đó khi cần.
+
+#### Acceptance Criteria
+
+1. THE PreferencesService SHALL hiển thị đường dẫn AuraBrain storage path đầy đủ trong phần About của Preferences dialog.
+2. WHEN người dùng xem phần About trong Preferences, THE PreferencesService SHALL hiển thị đường dẫn tương ứng với platform: `~/Library/Application Support/WordAI/AuraBrain/` (macOS) hoặc `AppData/Local/WordAI/AuraBrain/` (Windows).
+3. WHEN người dùng nhấn nút "Reveal in Finder" (macOS) hoặc "Reveal in Explorer" (Windows) bên cạnh đường dẫn, THE PreferencesService SHALL mở thư mục AuraBrain trong file manager của hệ điều hành.
+4. IF thư mục AuraBrain chưa tồn tại khi người dùng nhấn nút Reveal, THEN THE PreferencesService SHALL hiển thị thông báo lỗi mô tả rõ nguyên nhân và không mở file manager.
+5. THE SettingRegistry SHALL chứa SettingEntry cho thông tin AuraBrain storage path với `label` là "AuraBrain Storage Location", `tab` là `"about"`, và `keywords` bao gồm `["aurabrain", "storage path", "data location", "database path", "nơi lưu dữ liệu", "thư mục dữ liệu"]`.
+6. WHEN QuickSearch_Popup tìm kiếm với từ khóa liên quan đến "aurabrain" hoặc "storage", THE SettingRegistry SHALL trả về SettingEntry của AuraBrain storage path trong kết quả.
+
+---
+
+### Requirement 13: Editor Status Bar
+
+**User Story:** Là một writer, tôi muốn thấy trạng thái sync ngay dưới editor mà không cần nhìn lên title bar, để tôi luôn biết document của mình đang ở trạng thái nào mà không bị phân tâm.
+
+#### Acceptance Criteria
+
+1. THE Editor_Status_Bar SHALL hiển thị cố định ở phía dưới Editor_Canvas, luôn hiển thị trong suốt phiên làm việc.
+2. WHEN thao tác sync hoàn tất thành công, THE Editor_Status_Bar SHALL hiển thị trạng thái theo định dạng `"Synced · {N}s ago"` trong đó `{N}` là số giây kể từ lần sync gần nhất.
+3. WHILE Is_Syncing là `true`, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Syncing..."`.
+4. WHEN Dirty_Bit là `true` và Is_Syncing là `false`, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Unsaved changes"`.
+5. THE Editor_Status_Bar SHALL không hiển thị đường dẫn AuraBrain storage path trực tiếp trên thanh trạng thái.
+6. WHEN người dùng hover chuột vào Editor_Status_Bar, THE Editor_Status_Bar SHALL hiển thị tooltip chứa đường dẫn AuraBrain storage path đầy đủ.
+7. THE Editor_Status_Bar SHALL cập nhật thời gian hiển thị trong `"Synced · {N}s ago"` mỗi giây để phản ánh thời gian thực.
+8. WHEN document mới được tạo và chưa có lần sync nào, THE Editor_Status_Bar SHALL hiển thị trạng thái `"Unsaved changes"`.
+
+---
+
+### Requirement 14: Unified Document Model Boundary
+
+**User Story:** Là một developer, tôi muốn frontend `Document` và backend `AuraDocument` có ranh giới chuyển đổi rõ ràng, để sync/export/import hoạt động ổn định thay vì phụ thuộc vào shape dữ liệu ngẫu nhiên.
+
+#### Acceptance Criteria
+
+1. THE application SHALL define a single canonical frontend intent model for AuraBrain operations, named `AuraIntentDocument` or equivalent, containing at minimum: `id`, `intentName`, `contentBlocks`, `version`, `createdAt`, `updatedAt`.
+2. THE application SHALL provide an adapter `documentToAuraIntent(document)` converting the current editor `Document` into the exact JSON shape expected by Rust `AuraDocument`.
+3. THE application SHALL provide an adapter `auraIntentToDocument(auraDocument)` converting Rust `AuraDocument` into the current editor `Document` without losing visible text.
+4. THE adapter SHALL map frontend `title` to backend `intent_name` and backend `intent_name` back to frontend `title`.
+5. THE adapter SHALL map frontend editor content into `DocumentBlock[]`. If the editor still stores plain string or BlockNote-like JSON as string, THEN the adapter SHALL parse it deterministically into `Paragraph`, `Heading`, `ListItem`, `CodeBlock`, or fallback `Paragraph` blocks.
+6. THE adapter SHALL preserve inline formatting when the frontend content contains structured inline spans supported by WordAI.
+7. THE adapter SHALL preserve unsupported structured blocks as `Placeholder` only when enough raw data exists to restore them on export/import; otherwise it SHALL degrade to text and add a warning.
+8. THE `sync_intent`, `export_markdown`, and `export_docx` IPC calls SHALL receive `AuraDocument` shape, not the legacy frontend `Document` shape.
+9. THE TypeScript compiler SHALL reject direct calls that pass legacy `Document` to AuraBrain IPC commands without using the adapter.
+10. THE app SHALL include unit tests for all adapter directions: plain paragraph, heading, ordered list, unordered list, code block, empty document, malformed editor content, and Unicode text.
+11. THE app SHALL include at least one integration test proving that pressing `Cmd+S` sends `intent_name` and `content: DocumentBlock[]` to `sync_intent`.
+
+---
+
+### Requirement 15: Production Auto-Sync Integration
+
+**User Story:** Là một writer, tôi muốn auto-sync thật sự chạy trong app theo preferences, để nội dung được lưu vào AuraBrain mà không cần nhớ nhấn Cmd+S.
+
+#### Acceptance Criteria
+
+1. THE `App` component SHALL call `useAutoSync` whenever a document is loaded.
+2. THE `App` component SHALL load `autoSyncEnabled` and `autoSyncInterval` from `PreferencesService` before enabling interval-based sync.
+3. IF preferences cannot be loaded, THEN auto-sync SHALL use defaults: `autoSyncEnabled = true`, `autoSyncInterval = 30`.
+4. WHEN preferences are changed in Preferences dialog, THE auto-sync interval SHALL update without requiring app restart.
+5. Auto-sync SHALL call the same AuraBrain sync path as `Cmd+S`, including the `Document -> AuraDocument` adapter.
+6. Auto-sync SHALL only attempt sync when the document is dirty. It SHALL skip clean documents to avoid unnecessary version increments.
+7. Auto-sync SHALL skip while `Is_Syncing = true`.
+8. Auto-sync blur handler SHALL obey the 2-second debounce window after any successful sync.
+9. IF auto-sync fails, THE app SHALL show a non-blocking notification and keep Dirty_Bit true.
+10. THE Editor_Status_Bar and Document_Title_Bar SHALL update when auto-sync starts, succeeds, fails, or is skipped due to clean content.
+11. THE app SHALL include tests proving interval sync, blur sync, dirty-only sync, preference changes, debounce behavior, and failure UI.
+
+---
+
+### Requirement 16: Sync State as a React-Observable Source
+
+**User Story:** Là một developer, tôi muốn sync state có thể quan sát được bởi React, để UI không bị lệch với trạng thái thật bên trong AuraBrain_Manager.
+
+#### Acceptance Criteria
+
+1. THE AuraBrain_Manager SHALL expose sync state through a React-compatible subscription API, hook, context, or external store pattern.
+2. THE `App`, `DocumentTitleBar`, and `EditorStatusBar` SHALL derive `isSyncing`, `isDirty`, `lastSyncedAt`, and `syncError` from the same source of truth.
+3. THE app SHALL not copy `isSyncing` and `lastSyncedAt` manually around `sync()` calls in ways that can diverge from queued sync execution.
+4. WHEN a queued sync runs after the first sync returns, THE UI SHALL remain in `Syncing...` until the queued sync completes.
+5. WHEN `sync()` returns `{ success: true }` only because a request was queued but not persisted yet, THE UI SHALL not clear Dirty_Bit until actual persistence succeeds.
+6. THE store SHALL expose `lastSyncedHashByDocumentId` or reset `lastSyncedHash` whenever switching documents, so dirty state from one document cannot leak into another document.
+7. THE store SHALL expose a method to initialize the synced baseline when loading an existing AuraBrain intent.
+8. THE store SHALL expose a method to reset sync state when creating a new unsynced intent.
+9. THE app SHALL include tests for queued sync UI state, switching documents, creating new document, failed queued sync, and successful queued sync.
+
+---
+
+### Requirement 17: Legacy File Save Removal from Primary Workflow
+
+**User Story:** Là một writer, tôi muốn WordAI không còn behave như editor lưu file truyền thống trong workflow chính, để `Cmd+S` và auto-save luôn có nghĩa là sync vào AuraBrain.
+
+#### Acceptance Criteria
+
+1. THE primary save shortcut `Cmd+S` / `Ctrl+S` SHALL never call legacy `save_document`.
+2. THE primary top navigation save/render action SHALL either trigger AuraBrain sync or open the Export/Render drawer explicitly, but SHALL not silently save a legacy JSON document.
+3. THE legacy `useAutoSave` hook SHALL be removed from the primary AuraBrain workflow or renamed/scoped as `useLegacyFileAutoSave` if still needed for backward compatibility.
+4. THE app SHALL not create or update hidden legacy JSON document files as part of normal typing, Cmd+S, or auto-sync.
+5. IF legacy file loading is temporarily retained for migration, THEN it SHALL be clearly separated as an import/migration path and SHALL sync migrated content into AuraBrain.
+6. THE state names `hasUnsavedChanges`, `saveError`, `markSaved`, and `markFilePersisted` SHALL either be migrated to AuraBrain terminology or isolated to legacy file code paths.
+7. THE UI copy SHALL use "Sync", "Synced", "Unsaved changes", "Export", and "Render" consistently; it SHALL not use "Save file" language for AuraBrain sync.
+8. THE app SHALL include regression tests proving that normal editing and `Cmd+S` do not invoke `save_document`.
+
+---
+
+### Requirement 18: Export and Import End-to-End UI
+
+**User Story:** Là một writer, tôi muốn export/import Markdown hoặc DOCX từ UI hiện tại, để có thể dùng WordAI ngay với GitHub, Obsidian, Microsoft Word và các công cụ cũ.
+
+#### Acceptance Criteria
+
+1. THE Render_Drawer SHALL call `exportService.exportMarkdown` when selected format is Markdown.
+2. THE Render_Drawer SHALL call `exportService.exportDocx` when selected format is DOCX.
+3. THE Render_Drawer SHALL not call a non-existent `export_document` command.
+4. THE Render_Drawer SHALL pass the full current document through the `Document -> AuraDocument` adapter before export.
+5. THE Render_Drawer SHALL show success feedback after the export IPC command resolves successfully.
+6. THE Render_Drawer SHALL show descriptive error feedback when dialog, serialization, DOCX generation, or file write fails.
+7. THE Export_Module SHALL choose default export extension based on selected format.
+8. THE Export_Module SHALL use `defaultExportPath` preference as the initial dialog path when configured.
+9. THE app SHALL provide an Import command reachable from UI, either in Render_Drawer, top nav, or command palette.
+10. WHEN import detects Aura_Tag conflict, THE UI SHALL render `ReplaceConfirmationDialog` and block side effects until the user chooses.
+11. WHEN user chooses "Cập nhật Intent", THE app SHALL open the updated intent in editor, initialize dirty state as clean, and show latest synced timestamp.
+12. WHEN user chooses "Tạo Intent mới", THE app SHALL create and open a new intent with a new UUID, initialize dirty state as clean after sync, and preserve visible imported content.
+13. WHEN import returns warnings for unsupported DOCX elements, THE app SHALL show a non-blocking warning with affected element types.
+14. THE app SHALL include UI tests for export Markdown, export DOCX, cancel dialog, export failure, import no tag, import tag conflict update, import tag conflict create-new, and import warnings.
+
+---
+
+### Requirement 19: Build, Type Safety, and Release Readiness
+
+**User Story:** Là một developer, tôi muốn feature đạt trạng thái build sạch và có checklist release rõ ràng, để có thể ship bản sử dụng được ngay.
+
+#### Acceptance Criteria
+
+1. `npm run build` in `apps/wordai-editor` SHALL pass with zero TypeScript errors.
+2. `npm test` in `apps/wordai-editor` SHALL pass.
+3. `cargo test` in `apps/wordai-editor/src-tauri` SHALL pass.
+4. THE TypeScript codebase SHALL not rely on undeclared global fields such as `window.__TAURI_INTERNALS__`; platform/runtime detection SHALL use typed Tauri APIs or an app-owned typed helper.
+5. All `Record<Tab, ...>` maps SHALL include the `about` tab.
+6. Unused imports, unused props, and unused variables introduced by this feature SHALL be removed or intentionally named with an underscore and excluded from lint/build errors according to project policy.
+7. THE app SHALL include an end-to-end smoke test or manual QA script covering: create intent, type content, Cmd+S sync, close/reopen app, content restored from AuraBrain, export Markdown, export DOCX, import Markdown, import DOCX.
+8. THE release notes for this feature SHALL document that AuraBrain sync is primary storage and Markdown/DOCX are legacy export/import formats.
+9. THE spec checklist SHALL not mark completion tasks as `[x]` until build and the release smoke path both pass.
+
+---
+
+### Requirement 20: AuraBrain Startup and Restore Flow
+
+**User Story:** Là một writer, tôi muốn mở app và thấy lại intent gần nhất từ AuraBrain, để WordAI thực sự hoạt động như một intent engine thay vì phụ thuộc vào file path cũ.
+
+#### Acceptance Criteria
+
+1. WHEN the app starts, THE App SHALL attempt to load the last opened AuraBrain intent ID from local preferences or app state.
+2. IF last opened intent exists in AuraBrain, THEN THE App SHALL load it via `get_intent` and display it in Editor_Canvas.
+3. IF no last opened intent exists, THEN THE App SHALL create a new unsynced intent in memory without writing a legacy file.
+4. WHEN a new intent is first synced, THE App SHALL persist its intent ID as the last opened AuraBrain intent ID.
+5. WHEN `list_intents` returns existing intents and no last opened ID is available, THE App MAY open the most recently updated intent.
+6. IF AuraBrain database initialization fails, THEN THE App SHALL show a blocking error state with retry and reveal diagnostics actions.
+7. THE App SHALL not use `wordai_last_document_path` as the primary restore key after AuraBrain migration is complete.
+8. THE app SHALL include tests for startup with last intent, startup with missing last intent, startup with empty database, database init failure, and fallback to most recent intent.

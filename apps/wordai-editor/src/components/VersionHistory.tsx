@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useTranslation } from 'react-i18next';
 import type { DocumentSnapshot } from '../types/document';
 import { extractPlainText } from '../utils/blockText';
 
@@ -37,6 +38,7 @@ function formatTimestamp(iso: string): string {
 // ─── VersionHistory ───────────────────────────────────────────────────────────
 
 export function VersionHistory({ isOpen, onClose, documentId, onRestore }: VersionHistoryProps) {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<DocumentSnapshot[]>([]);
   const [selected, setSelected] = useState<DocumentSnapshot | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +92,7 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
       {/* Panel */}
       <div
         role="dialog"
-        aria-label="Version history"
+        aria-label={t('versionHistory.title')}
         aria-modal="true"
         data-testid="version-history-panel"
         style={{
@@ -100,11 +102,11 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
       >
         {/* Header */}
         <div style={styles.header}>
-          <span style={styles.title}>Version History</span>
+          <span style={styles.title}>{t('versionHistory.title')}</span>
           <button
             style={styles.closeBtn}
             onClick={onClose}
-            aria-label="Close version history"
+            aria-label={t('versionHistory.closeAriaLabel')}
             data-testid="version-history-close"
           >
             ✕
@@ -116,13 +118,13 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
           {/* Version list */}
           <div style={styles.listPane} aria-label="Past versions">
             {isLoading && (
-              <p style={styles.hint} data-testid="version-history-loading">Loading…</p>
+              <p style={styles.hint} data-testid="version-history-loading">{t('versionHistory.loading')}</p>
             )}
             {error && !isLoading && (
               <p style={styles.errorText} role="alert" data-testid="version-history-error">{error}</p>
             )}
             {!isLoading && !error && history.length === 0 && (
-              <p style={styles.hint} data-testid="version-history-empty">No saved versions yet.</p>
+              <p style={styles.hint} data-testid="version-history-empty">{t('versionHistory.empty')}</p>
             )}
             {history.map((snap) => (
               <button
@@ -147,11 +149,11 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
           <div style={styles.previewPane} aria-label="Version preview">
             {selected ? (
               <pre style={styles.previewContent} data-testid="version-preview">
-                {extractPlainText(selected.content) || <em>(empty document)</em>}
+                {extractPlainText(selected.content) || <em>{t('versionHistory.emptyDocument')}</em>}
               </pre>
             ) : (
               <p style={styles.hint} data-testid="version-preview-hint">
-                Select a version to preview its content.
+                {t('versionHistory.previewHint')}
               </p>
             )}
           </div>
@@ -166,10 +168,10 @@ export function VersionHistory({ isOpen, onClose, documentId, onRestore }: Versi
             }}
             onClick={handleRestore}
             disabled={!selected}
-            aria-label={selected ? `Restore version ${selected.version}` : 'Restore version'}
+            aria-label={selected ? t('versionHistory.restoreAriaLabel', { version: selected.version }) : t('versionHistory.restoreButton')}
             data-testid="version-restore-button"
           >
-            Restore this version
+            {t('versionHistory.restoreButton')}
           </button>
         </div>
       </div>

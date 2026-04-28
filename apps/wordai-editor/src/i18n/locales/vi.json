@@ -1,0 +1,423 @@
+{
+  "app": {
+    "name": "WordAI",
+    "tagline": "Dữ liệu của bạn, thiết bị của bạn. AuraBrain lưu trữ mọi thứ tại chỗ.",
+    "loading": "Đang tải…",
+    "startupError": {
+      "title": "Không thể truy cập bộ nhớ AuraBrain",
+      "retry": "Thử lại",
+      "revealDiagnostics": "Mở chẩn đoán"
+    },
+    "aiBanner": {
+      "message": "AI không khả dụng. Vẫn tiếp tục soạn thảo.",
+      "retry": "Thử lại",
+      "settings": "Cài đặt",
+      "closeAriaLabel": "Đóng"
+    },
+    "syncError": {
+      "prefix": "Đồng bộ thất bại: {{error}}",
+      "dismissAriaLabel": "Đóng thông báo lỗi đồng bộ"
+    }
+  },
+  "common": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "apply": "Áp dụng thay đổi",
+    "restoreDefaults": "Khôi phục mặc định",
+    "configure": "Cấu hình",
+    "shieldActive": "Khiên bảo vệ đang bật"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "tabs": {
+      "general": "Chung",
+      "aiEngine": "AI Engine",
+      "typography": "Kiểu chữ",
+      "privacy": "Riêng tư",
+      "about": "Giới thiệu"
+    },
+    "general": {
+      "sectionTitle": "Cài đặt Chung",
+      "sectionDescription": "Cấu hình môi trường làm việc và tương tác cốt lõi.",
+      "interfaceMode": {
+        "label": "Chế độ giao diện",
+        "description": "Điều chỉnh giao diện trình chỉnh sửa.",
+        "themes": {
+          "system": "Hệ thống",
+          "light": "Sáng",
+          "dark": "Tối",
+          "glass": "Kính"
+        }
+      },
+      "autoSave": {
+        "label": "Tự động lưu",
+        "description": "Tự động sao lưu tiến trình của bạn khi viết.",
+        "every": "Mỗi",
+        "minutes": "phút"
+      },
+      "focusMode": {
+        "label": "Chế độ tập trung",
+        "description": "Tự động ẩn thanh công cụ và panel phụ khi bạn bắt đầu gõ.",
+        "enable": "Bật chế độ không gây mất tập trung"
+      },
+      "language": {
+        "label": "Ngôn ngữ giao diện",
+        "description": "Chọn ngôn ngữ chính cho menu và giao diện."
+      },
+      "defaultExportPath": {
+        "label": "Thư mục xuất mặc định",
+        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX."
+      },
+      "defaultExportFormat": {
+        "label": "Định dạng xuất mặc định",
+        "description": "Định dạng file mặc định khi xuất tài liệu."
+      },
+      "autoSync": {
+        "label": "Tự động đồng bộ",
+        "description": "Tự động đồng bộ ý niệm vào AuraBrain theo định kỳ."
+      },
+      "autoSyncInterval": {
+        "label": "Khoảng thời gian đồng bộ",
+        "description": "Khoảng thời gian giữa các lần auto-sync (5–60 giây)."
+      }
+    },
+    "aiEngine": {
+      "sectionTitle": "Cài đặt AI Engine",
+      "sectionDescription": "Cấu hình trí tuệ hỗ trợ viết — từ agent backbone đến sự sáng tạo.",
+      "active": "Đang hoạt động",
+      "intro": {
+        "eyebrow": "Lõi trí tuệ",
+        "title": "Động cơ nhận thức",
+        "quote": "Cấu hình trí tuệ hỗ trợ viết — từ nền tảng agent đến mức độ sáng tạo."
+      },
+      "agent": {
+        "title": "Kết nối agent của bạn",
+        "description": "Engine trí tuệ chính để tạo tài liệu.",
+        "activeBadge": "Claude đang dùng",
+        "codex": {
+          "label": "Codex",
+          "description": "Tạo mã và logic nâng cao."
+        },
+        "claude": {
+          "label": "Claude Agent",
+          "description": "Lập luận tinh tế và ngữ cảnh dài."
+        },
+        "gemini": {
+          "label": "Gemini CLI",
+          "description": "Tác vụ đa phương tiện hiệu suất cao."
+        }
+      },
+      "models": {
+        "title": "Mô hình Aura",
+        "proBadge": "Cần Pro cho Aura-Pro",
+        "pro": "Pro",
+        "turbo": {
+          "label": "Aura-4-Turbo",
+          "description": "Tối ưu cho tốc độ và hiệu quả. Phù hợp cho soạn thảo hàng ngày.",
+          "status": "Khả dụng"
+        },
+        "proModel": {
+          "label": "Aura-Pro",
+          "description": "Sức mạnh lập luận tối đa. Lý tưởng cho nghiên cứu phức tạp.",
+          "status": "Cần nâng cấp"
+        }
+      },
+      "creativity": {
+        "label": "Mức độ sáng tạo AI",
+        "description": "Điều chỉnh độ biến thiên của đầu ra mô hình.",
+        "badge": "Trung-Cao",
+        "marks": {
+          "precise": "Chính xác",
+          "balanced": "Cân bằng",
+          "creative": "Sáng tạo"
+        }
+      },
+      "contextWindow": {
+        "label": "Cửa sổ ngữ cảnh",
+        "description": "Lịch sử tối đa AI xem xét mỗi lần tương tác.",
+        "badge": "16k Tokens"
+      },
+      "responseLanguage": {
+        "label": "Ngôn ngữ phản hồi",
+        "description": "Ghi đè cài đặt ngôn ngữ tài liệu cho phản hồi AI.",
+        "auto": "Tự động (Phát hiện ngôn ngữ)",
+        "english": "Tiếng Anh (Toàn cầu)",
+        "vietnamese": "Tiếng Việt"
+      },
+      "knowledge": {
+        "label": "Tích hợp kiến thức",
+        "description": "Cho phép AI lấy thông tin hiện tại khi tạo nội dung.",
+        "webAccess": "Truy cập web thời gian thực",
+        "liveData": "Truy xuất dữ liệu trực tiếp"
+      }
+    },
+    "typography": {
+      "sectionTitle": "Kiểu chữ & Định dạng",
+      "sectionDescription": "Tinh chỉnh nhịp điệu đọc và viết của bạn.",
+      "font": {
+        "standardFont": "Font chuẩn",
+        "standardFontDescription": "Các font chữ biên tập được tối ưu cho khả năng đọc.",
+        "premiumBadge": "FONT CAO CẤP",
+        "inter": "Inter (Sans)",
+        "newsreader": "Newsreader (Serif)",
+        "robotoMono": "Roboto Mono",
+        "helvetica": "Helvetica Neue"
+      },
+      "fontSize": {
+        "label": "Cỡ chữ",
+        "note": "Cỡ cơ bản hiện tại là 16px.",
+        "small": "Nhỏ",
+        "medium": "Vừa",
+        "large": "Lớn",
+        "xl": "XL"
+      },
+      "lineSpacing": {
+        "label": "Khoảng cách dòng",
+        "note": "Khuyến nghị cho văn bản dài."
+      },
+      "smart": {
+        "title": "Định dạng thông minh",
+        "quotes": {
+          "label": "Dấu ngoặc thông minh",
+          "description": "Chuyển thành dấu ngoặc cong."
+        },
+        "autoCapitalize": {
+          "label": "Tự viết hoa",
+          "description": "Câu bắt đầu bằng chữ hoa."
+        },
+        "ligatures": {
+          "label": "Ghép chữ (Ligatures)",
+          "description": "Ghép ký tự nâng cao."
+        }
+      },
+      "preview": {
+        "label": "Xem trước trực tiếp",
+        "badge": "16pt / 1.15 LH / INTER",
+        "title": "Tinh thần biên tập hiện đại",
+        "body": "Kiểu chữ là giọng nói của ngôn từ. Bằng cách chọn các font chữ biên tập và tinh chỉnh nhịp điệu khoảng cách dòng, bạn đảm bảo mọi ký tự đều có mục đích."
+      }
+    },
+    "privacy": {
+      "sectionTitle": "Riêng tư & Bảo mật",
+      "sectionDescription": "Quản lý cách dữ liệu của bạn được xử lý, lưu trữ và truyền tải.",
+      "intro": {
+        "eyebrow": "Không gian bảo mật",
+        "title": "Chủ quyền dữ liệu",
+        "quote": "Suy nghĩ của bạn được thiết kế riêng tư. Quản lý cách dữ liệu tương tác với trí tuệ của chúng tôi."
+      },
+      "encryptionEnabled": "Mã hóa đầu cuối đã bật",
+      "encryptionDescription": "Bản nháp của bạn không bao giờ bị đọc bởi con người. Xử lý AI diễn ra trong môi trường bộ nhớ tạm thời.",
+      "auditSecurity": "Kiểm tra bảo mật",
+      "localProcessing": {
+        "label": "Chỉ xử lý trên thiết bị",
+        "description": "Khi bật, WordAI Editor chỉ xử lý nội dung trên thiết bị này, tránh gửi dữ liệu đến dịch vụ từ xa trừ khi bắt buộc.",
+        "prefer": "Ưu tiên xử lý trên thiết bị"
+      },
+      "aiTraining": {
+        "label": "Huấn luyện AI",
+        "description": "Các đoạn văn ẩn danh giúp cải thiện engine. Chúng tôi không lưu thông tin cá nhân.",
+        "recommended": "Khuyến nghị",
+        "liquidIntelligence": "Đóng góp Liquid Intelligence"
+      },
+      "regionalInfrastructure": {
+        "label": "Cơ sở hạ tầng khu vực",
+        "primary": "Node chính",
+        "redundancy": "Node dự phòng",
+        "singapore": "Singapore Central",
+        "unitedStates": "Hoa Kỳ miền Đông",
+        "active": "ĐANG KẾT NỐI",
+        "standby": "CHẾ ĐỘ CHỜ"
+      }
+    },
+    "about": {
+      "title": "Giới thiệu WordAI",
+      "storagePath": {
+        "label": "Vị trí lưu trữ AuraBrain",
+        "description": "Đường dẫn thư mục lưu trữ AuraBrain database trên thiết bị này."
+      },
+      "revealButton": {
+        "mac": "Mở trong Finder",
+        "win": "Mở trong Explorer",
+        "linux": "Mở trong File Manager"
+      }
+    },
+    "footer": {
+      "restoreDefaults": "Khôi phục mặc định",
+      "cancel": "Hủy",
+      "apply": "Áp dụng thay đổi"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm cài đặt...",
+      "results": "Kết quả tìm kiếm",
+      "clear": "Xóa tìm kiếm",
+      "itemsFound": "{{count}} kết quả",
+      "showingFor": "Kết quả cho \"{{query}}\""
+    },
+    "sidebar": {
+      "systemConfiguration": "CẤU HÌNH HỆ THỐNG",
+      "proCard": {
+        "title": "AuraSphere Pro",
+        "description": "Mở khóa cửa sổ ngữ cảnh lớn hơn và các mô hình độc quyền."
+      }
+    }
+  },
+  "export": {
+    "title": "Xuất Tài liệu",
+    "closeAriaLabel": "Đóng cửa sổ xuất",
+    "dialogAriaLabel": "Xuất tài liệu",
+    "formats": {
+      "pdf": "PDF",
+      "markdown": "Markdown",
+      "docx": "DOCX"
+    },
+    "descriptions": {
+      "pdf": "Định dạng tài liệu di động",
+      "markdown": "Văn bản thuần có định dạng",
+      "docx": "Tài liệu Microsoft Word"
+    },
+    "sections": {
+      "format": "Định dạng",
+      "pageSize": "Kích thước trang",
+      "margins": "Lề (mm)",
+      "fontSize": "Cỡ chữ (pt)"
+    },
+    "ariaLabels": {
+      "formatGroup": "Định dạng xuất",
+      "pageSizeGroup": "Kích thước trang",
+      "marginSide": "Lề {{side}}",
+      "fontSize": "Cỡ chữ"
+    },
+    "margins": {
+      "top": "Trên",
+      "bottom": "Dưới",
+      "left": "Trái",
+      "right": "Phải"
+    },
+    "buttons": {
+      "import": "Nhập",
+      "importing": "Đang nhập...",
+      "exportAs": "Xuất dạng {{format}}",
+      "exporting": "Đang xuất..."
+    },
+    "complete": "Xuất thành công",
+    "importComplete": "Nhập thành công",
+    "unsupportedElementsPrefix": "Thành phần không hỗ trợ: {{elements}}",
+    "exportButton": "Xuất",
+    "cancelled": "Đã hủy xuất.",
+    "success": "Xuất thành công: {{path}}",
+    "error": "Xuất thất bại: {{message}}",
+    "formatNotSupported": "Định dạng xuất \"{{format}}\" không được hỗ trợ.",
+    "failed": "Xuất thất bại."
+  },
+  "import": {
+    "title": "Nhập Tài liệu",
+    "conflict": {
+      "title": "Ý niệm đã tồn tại",
+      "message": "File này thuộc về Ý niệm \"{{intentName}}\". Bạn có muốn cập nhật Ý niệm đó với nội dung mới không?",
+      "update": "Cập nhật Ý niệm",
+      "createNew": "Tạo Ý niệm mới",
+      "cancel": "Hủy"
+    },
+    "unsupportedElements": "Phát hiện thành phần không hỗ trợ: {{elements}}"
+  },
+  "ai": {
+    "negotiation": {
+      "title": "So sánh đề xuất AI",
+      "original": "Bản gốc",
+      "suggested": "Bản đề xuất AI",
+      "reject": "Từ chối",
+      "editRequest": "Yêu cầu lại",
+      "accept": "Chấp nhận"
+    }
+  },
+  "statusBar": {
+    "syncing": "Đang đồng bộ...",
+    "unsaved": "Chưa lưu thay đổi",
+    "synced": "Đã đồng bộ · {{seconds}}s trước"
+  },
+  "document": {
+    "untitled": "Ý niệm chưa đặt tên",
+    "dirtyIndicator": "●",
+    "clickToRename": "Nhấn để đổi tên",
+    "titleAriaLabel": "Tiêu đề tài liệu",
+    "edited": "Đã chỉnh sửa {{time}}",
+    "unsaved": "Chưa lưu",
+    "words": "từ",
+    "word": "từ",
+    "minRead": "phút đọc",
+    "saveFailed": "Lưu thất bại: {{message}}. Đang thử lại..."
+  },
+  "nav": {
+    "drafts": "Bản nháp",
+    "archive": "Lưu trữ",
+    "library": "Thư viện",
+    "export": "Xuất",
+    "newDocument": "Tài liệu mới",
+    "preferences": "Cài đặt",
+    "profile": "Hồ sơ",
+    "subscription": "Gói đăng ký",
+    "signOut": "Đăng xuất"
+  },
+  "sidebar": {
+    "auraSphereAI": "AuraSphere AI",
+    "analytics": "Phân tích",
+    "versionHistory": "Lịch sử phiên bản",
+    "settings": "Cài đặt",
+    "signInToUseAI": "Đăng nhập để dùng AuraSphere AI",
+    "aiQuotaExceeded": "Đã hết hạn mức AI",
+    "aiUnavailable": "Tính năng AI không khả dụng — tài khoản bị tạm khóa"
+  },
+  "auraPanel": {
+    "subtitle": "Trợ lý viết AI",
+    "closeAriaLabel": "Đóng panel AI",
+    "dismissSuggestion": "Bỏ qua đề xuất",
+    "retryButton": "Thử lại",
+    "chatPlaceholder": "Hỏi AuraSphere...",
+    "sendButton": "Gửi"
+  },
+  "aiAccess": {
+    "guest": {
+      "title": "Đăng nhập để dùng tính năng AI",
+      "description": "AuraSphere AI chỉ dành cho người dùng đã đăng nhập. Đăng nhập để truy cập hỗ trợ viết AI, đề xuất và nhiều hơn nữa.",
+      "signIn": "Đăng nhập"
+    },
+    "quotaExceeded": {
+      "title": "Đã hết hạn mức AI",
+      "description": "Bạn đã đạt giới hạn sử dụng AI hàng tháng. Hạn mức sẽ được đặt lại vào {{date}}.",
+      "hint": "Nâng cấp gói để có giới hạn cao hơn và quyền truy cập ưu tiên."
+    },
+    "suspended": {
+      "title": "Tài khoản bị tạm khóa",
+      "description": "Tài khoản của bạn đã bị tạm khóa. Các tính năng AI hiện không khả dụng.",
+      "hint": "Vui lòng liên hệ hỗ trợ để được trợ giúp về tài khoản."
+    }
+  },
+  "versionHistory": {
+    "title": "Lịch sử phiên bản",
+    "closeAriaLabel": "Đóng lịch sử phiên bản",
+    "loading": "Đang tải...",
+    "empty": "Chưa có phiên bản nào được lưu.",
+    "previewHint": "Chọn một phiên bản để xem trước nội dung.",
+    "emptyDocument": "(tài liệu trống)",
+    "restoreButton": "Khôi phục phiên bản này",
+    "restoreAriaLabel": "Khôi phục phiên bản {{version}}"
+  },
+  "startup": {
+    "unavailable": "Bộ nhớ AuraBrain không khả dụng",
+    "retry": "Thử lại",
+    "revealDiagnostics": "Xem chẩn đoán",
+    "loading": "Đang tải…"
+  },
+  "toast": {
+    "aiUnavailable": "AI không khả dụng. Tiếp tục chỉnh sửa.",
+    "retry": "Thử lại",
+    "settings": "Cài đặt",
+    "syncFailed": "Đồng bộ thất bại: {{error}}",
+    "dismissAriaLabel": "Đóng"
+  }
+}

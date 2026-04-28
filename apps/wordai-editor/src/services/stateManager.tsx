@@ -63,6 +63,7 @@ const initialState: AppState = {
 type Action =
   | { type: 'SET_DOCUMENT'; payload: { document: Document; filePath: string; isFilePersisted?: boolean } }
   | { type: 'UPDATE_DOCUMENT'; payload: Document }
+  | { type: 'RENAME_DOCUMENT'; payload: string }
   | { type: 'OPEN_AI_PANEL'; payload: TextSelection }
   | { type: 'CLOSE_AI_PANEL' }
   | { type: 'OPEN_NEGOTIATION'; payload: AISuggestion }
@@ -95,6 +96,14 @@ function appReducer(state: AppState, action: Action): AppState {
         ...state,
         document: action.payload,
         hasUnsavedChanges: true, // Req 17.2
+      };
+
+    case 'RENAME_DOCUMENT':
+      if (!state.document) return state;
+      return {
+        ...state,
+        document: { ...state.document, title: action.payload, lastModified: new Date() },
+        hasUnsavedChanges: true,
       };
 
     // Req 17.4 — open AI panel, set flag
@@ -174,6 +183,7 @@ interface AppContextValue {
   // Document actions
   setDocument: (document: Document, filePath: string, isFilePersisted?: boolean) => void;
   updateDocument: (document: Document) => void;
+  renameDocument: (title: string) => void;
   markSaved: (document: Document) => void;
   setSaveError: (err: IPCError | null) => void;
   // UI flag actions (Req 17.4, 17.5)
@@ -203,6 +213,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const updateDocument = useCallback((document: Document) => {
     dispatch({ type: 'UPDATE_DOCUMENT', payload: document });
+  }, []);
+
+  const renameDocument = useCallback((title: string) => {
+    dispatch({ type: 'RENAME_DOCUMENT', payload: title });
   }, []);
 
   const markSaved = useCallback((document: Document) => {
@@ -259,6 +273,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         state,
         setDocument,
         updateDocument,
+        renameDocument,
         markSaved,
         setSaveError,
         openAIPanel,

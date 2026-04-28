@@ -1,5 +1,33 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+  };
+})();
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+});
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+});
+
+// jsdom does not implement scrollIntoView — mock it globally
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
 import './utils/reactInternals';
 
 vi.mock('react-block-text', () => {

@@ -2,14 +2,21 @@
  * PreferencesDialog - Modal dialog with 4 tabs: General, AI Engine, Typography, Privacy
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import type { Tab } from '../types/preferences';
 import { Tooltip } from './Tooltip';
 import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
+import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
+import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
+import { SETTING_REGISTRY } from '../data/settingRegistry';
+import { filterSettings, SETTING_I18N_MAP } from './QuickSearchPopup';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onApply?: () => void | Promise<void>;
   initialTab?: Tab;
   targetSettingId?: string;
 }
@@ -17,11 +24,13 @@ interface PreferencesDialogProps {
 // ─── Sidebar ────────────────────────────────────────────────────────────────
 
 function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activeTab: Tab; onTabChange: (t: Tab) => void; isSearching: boolean; onClearSearch: () => void }) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -33,8 +42,8 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
     }}>
       <div>
         <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>Preferences</h1>
-          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>SYSTEM CONFIGURATION</p>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>{t('settings.title')}</h1>
+          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>{t('settings.sidebar.systemConfiguration')}</p>
         </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {items.map(({ id, icon, label }) => {
@@ -76,7 +85,7 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
                 width: '100%',
               }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
-                Search Results
+                {t('settings.search.results')}
               </button>
             </div>
           )}
@@ -84,8 +93,8 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
       </div>
       <div>
         <div style={{ padding: '1rem', background: 'rgba(67,67,213,0.05)', borderRadius: '0.75rem', border: '1px solid rgba(67,67,213,0.1)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>AuraSphere Pro</p>
-          <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>Unlock larger context windows and exclusive models.</p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>{t('settings.sidebar.proCard.title')}</p>
+          <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>{t('settings.sidebar.proCard.description')}</p>
         </div>
       </div>
     </aside>
@@ -102,11 +111,13 @@ interface CollapsedSidebarProps {
 }
 
 export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearSearch }: CollapsedSidebarProps) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -167,9 +178,9 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
         {/* Search state */}
         {isSearching && (
           <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-            <Tooltip text="Search Results" position="right">
+            <Tooltip text={t('settings.search.results')} position="right">
               <button
-                aria-label="Search Results"
+                aria-label={t('settings.search.results')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -187,9 +198,9 @@ export function CollapsedSidebar({ activeTab, onTabChange, isSearching, onClearS
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
               </button>
             </Tooltip>
-            <Tooltip text="Clear search" position="right">
+            <Tooltip text={t('settings.search.clear')} position="right">
               <button
-                aria-label="Clear search"
+                aria-label={t('settings.search.clear')}
                 onClick={onClearSearch}
                 style={{
                   display: 'flex',
@@ -223,11 +234,13 @@ export interface HorizontalTabBarProps {
 }
 
 export function HorizontalTabBar({ activeTab, onTabChange }: HorizontalTabBarProps) {
+  const { t } = useTranslation();
   const items: { id: Tab; icon: string; label: string }[] = [
-    { id: 'general', icon: 'settings', label: 'General' },
-    { id: 'ai-engine', icon: 'psychology', label: 'AI Engine' },
-    { id: 'typography', icon: 'format_size', label: 'Typography' },
-    { id: 'privacy', icon: 'security', label: 'Privacy' },
+    { id: 'general', icon: 'settings', label: t('settings.tabs.general') },
+    { id: 'ai-engine', icon: 'psychology', label: t('settings.tabs.aiEngine') },
+    { id: 'typography', icon: 'format_size', label: t('settings.tabs.typography') },
+    { id: 'privacy', icon: 'security', label: t('settings.tabs.privacy') },
+    { id: 'about', icon: 'info', label: t('settings.tabs.about') },
   ];
 
   return (
@@ -332,8 +345,19 @@ function SettingRow({ icon, label, children }: { icon: string; label: string; ch
 
 // ─── Tab: General ────────────────────────────────────────────────────────────
 
-function GeneralTab() {
-  const themes = ['System', 'Light', 'Dark', 'Glass'];
+interface GeneralTabProps {
+  pendingLang: LanguageCode;
+  onLanguageChange: (lang: LanguageCode) => void;
+}
+
+function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
+  const { t } = useTranslation();
+  const themes = [
+    { key: 'system', label: t('settings.general.interfaceMode.themes.system') },
+    { key: 'light', label: t('settings.general.interfaceMode.themes.light') },
+    { key: 'dark', label: t('settings.general.interfaceMode.themes.dark') },
+    { key: 'glass', label: t('settings.general.interfaceMode.themes.glass') },
+  ];
   const themePreviews = [
     { from: '#f4f4f5', to: '#d4d4d8' },
     { from: '#ffffff', to: '#ffffff' },
@@ -341,22 +365,27 @@ function GeneralTab() {
     { from: '#6366f1', to: '#a855f7' },
   ];
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value as LanguageCode;
+    onLanguageChange(newLang);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Environment Workspace</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>General Settings</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.general')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Configure your core workspace environment and interaction patterns."
+          {t('app.tagline')}
         </p>
       </div>
 
       {/* Interface Mode */}
       <div data-setting-id="general.theme">
-        <SectionHeader label="Interface Mode" description="Adjust the visual appearance of the editor shell." />
+        <SectionHeader label={t('settings.general.interfaceMode.label')} description={t('settings.general.interfaceMode.description')} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {themes.map((theme, i) => (
-            <label key={theme} style={{ cursor: 'pointer' }}>
+            <label key={theme.key} style={{ cursor: 'pointer' }}>
               <input type="radio" name="pref-theme" defaultChecked={i === 0} style={{ display: 'none' }} />
               <div style={{
                 padding: '1rem', borderRadius: '0.75rem', background: '#f3f4f5',
@@ -366,9 +395,9 @@ function GeneralTab() {
                 <div style={{
                   height: '80px', width: '100%', borderRadius: '4px', marginBottom: '0.75rem',
                   background: `linear-gradient(135deg, ${themePreviews[i].from}, ${themePreviews[i].to})`,
-                  opacity: theme === 'Glass' ? 0.6 : 1,
+                  opacity: theme.key === 'glass' ? 0.6 : 1,
                 }} />
-                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme}</p>
+                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme.label}</p>
               </div>
             </label>
           ))}
@@ -377,16 +406,16 @@ function GeneralTab() {
 
       {/* Auto-Save */}
       <div data-setting-id="general.autoSave">
-        <SectionHeader label="Auto-Save" description="Automatically backup your progress to the cloud library as you write." />
+        <SectionHeader label={t('settings.general.autoSave.label')} description={t('settings.general.autoSave.description')} />
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Every</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.every')}</span>
             <input type="number" defaultValue={5} style={{
               width: '64px', height: '32px', borderRadius: '0.75rem',
               border: 'none', padding: '0 0.75rem',
               fontSize: '0.75rem', background: '#f4f4f5',
             }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>minutes</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.minutes')}</span>
           </div>
           <Toggle checked={true} />
         </SettingRow>
@@ -394,34 +423,36 @@ function GeneralTab() {
 
       {/* Focus Mode */}
       <div data-setting-id="general.focusMode">
-        <SectionHeader label="Focus Mode" description="Automatically hide toolbars and secondary panels when you begin typing." />
-        <SettingRow icon="visibility_off" label="Enable distraction-free shell">
+        <SectionHeader label={t('settings.general.focusMode.label')} description={t('settings.general.focusMode.description')} />
+        <SettingRow icon="visibility_off" label={t('settings.general.focusMode.enable')}>
           <Toggle checked={false} />
         </SettingRow>
       </div>
 
       {/* Interface Language */}
       <div data-setting-id="general.language">
-        <SectionHeader label="Interface Language" description="Select the primary language for the editor menus and interface elements." />
+        <SectionHeader label={t('settings.general.language.label')} description={t('settings.general.language.description')} />
         <div style={{ position: 'relative', marginTop: '0.5rem' }}>
-          <select style={{
-            width: '100%',
-            background: 'rgba(243,244,245,0.5)',
-            border: 'none',
-            borderRadius: '1rem',
-            padding: '1.25rem',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            appearance: 'none',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-          }}>
-            <option>English (US)</option>
-            <option>Vietnamese (Tiếng Việt)</option>
-            <option>Japanese (日本語)</option>
-            <option>French (Français)</option>
-            <option>German (Deutsch)</option>
+          <select
+            value={pendingLang}
+            onChange={handleLanguageChange}
+            style={{
+              width: '100%',
+              background: 'rgba(243,244,245,0.5)',
+              border: 'none',
+              borderRadius: '1rem',
+              padding: '1.25rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              appearance: 'none',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+            }}
+          >
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code}>{lang.label}</option>
+            ))}
           </select>
           <span className="material-symbols-outlined" style={{
             position: 'absolute',
@@ -457,23 +488,24 @@ function AgentIconBox({ icon, active, fill }: { icon: string; active: boolean; f
 }
 
 function AIEngineTab() {
+  const { t } = useTranslation();
   const [selectedAgent, setSelectedAgent] = useState<string>('claude');
   const [selectedModel, setSelectedModel] = useState<string>('aura-turbo');
 
   const agents = [
-    { id: 'codex', icon: 'terminal', label: 'Codex', desc: 'Advanced code generation and logic.' },
-    { id: 'claude', icon: 'neurology', label: 'Claude Agent', desc: 'Nuanced reasoning and long context.', fill: true },
-    { id: 'gemini', icon: 'token', label: 'Gemini CLI', desc: 'High-performance multimodal tasks.' },
+    { id: 'codex', icon: 'terminal', label: t('settings.aiEngine.agent.codex.label'), desc: t('settings.aiEngine.agent.codex.description') },
+    { id: 'claude', icon: 'neurology', label: t('settings.aiEngine.agent.claude.label'), desc: t('settings.aiEngine.agent.claude.description'), fill: true },
+    { id: 'gemini', icon: 'token', label: t('settings.aiEngine.agent.gemini.label'), desc: t('settings.aiEngine.agent.gemini.description') },
   ];
 
   const models = [
-    { id: 'aura-turbo', icon: 'auto_awesome', label: 'Aura-4-Turbo', desc: 'Optimized for speed and efficiency. Best for daily drafting.', status: 'Available', statusColor: '#10b981', pro: false },
-    { id: 'aura-pro', icon: 'diamond', label: 'Aura-Pro', desc: 'Maximum reasoning power. Ideal for complex research.', status: 'Upgrade Required', statusColor: '#a1a1aa', pro: true },
+    { id: 'aura-turbo', icon: 'auto_awesome', label: t('settings.aiEngine.models.turbo.label'), desc: t('settings.aiEngine.models.turbo.description'), status: t('settings.aiEngine.models.turbo.status'), statusColor: '#10b981', pro: false },
+    { id: 'aura-pro', icon: 'diamond', label: t('settings.aiEngine.models.proModel.label'), desc: t('settings.aiEngine.models.proModel.description'), status: t('settings.aiEngine.models.proModel.status'), statusColor: '#a1a1aa', pro: true },
   ];
 
   const sliders = [
-    { label: 'AI Creativity Level', desc: "Adjust the variance of the model's output.", badge: 'Medium-High', min: 0, max: 100, value: 75, marks: ['Precise', 'Balanced', 'Creative'], settingId: 'ai-engine.creativity' },
-    { label: 'Context Window', desc: 'Maximum history the AI considers per interaction.', badge: '16k Tokens', min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
+    { label: t('settings.aiEngine.creativity.label'), desc: t('settings.aiEngine.creativity.description'), badge: t('settings.aiEngine.creativity.badge'), min: 0, max: 100, value: 75, marks: [t('settings.aiEngine.creativity.marks.precise'), t('settings.aiEngine.creativity.marks.balanced'), t('settings.aiEngine.creativity.marks.creative')], settingId: 'ai-engine.creativity' },
+    { label: t('settings.aiEngine.contextWindow.label'), desc: t('settings.aiEngine.contextWindow.description'), badge: t('settings.aiEngine.contextWindow.badge'), min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
   ];
 
   return (
@@ -481,10 +513,10 @@ function AIEngineTab() {
 
       {/* Intro */}
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Intelligence Core</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Cognitive Engine</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.intro.eyebrow')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.aiEngine.intro.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8, margin: '1rem 0 0' }}>
-          "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."
+          "{t('settings.aiEngine.intro.quote')}"
         </p>
       </div>
 
@@ -492,10 +524,10 @@ function AIEngineTab() {
       <div data-setting-id="ai-engine.agent">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Connect your agent</h3>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>The primary intelligence engine for your document generation.</p>
+            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.agent.title')}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{t('settings.aiEngine.agent.description')}</p>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>Claude Active</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{t('settings.aiEngine.agent.activeBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {agents.map(a => {
@@ -525,8 +557,8 @@ function AIEngineTab() {
       {/* Aura Models */}
       <div data-setting-id="ai-engine.model">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>Aura Models</h3>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro Required for Aura-Pro</span>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.models.title')}</h3>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.proBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {models.map(m => {
@@ -543,7 +575,7 @@ function AIEngineTab() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <AgentIconBox icon={m.icon} active={active && !m.pro} fill={!m.pro} />
                     {m.pro
-                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>
+                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.pro')}</span>
                       : <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
                     }
                   </div>
@@ -583,30 +615,30 @@ function AIEngineTab() {
       {/* Language + Knowledge */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
         <div data-setting-id="ai-engine.responseLanguage">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Response Language</label>
+          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.label')}</label>
           <div style={{ position: 'relative' }}>
             <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
-              <option>Auto (Detect Language)</option>
-              <option>English (Global)</option>
-              <option>Vietnamese (Tiếng Việt)</option>
+              <option>{t('settings.aiEngine.responseLanguage.auto')}</option>
+              <option>{t('settings.aiEngine.responseLanguage.english')}</option>
+              <option>{t('settings.aiEngine.responseLanguage.vietnamese')}</option>
             </select>
             <span className="material-symbols-outlined" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', pointerEvents: 'none', fontSize: '18px' }}>unfold_more</span>
           </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Overrides document language settings for AI responses.</p>
+          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.description')}</p>
         </div>
         <div data-setting-id="ai-engine.webAccess">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Knowledge Integration</label>
+          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.knowledge.label')}</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>cloud_sync</span>
               <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>Real-time Web Access</span>
-                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>Live data retrieval</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>{t('settings.aiEngine.knowledge.webAccess')}</span>
+                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>{t('settings.aiEngine.knowledge.liveData')}</span>
               </div>
             </div>
             <Toggle checked={true} />
           </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>Allows the AI to fetch current information during generation.</p>
+          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.knowledge.description')}</p>
         </div>
       </div>
 
@@ -617,34 +649,35 @@ function AIEngineTab() {
 // ─── Tab: Typography ─────────────────────────────────────────────────────────
 
 function TypographyTab() {
+  const { t } = useTranslation();
   const fonts = [
-    { label: 'Inter (Sans)', sample: 'Aa', style: { fontFamily: 'Inter, sans-serif' } },
-    { label: 'Newsreader (Serif)', sample: 'Aa', style: { fontFamily: 'Newsreader, serif' } },
-    { label: 'Roboto Mono', sample: 'Aa', style: { fontFamily: 'monospace' } },
-    { label: 'Helvetica Neue', sample: 'Aa', style: { fontFamily: 'Helvetica Neue, sans-serif' } },
+    { label: t('settings.typography.font.inter'), sample: 'Aa', style: { fontFamily: 'Inter, sans-serif' } },
+    { label: t('settings.typography.font.newsreader'), sample: 'Aa', style: { fontFamily: 'Newsreader, serif' } },
+    { label: t('settings.typography.font.robotoMono'), sample: 'Aa', style: { fontFamily: 'monospace' } },
+    { label: t('settings.typography.font.helvetica'), sample: 'Aa', style: { fontFamily: 'Helvetica Neue, sans-serif' } },
   ];
 
   const smartFeatures = [
-    { icon: 'format_quote', label: 'Smart Quotes', desc: 'Convert to curly quotes.', on: true, settingId: 'typography.smartQuotes' },
-    { icon: 'match_case', label: 'Auto-Capitalize', desc: 'Sentences start with caps.', on: false, settingId: 'typography.autoCapitalize' },
-    { icon: 'join_inner', label: 'Ligatures', desc: 'Advanced glyph pairing.', on: true, settingId: 'typography.ligatures' },
+    { icon: 'format_quote', label: t('settings.typography.smart.quotes.label'), desc: t('settings.typography.smart.quotes.description'), on: true, settingId: 'typography.smartQuotes' },
+    { icon: 'match_case', label: t('settings.typography.smart.autoCapitalize.label'), desc: t('settings.typography.smart.autoCapitalize.description'), on: false, settingId: 'typography.autoCapitalize' },
+    { icon: 'join_inner', label: t('settings.typography.smart.ligatures.label'), desc: t('settings.typography.smart.ligatures.description'), on: true, settingId: 'typography.ligatures' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Typography &amp; Formatting</h3>
-        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '0.5rem' }}>Refine the rhythm of your reading and writing experience.</p>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.typography.sectionTitle')}</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '0.5rem' }}>{t('settings.typography.sectionDescription')}</p>
       </div>
 
       {/* Font Family */}
       <div data-setting-id="typography.fontFamily">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Standard Font</h3>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>Editorial grade typefaces optimized for readability.</p>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>{t('settings.typography.font.standardFont')}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{t('settings.typography.font.standardFontDescription')}</p>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.05)', padding: '2px 8px', borderRadius: '4px' }}>PREMIUM TYPE</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{t('settings.typography.font.premiumBadge')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
           {fonts.map((f, i) => (
@@ -665,8 +698,8 @@ function TypographyTab() {
       {/* Font Size + Line Spacing */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem' }}>
         {[
-          { label: 'Font Size', options: ['Small', 'Medium', 'Large', 'XL'], active: 1, note: 'Base size currently set to 16px.', settingId: 'typography.fontSize' },
-          { label: 'Line Spacing', options: ['1.15', '1.50', '2.00'], active: 0, note: 'Recommended for long-form editorial.', settingId: 'typography.lineSpacing' },
+          { label: t('settings.typography.fontSize.label'), options: [t('settings.typography.fontSize.small'), t('settings.typography.fontSize.medium'), t('settings.typography.fontSize.large'), t('settings.typography.fontSize.xl')], active: 1, note: t('settings.typography.fontSize.note'), settingId: 'typography.fontSize' },
+          { label: t('settings.typography.lineSpacing.label'), options: ['1.15', '1.50', '2.00'], active: 0, note: t('settings.typography.lineSpacing.note'), settingId: 'typography.lineSpacing' },
         ].map(group => (
           <div key={group.label} data-setting-id={group.settingId}>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{group.label}</h3>
@@ -689,7 +722,7 @@ function TypographyTab() {
 
       {/* Smart Formatting */}
       <div>
-        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>Smart Formatting</h3>
+        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '1rem' }}>{t('settings.typography.smart.title')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           {smartFeatures.map(f => (
             <div key={f.label} data-setting-id={f.settingId} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
@@ -709,13 +742,13 @@ function TypographyTab() {
       {/* Preview */}
       <div style={{ padding: '1.5rem', background: 'rgba(243,244,245,0.5)', borderRadius: '1rem', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>Real-time Preview</h4>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#ffffff', padding: '2px 8px', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>16pt / 1.15 LH / INTER</span>
+          <h4 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', margin: 0 }}>{t('settings.typography.preview.label')}</h4>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#ffffff', padding: '2px 8px', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>{t('settings.typography.preview.badge')}</span>
         </div>
         <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #f4f4f5' }}>
-          <h2 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#18181b' }}>The Modern Editorial Ethos</h2>
+          <h2 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#18181b' }}>{t('settings.typography.preview.title')}</h2>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.15, color: '#3f3f46', margin: 0 }}>
-            Typography is the voice of the written word. By selecting editorial grade typefaces and refining the rhythm of line spacing, you ensure that every character flows with purpose.
+            {t('settings.typography.preview.body')}
           </p>
         </div>
       </div>
@@ -726,30 +759,31 @@ function TypographyTab() {
 // ─── Tab: Privacy ────────────────────────────────────────────────────────────
 
 function PrivacyTab() {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Security Workspace</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Data Sovereignty</h3>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.privacy.intro.eyebrow')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.privacy.intro.title')}</h3>
         <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          "Your thoughts are private by design. Manage how your data interacts with our curator intelligence."
+          "{t('settings.privacy.intro.quote')}"
         </p>
       </div>
 
       {/* AI Training */}
       <div data-setting-id="privacy.allowAITraining">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-          <SectionHeader label="AI Model Training" description="Anonymized snippets help improve the engine. We never store personal identifiers." />
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>Recommended</span>
+          <SectionHeader label={t('settings.privacy.aiTraining.label')} description={t('settings.privacy.aiTraining.description')} />
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '4px 8px', borderRadius: '4px', flexShrink: 0, marginLeft: '1rem' }}>{t('settings.privacy.aiTraining.recommended')}</span>
         </div>
-        <SettingRow icon="neurology" label="Liquid Intelligence Contribution">
+        <SettingRow icon="neurology" label={t('settings.privacy.aiTraining.liquidIntelligence')}>
           <Toggle checked={true} />
         </SettingRow>
       </div>
 
       {/* Regional Infrastructure */}
       <div data-setting-id="privacy.analyticsEnabled">
-        <SectionHeader label="Regional Data Infrastructure" />
+        <SectionHeader label={t('settings.privacy.regionalInfrastructure.label')} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {/* Singapore - active */}
           <div style={{ padding: '1.25rem', borderRadius: '1rem', background: 'rgba(67,67,213,0.08)', position: 'relative', overflow: 'hidden' }}>
@@ -763,15 +797,15 @@ function PrivacyTab() {
                   />
                 </div>
                 <div>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Primary Node</p>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>Singapore Central</h4>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>{t('settings.privacy.regionalInfrastructure.primary')}</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{t('settings.privacy.regionalInfrastructure.singapore')}</h4>
                 </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#4343d5', fontVariationSettings: "'FILL' 1", fontSize: '20px' }}>check_circle</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 700, color: '#4343d5' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4343d5', animation: 'pulse 2s infinite' }} />
-              ACTIVE CONNECTION
+              {t('settings.privacy.regionalInfrastructure.active')}
             </div>
           </div>
           {/* US - standby */}
@@ -786,13 +820,13 @@ function PrivacyTab() {
                   />
                 </div>
                 <div>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>Redundancy Node</p>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>United States East</h4>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>{t('settings.privacy.regionalInfrastructure.redundancy')}</p>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{t('settings.privacy.regionalInfrastructure.unitedStates')}</h4>
                 </div>
               </div>
               <span className="material-symbols-outlined" style={{ color: '#d4d4d8', fontSize: '20px' }}>schedule</span>
             </div>
-            <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa' }}>STANDBY MODE</div>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa' }}>{t('settings.privacy.regionalInfrastructure.standby')}</div>
           </div>
         </div>
       </div>
@@ -809,26 +843,107 @@ function PrivacyTab() {
           <div style={{ maxWidth: '70%' }}>
             <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified_user</span>
-              End-to-End Encryption Enabled
+              {t('settings.privacy.encryptionEnabled')}
             </h4>
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: 0 }}>
-              Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.
+              {t('settings.privacy.encryptionDescription')}
             </p>
           </div>
-          <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>Audit Security</button>
+          <button style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}>{t('settings.privacy.auditSecurity')}</button>
         </div>
       </div>
       <div data-setting-id="privacy.localProcessingOnly" style={{ padding: '1.25rem 1.5rem', borderRadius: '1rem', border: '1px solid #e0e0e0', backgroundColor: '#fafafa', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>Local processing only</h3>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{t('settings.privacy.localProcessing.label')}</h3>
           <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#555' }}>
-            When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.
+            {t('settings.privacy.localProcessing.description')}
           </p>
         </div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#333', cursor: 'pointer' }}>
           <input type="checkbox" style={{ width: '14px', height: '14px' }} />
-          <span>Prefer on-device processing only</span>
+          <span>{t('settings.privacy.localProcessing.prefer')}</span>
         </label>
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab: About ──────────────────────────────────────────────────────────────
+
+function AboutTab() {
+  const { t } = useTranslation();
+  const [storagePath, setStoragePath] = useState('');
+  const [revealError, setRevealError] = useState<string | null>(null);
+
+  // Get platform-specific reveal label using translations
+  const platformKey = (() => {
+    const label = getFileManagerLabel();
+    if (label.includes('Finder')) return 'mac';
+    if (label.includes('Explorer')) return 'win';
+    return 'linux';
+  })();
+  const revealLabel = t(`settings.about.revealButton.${platformKey}`);
+
+  useEffect(() => {
+    getAuraBrainStoragePath()
+      .then(setStoragePath)
+      .catch(() => setStoragePath(''));
+  }, []);
+
+  async function handleReveal() {
+    try {
+      setRevealError(null);
+      await invoke('reveal_in_file_manager', { path: storagePath });
+    } catch (err) {
+      setRevealError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      {/* Header */}
+      <div>
+        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.about')}</span>
+        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.about.title')}</h3>
+        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
+          "{t('app.tagline')}"
+        </p>
+      </div>
+
+      {/* AuraBrain Storage Path */}
+      <div data-setting-id="about.auraBrainStoragePath">
+        <SectionHeader label={t('settings.about.storagePath.label')} description={t('settings.about.storagePath.description')} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '1rem',
+          padding: '1.25rem', background: 'rgba(243,244,245,0.5)',
+          borderRadius: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+        }}>
+          <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '24px', flexShrink: 0 }}>folder</span>
+          <code style={{
+            flex: 1, fontSize: '0.8125rem', fontFamily: 'monospace',
+            color: '#18181b', wordBreak: 'break-all',
+          }}>{storagePath}</code>
+          <button
+            onClick={handleReveal}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1rem', borderRadius: '0.5rem',
+              fontSize: '0.75rem', fontWeight: 700,
+              background: '#4343d5', color: '#ffffff',
+              border: 'none', cursor: 'pointer', flexShrink: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+            {revealLabel}
+          </button>
+        </div>
+        {revealError && (
+          <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
+            {revealError}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -836,89 +951,135 @@ function PrivacyTab() {
 
 // ─── Tab: Search Results ─────────────────────────────────────────────────────
 
-function SearchResultsTab({ query }: { query: string }) {
+function SearchResultsTab({ query, onNavigate }: { query: string; onNavigate: (tab: Tab, settingId: string) => void }) {
+  const { t } = useTranslation();
+
+  // Build translated entries for bilingual matching
+  const translatedEntries = SETTING_REGISTRY.map((entry) => {
+    const keys = SETTING_I18N_MAP[entry.id];
+    return {
+      id: entry.id,
+      label: keys ? t(keys.label) : entry.label,
+      description: keys ? t(keys.description) : entry.description,
+    };
+  });
+
+  const results = filterSettings(query, translatedEntries);
+
+  const tabLabels: Record<Tab, string> = {
+    'general': t('settings.tabs.general'),
+    'ai-engine': t('settings.tabs.aiEngine'),
+    'typography': t('settings.tabs.typography'),
+    'privacy': t('settings.tabs.privacy'),
+    'about': t('settings.tabs.about'),
+  };
+
+  const tabIcons: Record<Tab, string> = {
+    'general': 'settings',
+    'ai-engine': 'psychology',
+    'typography': 'format_size',
+    'privacy': 'security',
+    'about': 'info',
+  };
+
+  const tabColors: Record<Tab, { bg: string; color: string }> = {
+    'general': { bg: '#f4f4f5', color: '#52525b' },
+    'ai-engine': { bg: '#eef2ff', color: '#4343d5' },
+    'typography': { bg: '#f0fdf4', color: '#16a34a' },
+    'privacy': { bg: '#fff7ed', color: '#ea580c' },
+    'about': { bg: '#f0f9ff', color: '#0284c7' },
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>Showing results for "{query}"</h3>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>
+          {t('settings.search.showingFor', { query })}
+        </h3>
+        <p style={{ fontSize: '0.75rem', color: '#a1a1aa', marginTop: '4px' }}>
+          {t('settings.search.itemsFound', { count: results.length })}
+        </p>
       </div>
 
-      <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
-        {/* Result 1 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4343d5', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>psychology</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura-4-Turbo</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.1)', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Engine</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>High-performance model for real-time editorial suggestions and semantic restructuring.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
+      {results.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '0.75rem', color: '#a1a1aa', paddingTop: '3rem' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '40px', opacity: 0.4 }}>search_off</span>
+          <p style={{ margin: 0, fontSize: '0.875rem' }}>{t('settings.search.noResults', 'Không tìm thấy cài đặt nào.')}</p>
         </div>
-
-        {/* Result 2 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#f4f4f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525b', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>assistant</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>AuraSphere Assistant</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#52525b', background: '#f4f4f5', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>General</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Floating interface for contextual help that adapts to your writing focus level.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
+      ) : (
+        <div style={{ borderTop: '1px solid #f4f4f5', display: 'flex', flexDirection: 'column' }}>
+          {results.map((entry) => {
+            const colors = tabColors[entry.tab];
+            const translated = translatedEntries.find((te) => te.id === entry.id);
+            const displayLabel = translated?.label ?? entry.label;
+            const displayDesc = translated?.description ?? entry.description;
+            return (
+              <div
+                key={entry.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '1.5rem',
+                  padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5',
+                  cursor: 'pointer', transition: 'background 0.15s',
+                  margin: '0 -0.5rem', borderRadius: '0.5rem',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fafafa'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onClick={() => onNavigate(entry.tab, entry.id)}
+              >
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '0.5rem',
+                  background: colors.bg, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', color: colors.color, flexShrink: 0,
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>
+                    {tabIcons[entry.tab]}
+                  </span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {displayLabel}
+                    </h4>
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, color: colors.color,
+                      background: colors.bg, padding: '2px 8px', borderRadius: '9999px',
+                      textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0,
+                    }}>
+                      {tabLabels[entry.tab]}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {displayDesc}
+                  </p>
+                </div>
+                <button
+                  tabIndex={-1}
+                  style={{
+                    fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none',
+                    border: 'none', cursor: 'pointer', textTransform: 'uppercase',
+                    letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px',
+                    flexShrink: 0, fontFamily: 'inherit', pointerEvents: 'none',
+                  }}>
+                  {t('common.configure')} <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Result 3 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4343d5', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>bolt</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura-Pro</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#4343d5', background: 'rgba(67,67,213,0.1)', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Engine</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Advanced reasoning engine for long-form narrative structure and character tracking.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
-        </div>
-
-        {/* Result 4 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 0.5rem', borderBottom: '1px solid #f4f4f5', cursor: 'pointer', transition: 'background 0.2s', margin: '0 -0.5rem', borderRadius: '0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>security</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4px' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Aura Model Training</h4>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#ea580c', background: '#fff7ed', padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Privacy</span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Control how local editorial changes are used to fine-tune your personalized instance.</p>
-          </div>
-          <button style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Configure <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
-function DialogFooter({ onClose }: { onClose: () => void }) {
+function DialogFooter({ onClose, onApply }: { onClose: () => void; onApply?: () => void | Promise<void> }) {
+  const { t } = useTranslation();
+
+  async function handleApply() {
+    await onApply?.();
+    onClose();
+  }
+
   return (
     <footer style={{
       height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -926,7 +1087,7 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
       flexShrink: 0,
     }}>
       <button style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a1a1aa', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'inherit' }}>
-        RESTORE DEFAULTS
+        {t('common.restoreDefaults')}
       </button>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <button onClick={onClose} style={{
@@ -934,15 +1095,15 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
           background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer',
           fontFamily: 'inherit',
         }}>
-          Cancel
+          {t('common.cancel')}
         </button>
-        <button onClick={onClose} style={{
+        <button onClick={handleApply} style={{
           padding: '0.625rem 2rem', fontSize: '0.75rem', fontWeight: 700,
           background: '#4343d5', color: '#ffffff', border: 'none', borderRadius: '0.75rem',
           cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
           boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)', transition: 'all 0.2s', fontFamily: 'inherit',
         }}>
-          Apply Changes
+          {t('common.apply')}
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_right_alt</span>
         </button>
       </div>
@@ -952,23 +1113,89 @@ function DialogFooter({ onClose }: { onClose: () => void }) {
 
 // ─── Main Dialog ─────────────────────────────────────────────────────────────
 
-export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId }: PreferencesDialogProps) {
+export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, targetSettingId }: PreferencesDialogProps) {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
+
+  // Language state management for cancel/apply behavior
+  const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
+  const originalLangRef = useRef<LanguageCode>(i18n.language as LanguageCode || 'en');
 
   const { width } = useViewportSize();
   const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
   const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
 
-  // Sync to initialTab only when the dialog first opens, not on every tab change
+  // Sync to initialTab and capture original language when dialog opens
   const prevIsOpen = useRef(false);
   useEffect(() => {
     const justOpened = isOpen && !prevIsOpen.current;
     prevIsOpen.current = isOpen;
-    if (justOpened && initialTab) {
-      setActiveTab(initialTab);
+    if (justOpened) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
+      // Capture current language as original when dialog opens
+      const currentLang = i18n.language as LanguageCode || 'en';
+      originalLangRef.current = currentLang;
+      setPendingLang(currentLang);
     }
-  }, [isOpen, initialTab]);
+  }, [isOpen, initialTab, i18n.language]);
+
+  // Handle language change from GeneralTab
+  const handleLanguageChange = useCallback((newLang: LanguageCode) => {
+    setPendingLang(newLang);
+    // Apply immediately for preview, will be reverted on cancel if needed
+    i18n.changeLanguage(newLang);
+  }, [i18n]);
+
+  // Handle close with cancel - revert language if changed
+  const handleClose = useCallback(() => {
+    // Revert to original language if user cancelled
+    if (pendingLang !== originalLangRef.current) {
+      i18n.changeLanguage(originalLangRef.current);
+    }
+    onClose();
+  }, [onClose, pendingLang, i18n]);
+
+  // Handle apply - save language preference
+  // Note: DialogFooter.handleApply calls onClose after this, so we don't call it here
+  const handleApply = useCallback(async () => {
+    // Save language preference
+    if (pendingLang !== originalLangRef.current) {
+      saveLanguagePreference(pendingLang);
+      originalLangRef.current = pendingLang;
+    }
+    await onApply?.();
+    // onClose is called by DialogFooter.handleApply after this function completes
+  }, [onApply, pendingLang]);
+
+  // Navigate from search result to the actual setting: switch tab, clear search, then scroll
+  const handleNavigateToSetting = useCallback((tab: Tab, settingId: string) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setPendingScrollId(settingId);
+  }, []);
+
+  // After tab content renders, scroll to the pending setting and highlight it
+  useEffect(() => {
+    if (!pendingScrollId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-setting-id="${pendingScrollId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Brief highlight animation
+        el.style.transition = 'background 0.2s';
+        el.style.background = 'rgba(67,67,213,0.08)';
+        setTimeout(() => {
+          el.style.background = '';
+        }, 1200);
+      }
+      setPendingScrollId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [pendingScrollId]);
 
   useEffect(() => {
     if (!targetSettingId || !isOpen) return;
@@ -1021,10 +1248,14 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
   if (!isOpen) return null;
 
   const tabContent: Record<Tab, React.ReactNode> = {
-    'general': <GeneralTab />,
+    'general': <GeneralTab
+      pendingLang={pendingLang}
+      onLanguageChange={handleLanguageChange}
+    />,
     'ai-engine': <AIEngineTab />,
     'typography': <TypographyTab />,
     'privacy': <PrivacyTab />,
+    'about': <AboutTab />,
   };
 
   const isSearching = searchQuery.trim().length > 0;
@@ -1034,7 +1265,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        onClick={onClose}
+        onClick={handleClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 900,
           background: 'rgba(25,28,29,0.05)', backdropFilter: 'blur(4px)',
@@ -1072,16 +1303,22 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
-                  {isSearching ? 'Search Results' : { general: 'General Settings', 'ai-engine': 'AI Engine Settings', typography: 'Typography & Formatting', privacy: 'Privacy & Security' }[activeTab]}
+                  {isSearching ? t('settings.search.results') : {
+                    general: t('settings.general.sectionTitle'),
+                    'ai-engine': t('settings.aiEngine.sectionTitle'),
+                    typography: t('settings.tabs.typography'),
+                    privacy: t('settings.privacy.sectionTitle'),
+                    about: t('settings.about.title')
+                  }[activeTab]}
                 </h2>
                 {!isSearching && activeTab === 'ai-engine' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('settings.aiEngine.active')}</span>
                 )}
                 {!isSearching && activeTab === 'privacy' && (
-                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Shield Active</span>
+                  <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('common.shieldActive')}</span>
                 )}
                 {isSearching && (
-                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>4 items found</span>
+                  <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.search.itemsFound', { count: 4 })}</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1089,7 +1326,7 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#4343d5', fontSize: '14px', fontWeight: 700 }}>search</span>
                   <input
                     type="text"
-                    placeholder="Search preference..."
+                    placeholder={t('settings.search.placeholder')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{
@@ -1099,16 +1336,16 @@ export function PreferencesDialog({ isOpen, onClose, initialTab, targetSettingId
                     }}
                   />
                 </div>
-                <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
+                <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
             </header>
             {/* Scrollable content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
-              {isSearching ? <SearchResultsTab query={searchQuery} /> : tabContent[activeTab]}
+              {isSearching ? <SearchResultsTab query={searchQuery} onNavigate={handleNavigateToSetting} /> : tabContent[activeTab]}
             </div>
-            <DialogFooter onClose={onClose} />
+            <DialogFooter onClose={handleClose} onApply={handleApply} />
           </section>
         </div>
       </div>

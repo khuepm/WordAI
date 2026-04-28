@@ -1,0 +1,423 @@
+{
+  "app": {
+    "name": "WordAI",
+    "tagline": "Your data, your device. AuraBrain stores everything locally.",
+    "loading": "Loading…",
+    "startupError": {
+      "title": "AuraBrain storage is unavailable",
+      "retry": "Retry",
+      "revealDiagnostics": "Reveal diagnostics"
+    },
+    "aiBanner": {
+      "message": "AI unavailable. Editing continues.",
+      "retry": "Retry",
+      "settings": "Settings",
+      "closeAriaLabel": "Close"
+    },
+    "syncError": {
+      "prefix": "Sync failed: {{error}}",
+      "dismissAriaLabel": "Dismiss sync error"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "apply": "Apply Changes",
+    "restoreDefaults": "Restore Defaults",
+    "configure": "Configure",
+    "shieldActive": "Shield Active"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "general": "General",
+      "aiEngine": "AI Engine",
+      "typography": "Typography",
+      "privacy": "Privacy",
+      "about": "About"
+    },
+    "general": {
+      "sectionTitle": "General Settings",
+      "sectionDescription": "Configure your core workspace environment and interaction patterns.",
+      "interfaceMode": {
+        "label": "Interface Mode",
+        "description": "Adjust the visual appearance of the editor shell.",
+        "themes": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark",
+          "glass": "Glass"
+        }
+      },
+      "autoSave": {
+        "label": "Auto-Save",
+        "description": "Automatically backup your progress to the cloud library as you write.",
+        "every": "Every",
+        "minutes": "minutes"
+      },
+      "focusMode": {
+        "label": "Focus Mode",
+        "description": "Automatically hide toolbars and secondary panels when you begin typing.",
+        "enable": "Enable distraction-free shell"
+      },
+      "language": {
+        "label": "Interface Language",
+        "description": "Select the primary language for the editor menus and interface elements."
+      },
+      "defaultExportPath": {
+        "label": "Default Export Path",
+        "description": "Default folder when exporting files to Markdown or DOCX."
+      },
+      "defaultExportFormat": {
+        "label": "Default Export Format",
+        "description": "Default file format when exporting documents."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "description": "Automatically sync intents to AuraBrain periodically."
+      },
+      "autoSyncInterval": {
+        "label": "Auto Sync Interval",
+        "description": "Time interval between auto-syncs (5–60 seconds)."
+      }
+    },
+    "aiEngine": {
+      "sectionTitle": "AI Engine Settings",
+      "sectionDescription": "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance.",
+      "active": "Active",
+      "intro": {
+        "eyebrow": "Intelligence Core",
+        "title": "Cognitive Engine",
+        "quote": "Configure the intelligence that powers your writing — from the agent backbone to the nuance of creative variance."
+      },
+      "agent": {
+        "title": "Connect your agent",
+        "description": "The primary intelligence engine for your document generation.",
+        "activeBadge": "Claude Active",
+        "codex": {
+          "label": "Codex",
+          "description": "Advanced code generation and logic."
+        },
+        "claude": {
+          "label": "Claude Agent",
+          "description": "Nuanced reasoning and long context."
+        },
+        "gemini": {
+          "label": "Gemini CLI",
+          "description": "High-performance multimodal tasks."
+        }
+      },
+      "models": {
+        "title": "Aura Models",
+        "proBadge": "Pro Required for Aura-Pro",
+        "pro": "Pro",
+        "turbo": {
+          "label": "Aura-4-Turbo",
+          "description": "Optimized for speed and efficiency. Best for daily drafting.",
+          "status": "Available"
+        },
+        "proModel": {
+          "label": "Aura-Pro",
+          "description": "Maximum reasoning power. Ideal for complex research.",
+          "status": "Upgrade Required"
+        }
+      },
+      "creativity": {
+        "label": "AI Creativity Level",
+        "description": "Adjust the variance of the model's output.",
+        "badge": "Medium-High",
+        "marks": {
+          "precise": "Precise",
+          "balanced": "Balanced",
+          "creative": "Creative"
+        }
+      },
+      "contextWindow": {
+        "label": "Context Window",
+        "description": "Maximum history the AI considers per interaction.",
+        "badge": "16k Tokens"
+      },
+      "responseLanguage": {
+        "label": "Response Language",
+        "description": "Overrides document language settings for AI responses.",
+        "auto": "Auto (Detect Language)",
+        "english": "English (Global)",
+        "vietnamese": "Vietnamese (Tiếng Việt)"
+      },
+      "knowledge": {
+        "label": "Knowledge Integration",
+        "description": "Allows the AI to fetch current information during generation.",
+        "webAccess": "Real-time Web Access",
+        "liveData": "Live data retrieval"
+      }
+    },
+    "typography": {
+      "sectionTitle": "Typography & Formatting",
+      "sectionDescription": "Refine the rhythm of your reading and writing experience.",
+      "font": {
+        "standardFont": "Standard Font",
+        "standardFontDescription": "Editorial grade typefaces optimized for readability.",
+        "premiumBadge": "PREMIUM TYPE",
+        "inter": "Inter (Sans)",
+        "newsreader": "Newsreader (Serif)",
+        "robotoMono": "Roboto Mono",
+        "helvetica": "Helvetica Neue"
+      },
+      "fontSize": {
+        "label": "Font Size",
+        "note": "Base size currently set to 16px.",
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "xl": "XL"
+      },
+      "lineSpacing": {
+        "label": "Line Spacing",
+        "note": "Recommended for long-form editorial."
+      },
+      "smart": {
+        "title": "Smart Formatting",
+        "quotes": {
+          "label": "Smart Quotes",
+          "description": "Convert to curly quotes."
+        },
+        "autoCapitalize": {
+          "label": "Auto-Capitalize",
+          "description": "Sentences start with caps."
+        },
+        "ligatures": {
+          "label": "Ligatures",
+          "description": "Advanced glyph pairing."
+        }
+      },
+      "preview": {
+        "label": "Real-time Preview",
+        "badge": "16pt / 1.15 LH / INTER",
+        "title": "The Modern Editorial Ethos",
+        "body": "Typography is the voice of the written word. By selecting editorial grade typefaces and refining the rhythm of line spacing, you ensure that every character flows with purpose."
+      }
+    },
+    "privacy": {
+      "sectionTitle": "Privacy & Security",
+      "sectionDescription": "Manage how your data is handled, stored, and transmitted.",
+      "intro": {
+        "eyebrow": "Security Workspace",
+        "title": "Data Sovereignty",
+        "quote": "Your thoughts are private by design. Manage how your data interacts with our curator intelligence."
+      },
+      "encryptionEnabled": "End-to-End Encryption Enabled",
+      "encryptionDescription": "Your drafts are never readable by humans. AI processing occurs in a volatile memory environment that wipes upon session termination.",
+      "auditSecurity": "Audit Security",
+      "localProcessing": {
+        "label": "Local processing only",
+        "description": "When enabled, WordAI Editor will process your content only on this device where possible, and avoid sending data to remote services except when strictly required.",
+        "prefer": "Prefer on-device processing only"
+      },
+      "aiTraining": {
+        "label": "AI Model Training",
+        "description": "Anonymized snippets help improve the engine. We never store personal identifiers.",
+        "recommended": "Recommended",
+        "liquidIntelligence": "Liquid Intelligence Contribution"
+      },
+      "regionalInfrastructure": {
+        "label": "Regional Data Infrastructure",
+        "primary": "Primary Node",
+        "redundancy": "Redundancy Node",
+        "singapore": "Singapore Central",
+        "unitedStates": "United States East",
+        "active": "ACTIVE CONNECTION",
+        "standby": "STANDBY MODE"
+      }
+    },
+    "about": {
+      "title": "About WordAI",
+      "storagePath": {
+        "label": "AuraBrain Storage Location",
+        "description": "The folder path where AuraBrain database is stored on this device."
+      },
+      "revealButton": {
+        "mac": "Reveal in Finder",
+        "win": "Reveal in Explorer",
+        "linux": "Reveal in File Manager"
+      }
+    },
+    "footer": {
+      "restoreDefaults": "Restore Defaults",
+      "cancel": "Cancel",
+      "apply": "Apply Changes"
+    },
+    "search": {
+      "placeholder": "Search preference...",
+      "results": "Search Results",
+      "clear": "Clear search",
+      "itemsFound": "{{count}} items found",
+      "showingFor": "Showing results for \"{{query}}\""
+    },
+    "sidebar": {
+      "systemConfiguration": "SYSTEM CONFIGURATION",
+      "proCard": {
+        "title": "AuraSphere Pro",
+        "description": "Unlock larger context windows and exclusive models."
+      }
+    }
+  },
+  "export": {
+    "title": "Export Document",
+    "closeAriaLabel": "Close export drawer",
+    "dialogAriaLabel": "Export document",
+    "formats": {
+      "pdf": "PDF",
+      "markdown": "Markdown",
+      "docx": "DOCX"
+    },
+    "descriptions": {
+      "pdf": "Portable Document Format",
+      "markdown": "Plain-text with formatting",
+      "docx": "Microsoft Word document"
+    },
+    "sections": {
+      "format": "Format",
+      "pageSize": "Page Size",
+      "margins": "Margins (mm)",
+      "fontSize": "Font Size (pt)"
+    },
+    "ariaLabels": {
+      "formatGroup": "Export format",
+      "pageSizeGroup": "Page size",
+      "marginSide": "{{side}} margin",
+      "fontSize": "Font size"
+    },
+    "margins": {
+      "top": "Top",
+      "bottom": "Bottom",
+      "left": "Left",
+      "right": "Right"
+    },
+    "buttons": {
+      "import": "Import",
+      "importing": "Importing...",
+      "exportAs": "Export as {{format}}",
+      "exporting": "Exporting..."
+    },
+    "complete": "Export complete",
+    "importComplete": "Import complete",
+    "unsupportedElementsPrefix": "Unsupported elements: {{elements}}",
+    "exportButton": "Export",
+    "cancelled": "Export cancelled.",
+    "success": "Export complete: {{path}}",
+    "error": "Export failed: {{message}}",
+    "formatNotSupported": "Export format \"{{format}}\" is not supported.",
+    "failed": "Export failed."
+  },
+  "import": {
+    "title": "Import Document",
+    "conflict": {
+      "title": "Intent already exists",
+      "message": "This file belongs to Intent \"{{intentName}}\". Do you want to update that Intent with new content?",
+      "update": "Update Intent",
+      "createNew": "Create New Intent",
+      "cancel": "Cancel"
+    },
+    "unsupportedElements": "Unsupported elements found: {{elements}}"
+  },
+  "ai": {
+    "negotiation": {
+      "title": "Compare AI Suggestions",
+      "original": "Original",
+      "suggested": "AI Suggestion",
+      "reject": "Reject",
+      "editRequest": "Edit Request",
+      "accept": "Accept"
+    }
+  },
+  "statusBar": {
+    "syncing": "Syncing...",
+    "unsaved": "Unsaved changes",
+    "synced": "Synced · {{seconds}}s ago"
+  },
+  "document": {
+    "untitled": "Untitled Intent",
+    "dirtyIndicator": "●",
+    "clickToRename": "Click to rename",
+    "titleAriaLabel": "Document title",
+    "edited": "Edited {{time}}",
+    "unsaved": "Unsaved",
+    "words": "words",
+    "word": "word",
+    "minRead": "min read",
+    "saveFailed": "Save failed: {{message}}. Retrying..."
+  },
+  "nav": {
+    "drafts": "Drafts",
+    "archive": "Archive",
+    "library": "Library",
+    "export": "Export",
+    "newDocument": "New document",
+    "preferences": "Preferences",
+    "profile": "Profile",
+    "subscription": "Subscription",
+    "signOut": "Sign Out"
+  },
+  "sidebar": {
+    "auraSphereAI": "AuraSphere AI",
+    "analytics": "Analytics",
+    "versionHistory": "Version History",
+    "settings": "Settings",
+    "signInToUseAI": "Sign in to use AuraSphere AI",
+    "aiQuotaExceeded": "AI quota exceeded",
+    "aiUnavailable": "AI features unavailable — account suspended"
+  },
+  "auraPanel": {
+    "subtitle": "AI Writing Partner",
+    "closeAriaLabel": "Close AI panel",
+    "dismissSuggestion": "Dismiss suggestion",
+    "retryButton": "Retry",
+    "chatPlaceholder": "Ask AuraSphere...",
+    "sendButton": "Send"
+  },
+  "aiAccess": {
+    "guest": {
+      "title": "Sign in to use AI features",
+      "description": "AuraSphere AI is available to authenticated users. Sign in to access AI writing assistance, suggestions, and more.",
+      "signIn": "Sign In"
+    },
+    "quotaExceeded": {
+      "title": "AI quota exceeded",
+      "description": "You've reached your monthly AI usage limit. Your quota will reset on {{date}}.",
+      "hint": "Upgrade your plan for higher limits and priority access."
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "description": "Your account has been suspended. AI features are currently unavailable.",
+      "hint": "Please contact support for assistance with your account."
+    }
+  },
+  "versionHistory": {
+    "title": "Version History",
+    "closeAriaLabel": "Close version history",
+    "loading": "Loading…",
+    "empty": "No saved versions yet.",
+    "previewHint": "Select a version to preview its content.",
+    "emptyDocument": "(empty document)",
+    "restoreButton": "Restore this version",
+    "restoreAriaLabel": "Restore version {{version}}"
+  },
+  "startup": {
+    "unavailable": "AuraBrain storage is unavailable",
+    "retry": "Retry",
+    "revealDiagnostics": "Reveal diagnostics",
+    "loading": "Loading…"
+  },
+  "toast": {
+    "aiUnavailable": "AI unavailable. Editing continues.",
+    "retry": "Retry",
+    "settings": "Settings",
+    "syncFailed": "Sync failed: {{error}}",
+    "dismissAriaLabel": "Close"
+  }
+}

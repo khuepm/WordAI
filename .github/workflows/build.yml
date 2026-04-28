@@ -45,10 +45,10 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './wordai-editor/src-tauri -> target'
+          workspaces: './apps/wordai-editor/src-tauri -> target'
 
       - name: Install frontend dependencies
-        working-directory: ./wordai-editor
+        working-directory: ./apps/wordai-editor
         run: npm install
 
       - name: Build Tauri app
@@ -62,4 +62,4 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-          projectPath: ./wordai-editor
+          projectPath: ./apps/wordai-editor

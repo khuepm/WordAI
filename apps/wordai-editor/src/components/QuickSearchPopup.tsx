@@ -1,6 +1,36 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SETTING_REGISTRY } from '../data/settingRegistry';
 import type { SettingEntry, Tab } from '../types/preferences';
+
+/** Maps each setting entry id to its i18n label and description keys */
+export const SETTING_I18N_MAP: Record<string, { label: string; description: string }> = {
+  'general.theme': { label: 'settings.general.interfaceMode.label', description: 'settings.general.interfaceMode.description' },
+  'general.autoSave': { label: 'settings.general.autoSave.label', description: 'settings.general.autoSave.description' },
+  'general.focusMode': { label: 'settings.general.focusMode.label', description: 'settings.general.focusMode.description' },
+  'general.language': { label: 'settings.general.language.label', description: 'settings.general.language.description' },
+  'general.defaultExportPath': { label: 'settings.general.defaultExportPath.label', description: 'settings.general.defaultExportPath.description' },
+  'general.defaultExportFormat': { label: 'settings.general.defaultExportFormat.label', description: 'settings.general.defaultExportFormat.description' },
+  'general.autoSyncEnabled': { label: 'settings.general.autoSync.label', description: 'settings.general.autoSync.description' },
+  'general.autoSyncInterval': { label: 'settings.general.autoSyncInterval.label', description: 'settings.general.autoSyncInterval.description' },
+  'ai-engine.agent': { label: 'settings.aiEngine.agent.title', description: 'settings.aiEngine.agent.description' },
+  'ai-engine.model': { label: 'settings.aiEngine.models.title', description: 'settings.aiEngine.sectionDescription' },
+  'ai-engine.creativity': { label: 'settings.aiEngine.creativity.label', description: 'settings.aiEngine.creativity.description' },
+  'ai-engine.contextWindowTokens': { label: 'settings.aiEngine.contextWindow.label', description: 'settings.aiEngine.contextWindow.description' },
+  'ai-engine.responseLanguage': { label: 'settings.aiEngine.responseLanguage.label', description: 'settings.aiEngine.responseLanguage.description' },
+  'ai-engine.webAccess': { label: 'settings.aiEngine.knowledge.label', description: 'settings.aiEngine.knowledge.description' },
+  'typography.fontFamily': { label: 'settings.typography.font.standardFont', description: 'settings.typography.font.standardFontDescription' },
+  'typography.fontSize': { label: 'settings.typography.fontSize.label', description: 'settings.typography.fontSize.note' },
+  'typography.lineSpacing': { label: 'settings.typography.lineSpacing.label', description: 'settings.typography.lineSpacing.note' },
+  'typography.smartQuotes': { label: 'settings.typography.smart.quotes.label', description: 'settings.typography.smart.quotes.description' },
+  'typography.autoCapitalize': { label: 'settings.typography.smart.autoCapitalize.label', description: 'settings.typography.smart.autoCapitalize.description' },
+  'typography.ligatures': { label: 'settings.typography.smart.ligatures.label', description: 'settings.typography.smart.ligatures.description' },
+  'privacy.allowAITraining': { label: 'settings.privacy.aiTraining.label', description: 'settings.privacy.aiTraining.description' },
+  'privacy.analyticsEnabled': { label: 'settings.privacy.regionalInfrastructure.label', description: 'settings.privacy.sectionDescription' },
+  'privacy.crashReports': { label: 'settings.privacy.encryptionEnabled', description: 'settings.privacy.encryptionDescription' },
+  'privacy.localProcessingOnly': { label: 'settings.privacy.localProcessing.label', description: 'settings.privacy.localProcessing.description' },
+  'about.auraBrainStoragePath': { label: 'settings.about.storagePath.label', description: 'settings.about.storagePath.description' },
+};
 
 export interface QuickSearchPopupProps {
   isOpen: boolean;
@@ -8,33 +38,62 @@ export interface QuickSearchPopupProps {
   onSelect: (entry: SettingEntry) => void;
 }
 
-const TAB_LABELS: Record<Tab, string> = {
-  'general': 'General',
-  'ai-engine': 'AI Engine',
-  'typography': 'Typography',
-  'privacy': 'Privacy',
-};
-
-export function filterSettings(query: string): SettingEntry[] {
-  if (!query.trim()) return SETTING_REGISTRY;
-  const q = query.toLowerCase();
-  return SETTING_REGISTRY.filter(
-    (entry) =>
-      entry.label.toLowerCase().includes(q) ||
-      entry.description.toLowerCase().includes(q) ||
-      entry.keywords.some((kw) => kw.toLowerCase().includes(q))
-  );
-}
-
 const MAX_VISIBLE = 8;
 
+export function filterSettings(
+  query: string,
+  translatedEntries?: Array<{ id: string; label: string; description: string }>
+): SettingEntry[] {
+  if (!query.trim()) return SETTING_REGISTRY;
+  const q = query.toLowerCase().trim();
+  return SETTING_REGISTRY.filter((entry) => {
+    // Match against registry label, description, keywords (English)
+    const baseMatch =
+      entry.label.toLowerCase().includes(q) ||
+      entry.description.toLowerCase().includes(q) ||
+      entry.keywords.some((kw) => kw.toLowerCase().includes(q));
+    if (baseMatch) return true;
+
+    // Match against translated label/description (current UI language)
+    if (translatedEntries) {
+      const translated = translatedEntries.find((te) => te.id === entry.id);
+      if (translated) {
+        return (
+          translated.label.toLowerCase().includes(q) ||
+          translated.description.toLowerCase().includes(q)
+        );
+      }
+    }
+    return false;
+  });
+}
+
 export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopupProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [highlightIndex, setHighlightIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const results = filterSettings(query).slice(0, MAX_VISIBLE);
+  // Build translated entries for bilingual search
+  const translatedEntries = SETTING_REGISTRY.map((entry) => {
+    const keys = SETTING_I18N_MAP[entry.id];
+    return {
+      id: entry.id,
+      label: keys ? t(keys.label) : entry.label,
+      description: keys ? t(keys.description) : entry.description,
+    };
+  });
+
+  const tabLabels: Record<Tab, string> = {
+    'general': t('settings.tabs.general'),
+    'ai-engine': t('settings.tabs.aiEngine'),
+    'typography': t('settings.tabs.typography'),
+    'privacy': t('settings.tabs.privacy'),
+    'about': t('settings.tabs.about'),
+  };
+
+  const results = filterSettings(query, translatedEntries).slice(0, MAX_VISIBLE);
 
   // Reset state when popup opens/closes
   useEffect(() => {
@@ -273,7 +332,7 @@ export function QuickSearchPopup({ isOpen, onClose, onSelect }: QuickSearchPopup
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {TAB_LABELS[entry.tab]}
+                    {tabLabels[entry.tab]}
                   </span>
                 </li>
               ))}

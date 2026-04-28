@@ -780,3 +780,416 @@ Mỗi property test phải có comment tag theo format:
 | Property 9: DOCX Round-Trip | Generate random Document (không có Placeholder), export → import, kiểm tra content | proptest |
 | Property 10: Aura_Tag Round-Trip | Generate random intent_id, export → import, kiểm tra aura_intent_id bảo toàn | proptest |
 | Property 11: autoSyncInterval Validation | Generate random numbers, kiểm tra validation reject ngoài [5, 60] | fast-check |
+
+---
+
+## Completion Design Addendum: Production-Ready AuraBrain Workflow
+
+Phần này bổ sung thiết kế hoàn thiện dựa trên trạng thái hiện tại của codebase: backend SQLite/serializer đã có, nhưng primary React workflow vẫn còn lẫn legacy file save, `useAutoSync` chưa được nối vào app, và frontend `Document` chưa khớp trực tiếp với Rust `AuraDocument`.
+
+Mục tiêu của addendum:
+- `Cmd+S` và auto-sync luôn ghi vào AuraBrain SQLite.
+- Editor restore document từ AuraBrain, không từ legacy file path.
+- Export/import Markdown/DOCX hoạt động từ UI hiện tại.
+- TypeScript build sạch.
+- Người dùng có thể tạo, viết, sync, đóng/mở lại, export và import mà không cần thao tác file save thủ công.
+
+### Canonical Data Boundary
+
+Hiện tại tồn tại hai model:
+
+```typescript
+// Legacy/current editor model
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  metadata: DocumentMetadata;
+  version: number;
+  lastModified: Date;
+}
+
+// AuraBrain IPC model expected by Rust
+interface AuraIntentDocument {
+  id: string;
+  intent_name: string;
+  content: DocumentBlock[];
+  version?: number;
+  created_at?: number;
+  updated_at?: number;
+}
+```
+
+Không được truyền `Document` trực tiếp vào `sync_intent`, `export_markdown`, hoặc `export_docx`. Tất cả AuraBrain IPC phải đi qua adapter.
+
+#### Adapter Module
+
+Tạo module:
+
+```text
+src/services/auraDocumentAdapter.ts
+```
+
+Interface đề xuất:
+
+```typescript
+export type AuraDocumentBlock =
+  | { type: 'paragraph'; text: string; inline: AuraInlineSpan[] }
+  | { type: 'heading'; level: number; text: string }
+  | { type: 'list_item'; ordered: boolean; text: string; inline: AuraInlineSpan[] }
+  | { type: 'code_block'; language?: string | null; code: string }
+  | { type: 'placeholder'; element_type: string; raw_xml: string; display_hint: string };
+
+export type AuraInlineSpan =
+  | { kind: 'text'; text: string }
+  | { kind: 'bold'; text: string }
+  | { kind: 'italic'; text: string }
+  | { kind: 'code'; text: string }
+  | { kind: 'bold_italic'; text: string };
+
+export interface AuraIntentDocument {
+  id: string;
+  intent_name: string;
+  content: AuraDocumentBlock[];
+  version?: number | null;
+  created_at?: number | null;
+  updated_at?: number | null;
+}
+
+export interface AdapterWarning {
+  code: 'MALFORMED_CONTENT' | 'UNSUPPORTED_BLOCK' | 'UNSUPPORTED_INLINE';
+  message: string;
+}
+
+export interface AdapterResult<T> {
+  value: T;
+  warnings: AdapterWarning[];
+}
+
+export function documentToAuraIntent(document: Document): AdapterResult<AuraIntentDocument>;
+export function auraIntentToDocument(intent: AuraIntentDocument): AdapterResult<Document>;
+export function computeAuraPlainText(intent: AuraIntentDocument): string;
+```
+
+Parsing strategy cho `Document.content`:
+
+1. Nếu `content` parse được thành block JSON từ editor hiện tại, map từng block sang `DocumentBlock`.
+2. Nếu `content` là plain text, tạo một `Paragraph` block cho mỗi paragraph tách bằng blank line.
+3. Nếu một dòng bắt đầu bằng `#`, `##`, ..., map thành heading.
+4. Nếu một dòng bắt đầu bằng `- ` hoặc `* `, map thành unordered `ListItem`.
+5. Nếu một dòng bắt đầu bằng `1. `, `2. `, ..., map thành ordered `ListItem`.
+6. Nếu có fenced code block Markdown, map thành `CodeBlock`.
+7. Nếu parse lỗi, fallback toàn bộ visible text thành một `Paragraph` và trả `AdapterWarning`.
+
+Adapter phải là nơi duy nhất biết cả legacy `Document` và AuraBrain `AuraDocument`. Các service khác chỉ nhận hoặc trả một model rõ ràng.
+
+### Updated Frontend Architecture
+
+```mermaid
+graph TB
+    subgraph "React UI"
+        App[App.tsx]
+        Editor[EditorCanvas]
+        Nav[TopNavBar + DocumentTitleBar]
+        Status[EditorStatusBar]
+        Drawer[RenderDrawer]
+        ImportUI[Import Action + ReplaceConfirmationDialog]
+        Prefs[PreferencesDialog]
+    end
+
+    subgraph "Frontend Services"
+        SyncStore[AuraBrain Sync Store\nuseAuraBrainSync]
+        Adapter[auraDocumentAdapter\nDocument <-> AuraDocument]
+        ExportSvc[exportService]
+        PrefSvc[preferencesService]
+        Startup[useAuraBrainStartup]
+    end
+
+    subgraph "Tauri IPC"
+        SyncIPC[sync_intent]
+        GetIPC[get_intent / list_intents]
+        ExportIPC[export_markdown / export_docx]
+        ImportIPC[import_file]
+        RevealIPC[reveal_in_file_manager]
+    end
+
+    App --> Startup
+    Startup --> GetIPC
+    Startup --> Adapter
+    App --> SyncStore
+    Editor --> App
+    Nav --> SyncStore
+    Status --> SyncStore
+    Drawer --> ExportSvc
+    ImportUI --> ExportSvc
+    Prefs --> PrefSvc
+    SyncStore --> Adapter
+    SyncStore --> SyncIPC
+    ExportSvc --> Adapter
+    ExportSvc --> ExportIPC
+    ExportSvc --> ImportIPC
+    ExportSvc --> GetIPC
+```
+
+### Sync Store Design
+
+`auraBrainManager` hiện có mutable module state nhưng React phải copy `isSyncing` và `lastSyncedAt` thủ công. Cần nâng cấp thành observable store.
+
+Tạo hoặc mở rộng:
+
+```text
+src/services/auraBrainManager.ts
+src/hooks/useAuraBrainSync.ts
+```
+
+State đề xuất:
+
+```typescript
+interface AuraBrainSyncState {
+  activeDocumentId: string | null;
+  isSyncing: boolean;
+  queuedDocument: Document | null;
+  lastSyncedHashByDocumentId: Record<string, string>;
+  lastSyncedAtByDocumentId: Record<string, number>;
+  lastErrorByDocumentId: Record<string, string | null>;
+}
+```
+
+Public API:
+
+```typescript
+function subscribe(listener: () => void): () => void;
+function getSnapshot(): AuraBrainSyncState;
+function useAuraBrainSyncState(): AuraBrainSyncState;
+
+async function syncDocument(document: Document, reason: 'manual' | 'auto' | 'blur' | 'import'): Promise<SyncResult>;
+async function initializeSyncedBaseline(document: Document): Promise<void>;
+function resetForNewDocument(documentId: string): void;
+async function isDocumentDirty(document: Document): Promise<boolean>;
+```
+
+Important behavior:
+
+- `syncDocument` chuyển `Document -> AuraDocument` trước IPC.
+- Nếu `isSyncing = true`, queue chỉ giữ document mới nhất.
+- Kết quả queued không được coi là persisted cho đến khi IPC queued thực sự thành công.
+- UI chỉ clear dirty khi `lastSyncedHashByDocumentId[doc.id]` bằng hash hiện tại.
+- Khi đổi document, dirty state phải đọc theo `document.id`, không dùng global hash.
+
+### App Startup and Restore
+
+Thay restore key:
+
+```text
+wordai_last_document_path  -> legacy only
+wordai_last_intent_id      -> primary AuraBrain restore key
+```
+
+Startup sequence:
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Local as localStorage / preferences
+    participant IPC as Tauri IPC
+    participant Adapter
+    participant Store as Sync Store
+    participant Editor
+
+    App->>Local: read wordai_last_intent_id
+    alt last intent id exists
+        App->>IPC: get_intent(id)
+        alt intent found
+            IPC-->>App: AuraDocument
+            App->>Adapter: auraIntentToDocument()
+            Adapter-->>App: Document
+            App->>Store: initializeSyncedBaseline(Document)
+            App->>Editor: render Document
+        else missing
+            App->>IPC: list_intents()
+            App->>App: choose most recent or create new
+        end
+    else no last intent id
+        App->>IPC: list_intents()
+        alt has intents
+            App->>Adapter: auraIntentToDocument(mostRecent)
+        else empty DB
+            App->>App: create in-memory new intent
+            App->>Store: resetForNewDocument(id)
+        end
+    end
+```
+
+Migration rule:
+
+- Existing `wordai_last_document_path` may be read only by a migration path.
+- If legacy file exists, load it once, convert to AuraDocument, sync into AuraBrain, store new `wordai_last_intent_id`, then stop using legacy path.
+
+### Manual Sync Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Store as AuraBrain Sync Store
+    participant Adapter
+    participant IPC
+    participant UI
+
+    User->>App: Cmd+S / Ctrl+S
+    App->>Store: syncDocument(currentDocument, "manual")
+    Store->>Store: isSyncing=true; notify()
+    UI->>UI: show "Syncing..."
+    Store->>Adapter: documentToAuraIntent()
+    Adapter-->>Store: AuraDocument + warnings
+    Store->>IPC: sync_intent(AuraDocument)
+    alt success
+        IPC-->>Store: version
+        Store->>Store: update hash, lastSyncedAt, clear error
+        Store->>UI: notify clean + synced timestamp
+    else failure
+        IPC-->>Store: IPCError
+        Store->>Store: keep dirty, set error
+        Store->>UI: notify error toast
+    end
+```
+
+### Auto-Sync Integration
+
+`useAutoSync` phải được gọi từ `App` sau khi document và preferences sẵn sàng:
+
+```typescript
+useAutoSync({
+  document,
+  autoSyncEnabled: preferences.general.autoSyncEnabled,
+  autoSyncInterval: preferences.general.autoSyncInterval,
+  shouldSync: () => syncStore.isDirty(document),
+  sync: () => syncStore.syncDocument(document, 'auto'),
+});
+```
+
+Behavior:
+
+- Interval chỉ sync dirty document.
+- Blur sync chạy ngay nếu dirty và không nằm trong debounce window.
+- Preference update thay đổi timer mà không restart.
+- Failure dùng cùng error surface với manual sync.
+
+### Export/Import UI Integration
+
+`RenderDrawer` không được gọi `export_document`. Nó phải gọi:
+
+```typescript
+await exportMarkdown(currentDocument)
+await exportDocx(currentDocument)
+```
+
+`exportService` chịu trách nhiệm:
+
+1. Load preferences để lấy `defaultExportPath`.
+2. Mở save dialog với filter và extension đúng.
+3. Adapter `Document -> AuraDocument`.
+4. Gọi IPC `export_markdown` hoặc `export_docx`.
+5. Return structured result cho UI:
+
+```typescript
+type ExportResult =
+  | { status: 'cancelled' }
+  | { status: 'success'; path: string }
+  | { status: 'error'; message: string };
+```
+
+Import command:
+
+```typescript
+type ImportFlowResult =
+  | { status: 'cancelled' }
+  | { status: 'opened'; document: Document; warnings: string[] }
+  | { status: 'error'; message: string };
+```
+
+Import side effects:
+
+- No Aura_Tag: create new intent, sync, open, clean.
+- Aura_Tag exists and intent found: show `ReplaceConfirmationDialog`.
+- Update existing: keep id and created timestamp, sync, open, clean.
+- Create new: new UUID, sync, open, clean.
+- Warnings: show non-blocking UI.
+
+### Preferences and Platform Path
+
+Avoid untyped runtime checks such as `window.__TAURI_INTERNALS__`.
+
+Create helper:
+
+```text
+src/services/platformService.ts
+```
+
+Responsibilities:
+
+- Detect platform via typed Tauri APIs where available.
+- Return display label: Finder on macOS, Explorer on Windows, file manager otherwise.
+- Return AuraBrain path from backend when possible.
+
+Recommended IPC:
+
+```rust
+#[tauri::command]
+fn get_aurabrain_storage_path(app: tauri::AppHandle) -> Result<String, IPCError>
+```
+
+The frontend should not reconstruct app data paths by string guessing.
+
+### Build Readiness Rules
+
+Before marking completion:
+
+```text
+cd apps/wordai-editor && npm run build
+cd apps/wordai-editor && npm test
+cd apps/wordai-editor/src-tauri && cargo test
+```
+
+All must pass.
+
+Known current blockers that completion tasks must address:
+
+- `window.__TAURI_INTERNALS__` is not typed and fails TypeScript.
+- Some `Record<Tab, ...>` maps do not include `about`.
+- Some imports/props are unused under current TypeScript settings.
+- `RenderDrawer` references `export_document`, which is not registered.
+- `useAutoSync` exists but is not mounted in `App`.
+- Frontend `Document` is passed where backend expects `AuraDocument`.
+
+### Additional Properties
+
+### Property 12: Adapter Shape Correctness
+
+*Với mọi* frontend `Document`, `documentToAuraIntent(document)` phải tạo object có `intent_name` và `content` là array `DocumentBlock[]`, không chứa legacy-only fields như `title`, `metadata`, `lastModified`.
+
+**Validates: Requirements 14.1-14.9**
+
+---
+
+### Property 13: Dirty State Isolation by Document
+
+*Với mọi* hai document A và B có content khác nhau, sync A không được làm dirty state của B thành clean, và sync B không được thay đổi baseline hash của A.
+
+**Validates: Requirements 16.6, 20.2**
+
+---
+
+### Property 14: Dirty-Only Auto-Sync
+
+*Với mọi* auto-sync tick khi current content hash bằng baseline hash, `sync_intent` không được gọi.
+
+**Validates: Requirements 15.6, 15.7**
+
+---
+
+### Property 15: Export Does Not Mutate Sync State
+
+*Với mọi* document dirty hoặc clean, export Markdown/DOCX thành công không được thay đổi Dirty_Bit, `lastSyncedHash`, `lastSyncedAt`, hoặc `version` trong AuraBrain.
+
+**Validates: Requirements 6.5, 7.5, 18.1-18.6**

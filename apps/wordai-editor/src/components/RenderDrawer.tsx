@@ -1,30 +1,22 @@
-/**
- * RenderDrawer - Render-on-Demand export panel (slide-up from bottom)
- * Requirements: 11.1–11.5, 12.5, 18.1, 19.2, 20.4, 21.3, 21.4
- */
-
-import { useState, useEffect, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import type { ExportFormat, ExportOptions, PDFExportOptions, PageSize } from '../types/export';
-import type { IPCResponse } from '../types/ipc';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { Document } from '../types/document';
+import type { ExportFormat, PDFExportOptions, PageSize } from '../types/export';
+import { defaultPreferences } from '../types/preferences';
+import { exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback } from '../services/exportService';
+import { loadPreferences } from '../services/preferencesService';
+import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
 
 export interface RenderDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  documentId: string;
-  documentContent: string;
+  document?: Document;
+  documentId?: string;
+  documentContent?: string;
+  onImportDocument?: (document: Document) => void;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const FORMATS: { id: ExportFormat; label: string; description: string }[] = [
-  { id: 'pdf', label: 'PDF', description: 'Portable Document Format' },
-  { id: 'markdown', label: 'Markdown', description: 'Plain-text with formatting' },
-  { id: 'html', label: 'HTML', description: 'Web-ready document' },
-  { id: 'docx', label: 'DOCX', description: 'Microsoft Word document' },
-];
+const FORMAT_IDS: ExportFormat[] = ['pdf', 'markdown', 'docx'];
 
 const PAGE_SIZES: PageSize[] = ['A4', 'Letter', 'Legal'];
 
@@ -34,24 +26,65 @@ const DEFAULT_PDF_OPTIONS: PDFExportOptions = {
   fontSize: 12,
 };
 
-// ─── RenderDrawer ─────────────────────────────────────────────────────────────
-
-export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: RenderDrawerProps) {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('pdf');
+export function RenderDrawer({ isOpen, onClose, document: documentProp, documentId, documentContent, onImportDocument }: RenderDrawerProps) {
+  const { t } = useTranslation();
+  const formats: { id: ExportFormat; label: string; description: string }[] = FORMAT_IDS.map((id) => ({
+    id,
+    label: t(`export.formats.${id}`),
+    description: t(`export.descriptions.${id}`),
+  }));
+  const currentDocument: Document = documentProp ?? {
+    id: documentId ?? 'unsaved-document',
+    title: 'Untitled Intent',
+    content: documentContent ?? '',
+    metadata: { wordCount: 0, readingTime: 0, status: 'draft', tags: [] },
+    version: 1,
+    lastModified: new Date(),
+  };
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(defaultPreferences.general.defaultExportFormat);
   const [pdfOptions, setPdfOptions] = useState<PDFExportOptions>(DEFAULT_PDF_OPTIONS);
   const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [exportError, setExportError] = useState<string | null>(null);
+  const [statusText, setStatusText] = useState<string | null>(null);
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
+  const [conflict, setConflict] = useState<{
+    intentName: string;
+    auraIntentId: string;
+    resolve: (choice: 'update' | 'create_new' | 'cancel') => void;
+  } | null>(null);
 
-  // Reset status when drawer opens/closes
   useEffect(() => {
     if (!isOpen) {
       setExportStatus('idle');
       setExportError(null);
+      setStatusText(null);
+      setImportWarnings([]);
+      setConflict(null);
     }
   }, [isOpen]);
 
-  // Escape key closes the drawer (Req 21.4)
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+
+    loadPreferences('default')
+      .then((preferences) => {
+        const format = preferences?.general?.defaultExportFormat;
+        if (!cancelled && (format === 'markdown' || format === 'docx')) {
+          setSelectedFormat(format);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedFormat(defaultPreferences.general.defaultExportFormat);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -65,60 +98,87 @@ export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: R
     setSelectedFormat(format);
     setExportStatus('idle');
     setExportError(null);
+    setStatusText(null);
   }, []);
 
   const handlePdfOptionChange = useCallback(
     <K extends keyof PDFExportOptions>(key: K, value: PDFExportOptions[K]) => {
       setPdfOptions((prev) => ({ ...prev, [key]: value }));
     },
-    []
+    [],
   );
 
-  const handleMarginChange = useCallback(
-    (side: keyof PDFExportOptions['margins'], value: number) => {
-      setPdfOptions((prev) => ({
-        ...prev,
-        margins: { ...prev.margins, [side]: value },
-      }));
-    },
-    []
-  );
+  const handleMarginChange = useCallback((side: keyof PDFExportOptions['margins'], value: number) => {
+    setPdfOptions((prev) => ({
+      ...prev,
+      margins: { ...prev.margins, [side]: value },
+    }));
+  }, []);
 
-  // Trigger export (Req 11.5, 12.5)
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     setExportStatus('idle');
     setExportError(null);
-
-    const options: ExportOptions = {
-      format: selectedFormat,
-      ...(selectedFormat === 'pdf' ? { pdfOptions } : {}),
-    };
+    setStatusText(null);
 
     try {
-      const command = selectedFormat === 'pdf' ? 'export_to_pdf' : 'export_document';
-      const res = await invoke<IPCResponse<string>>(command, {
-        documentId,
-        content: documentContent,
-        options,
-      });
-
-      if (res.success) {
-        setExportStatus('success');
+      let result;
+      if (selectedFormat === 'markdown') {
+        result = await exportMarkdown(currentDocument);
+      } else if (selectedFormat === 'docx') {
+        result = await exportDocx(currentDocument);
+      } else if (selectedFormat === 'pdf') {
+        result = await exportPdf(currentDocument, pdfOptions);
       } else {
         setExportStatus('error');
-        setExportError(res.error?.message ?? 'Export failed.');
+        setExportError(t('export.formatNotSupported', { format: selectedFormat }));
+        return;
       }
+
+      if (result.status === 'cancelled') return;
+      if (result.status === 'error') {
+        setExportStatus('error');
+        setExportError(result.message);
+        return;
+      }
+      setStatusText(t('export.success', { path: result.path }));
+      setExportStatus('success');
     } catch (err: unknown) {
       setExportStatus('error');
-      setExportError(err instanceof Error ? err.message : 'Export failed.');
+      setExportError(err instanceof Error ? err.message : t('export.failed'));
     } finally {
       setIsExporting(false);
     }
-  }, [selectedFormat, pdfOptions, documentId, documentContent]);
+  }, [selectedFormat, pdfOptions, currentDocument, t]);
+
+  const handleImport = useCallback(async () => {
+    setIsImporting(true);
+    setExportStatus('idle');
+    setExportError(null);
+    setStatusText(null);
+    setImportWarnings([]);
+
+    const onConflict: ConflictResolutionCallback = (intentName, auraIntentId) =>
+      new Promise((resolve) => setConflict({ intentName, auraIntentId, resolve }));
+
+    try {
+      const result = await importFile({ onConflict, onOpenIntent: onImportDocument });
+      if (result.status === 'cancelled') return;
+      if (result.status === 'error') {
+        setExportStatus('error');
+        setExportError(result.message);
+        return;
+      }
+      setImportWarnings(result.warnings);
+      onImportDocument?.(result.document);
+      setStatusText(t('export.importComplete'));
+      setExportStatus('success');
+    } finally {
+      setIsImporting(false);
+    }
+  }, [onImportDocument, t]);
 
   return (
-    // Backdrop
     <div
       style={{
         ...styles.backdrop,
@@ -127,10 +187,9 @@ export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: R
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       aria-hidden={!isOpen}
     >
-      {/* Drawer panel */}
       <div
         role="dialog"
-        aria-label="Export document"
+        aria-label={t('export.dialogAriaLabel')}
         aria-modal="true"
         data-testid="render-drawer"
         style={{
@@ -138,28 +197,16 @@ export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: R
           ...(isOpen ? styles.drawerOpen : styles.drawerClosed),
         }}
       >
-        {/* Header */}
         <div style={styles.header}>
-          <span style={styles.title}>Export Document</span>
-          <button
-            style={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Close export drawer"
-            data-testid="drawer-close-button"
-          >
-            ✕
+          <span style={styles.title}>{t('export.title')}</span>
+          <button style={styles.closeBtn} onClick={onClose} aria-label={t('export.closeAriaLabel')} data-testid="drawer-close-button">
+            <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
         <div style={styles.body}>
-          {/* Format selection (Req 11.2, 11.3) */}
-          <FormatSelector
-            formats={FORMATS}
-            selected={selectedFormat}
-            onSelect={handleFormatSelect}
-          />
+          <FormatSelector formats={formats} selected={selectedFormat} onSelect={handleFormatSelect} />
 
-          {/* PDF-specific options (Req 11.4) */}
           {selectedFormat === 'pdf' && (
             <PDFOptions
               options={pdfOptions}
@@ -168,10 +215,9 @@ export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: R
             />
           )}
 
-          {/* Export status feedback */}
           {exportStatus === 'success' && (
             <div style={styles.successMsg} role="status" data-testid="export-success">
-              ✓ Export complete
+              {statusText ?? t('export.complete')}
             </div>
           )}
           {exportStatus === 'error' && exportError && (
@@ -179,58 +225,87 @@ export function RenderDrawer({ isOpen, onClose, documentId, documentContent }: R
               {exportError}
             </div>
           )}
+          {importWarnings.length > 0 && (
+            <div style={styles.warningMsg} role="status" data-testid="import-warnings">
+              {t('export.unsupportedElementsPrefix', { elements: importWarnings.join(', ') })}
+            </div>
+          )}
         </div>
 
-        {/* Footer with Export button */}
         <div style={styles.footer}>
           <button
-            style={{
-              ...styles.exportBtn,
-              ...(isExporting ? styles.exportBtnDisabled : {}),
-            }}
+            style={{ ...styles.secondaryBtn, ...(isImporting ? styles.exportBtnDisabled : {}) }}
+            onClick={handleImport}
+            disabled={isImporting}
+            data-testid="import-button"
+          >
+            {isImporting ? t('export.buttons.importing') : t('export.buttons.import')}
+          </button>
+          <button
+            style={{ ...styles.exportBtn, ...(isExporting ? styles.exportBtnDisabled : {}) }}
             onClick={handleExport}
             disabled={isExporting}
-            aria-label={`Export as ${selectedFormat.toUpperCase()}`}
+            aria-label={t('export.buttons.exportAs', { format: selectedFormat.toUpperCase() })}
             data-testid="export-button"
           >
             {isExporting ? (
               <span style={styles.exportingRow}>
                 <span style={styles.spinner} aria-hidden="true" />
-                Exporting…
+                {t('export.buttons.exporting')}
               </span>
             ) : (
-              `Export as ${selectedFormat.toUpperCase()}`
+              t('export.buttons.exportAs', { format: selectedFormat.toUpperCase() })
             )}
           </button>
         </div>
       </div>
+
+      <ReplaceConfirmationDialog
+        isOpen={conflict !== null}
+        intentName={conflict?.intentName ?? ''}
+        auraIntentId={conflict?.auraIntentId ?? ''}
+        onUpdateIntent={() => {
+          conflict?.resolve('update');
+          setConflict(null);
+        }}
+        onCreateNew={() => {
+          conflict?.resolve('create_new');
+          setConflict(null);
+        }}
+        onCancel={() => {
+          conflict?.resolve('cancel');
+          setConflict(null);
+        }}
+      />
     </div>
   );
 }
 
-// ─── FormatSelector sub-component ────────────────────────────────────────────
+interface FormatOption {
+  id: ExportFormat;
+  label: string;
+  description: string;
+}
 
 interface FormatSelectorProps {
-  formats: typeof FORMATS;
+  formats: FormatOption[];
   selected: ExportFormat;
   onSelect: (f: ExportFormat) => void;
 }
 
 function FormatSelector({ formats, selected, onSelect }: FormatSelectorProps) {
+  const { t } = useTranslation();
   return (
     <div style={subStyles.section}>
-      <div style={subStyles.sectionLabel}>Format</div>
-      <div style={subStyles.formatGrid} role="radiogroup" aria-label="Export format">
+      <div style={subStyles.sectionLabel}>{t('export.sections.format')}</div>
+      <div style={subStyles.formatGrid} role="radiogroup" aria-label={t('export.ariaLabels.formatGroup')}>
         {formats.map((f) => (
           <button
             key={f.id}
             role="radio"
             aria-checked={selected === f.id}
             data-testid={`format-option-${f.id}`}
-            style={{
-              ...subStyles.formatBtn,
-              ...(selected === f.id ? subStyles.formatBtnSelected : {}),
-            }}
+            style={{ ...subStyles.formatBtn, ...(selected === f.id ? subStyles.formatBtnSelected : {}) }}
             onClick={() => onSelect(f.id)}
           >
             <span style={subStyles.formatLabel}>{f.label}</span>
@@ -242,8 +317,6 @@ function FormatSelector({ formats, selected, onSelect }: FormatSelectorProps) {
   );
 }
 
-// ─── PDFOptions sub-component ─────────────────────────────────────────────────
-
 interface PDFOptionsProps {
   options: PDFExportOptions;
   onOptionChange: <K extends keyof PDFExportOptions>(key: K, value: PDFExportOptions[K]) => void;
@@ -251,21 +324,18 @@ interface PDFOptionsProps {
 }
 
 function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps) {
+  const { t } = useTranslation();
   return (
     <div style={subStyles.section} data-testid="pdf-options">
-      {/* Page size */}
-      <div style={subStyles.sectionLabel}>Page Size</div>
-      <div style={subStyles.pageSizeRow} role="radiogroup" aria-label="Page size">
+      <div style={subStyles.sectionLabel}>{t('export.sections.pageSize')}</div>
+      <div style={subStyles.pageSizeRow} role="radiogroup" aria-label={t('export.ariaLabels.pageSizeGroup')}>
         {PAGE_SIZES.map((size) => (
           <button
             key={size}
             role="radio"
             aria-checked={options.pageSize === size}
             data-testid={`page-size-${size.toLowerCase()}`}
-            style={{
-              ...subStyles.pageSizeBtn,
-              ...(options.pageSize === size ? subStyles.pageSizeBtnSelected : {}),
-            }}
+            style={{ ...subStyles.pageSizeBtn, ...(options.pageSize === size ? subStyles.pageSizeBtnSelected : {}) }}
             onClick={() => onOptionChange('pageSize', size)}
           >
             {size}
@@ -273,12 +343,11 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
         ))}
       </div>
 
-      {/* Margins */}
-      <div style={subStyles.sectionLabel}>Margins (mm)</div>
+      <div style={subStyles.sectionLabel}>{t('export.sections.margins')}</div>
       <div style={subStyles.marginsGrid}>
         {(['top', 'bottom', 'left', 'right'] as const).map((side) => (
           <label key={side} style={subStyles.marginLabel}>
-            <span style={subStyles.marginSideLabel}>{side.charAt(0).toUpperCase() + side.slice(1)}</span>
+            <span style={subStyles.marginSideLabel}>{t(`export.margins.${side}`)}</span>
             <input
               type="number"
               min={0}
@@ -286,15 +355,14 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
               value={options.margins[side]}
               onChange={(e) => onMarginChange(side, Number(e.target.value))}
               style={subStyles.marginInput}
-              aria-label={`${side} margin`}
+              aria-label={t('export.ariaLabels.marginSide', { side: t(`export.margins.${side}`) })}
               data-testid={`margin-${side}`}
             />
           </label>
         ))}
       </div>
 
-      {/* Font size */}
-      <div style={subStyles.sectionLabel}>Font Size (pt)</div>
+      <div style={subStyles.sectionLabel}>{t('export.sections.fontSize')}</div>
       <div style={subStyles.fontSizeRow}>
         <input
           type="range"
@@ -304,7 +372,7 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
           value={options.fontSize}
           onChange={(e) => onOptionChange('fontSize', Number(e.target.value))}
           style={subStyles.fontSizeSlider}
-          aria-label="Font size"
+          aria-label={t('export.ariaLabels.fontSize')}
           data-testid="font-size-slider"
         />
         <span style={subStyles.fontSizeValue} data-testid="font-size-value">{options.fontSize}pt</span>
@@ -312,8 +380,6 @@ function PDFOptions({ options, onOptionChange, onMarginChange }: PDFOptionsProps
     </div>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles: Record<string, React.CSSProperties> = {
   backdrop: {
@@ -344,80 +410,92 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     fontFamily: 'var(--font-family-ui)',
-    // Glassmorphism (Req 18.1, 18.2, 18.3, 18.4)
-    background: 'rgba(254, 247, 255, 0.85)',
-    backdropFilter: 'blur(var(--glass-blur))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur))',
-    border: '1px solid var(--glass-border)',
+    background: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: 'none',
     borderBottom: 'none',
     borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
-    boxShadow: 'var(--shadow-ambient-strong)',
-    // Slide-up animation (Req 20.4)
+    boxShadow: '0 0 40px -5px rgba(67,67,213,0.08), 0 -20px 60px rgba(0,0,0,0.08)',
     transition: 'transform 250ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease',
   },
-  drawerOpen: {
-    transform: 'translateY(0)',
-    opacity: 1,
-  },
-  drawerClosed: {
-    transform: 'translateY(100%)',
-    opacity: 0,
-  },
+  drawerOpen: { transform: 'translateY(0)', opacity: 1 },
+  drawerClosed: { transform: 'translateY(100%)', opacity: 0 },
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 'var(--spacing-md) var(--spacing-lg)',
-    borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+    height: '64px',
+    padding: '0 2rem',
+    borderBottom: '1px solid rgba(199,196,215,0.12)',
     flexShrink: 0,
   },
   title: {
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface)',
-    letterSpacing: '0.02em',
+    fontSize: '1.125rem',
+    fontWeight: 700,
+    color: '#18181b',
+    letterSpacing: '-0.01em',
   },
   closeBtn: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    color: 'var(--md-sys-color-on-surface-variant)',
-    fontSize: 'var(--font-size-base)',
-    padding: 'var(--spacing-xs)',
-    borderRadius: 'var(--radius-sm)',
+    color: '#a1a1aa',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '4px',
+    borderRadius: '0.5rem',
     lineHeight: 1,
   },
   body: {
     flex: 1,
     overflowY: 'auto',
-    padding: 'var(--spacing-lg)',
+    padding: '2rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: 'var(--spacing-lg)',
+    gap: '1.5rem',
   },
   footer: {
-    padding: 'var(--spacing-md) var(--spacing-lg)',
-    borderTop: '1px solid var(--md-sys-color-outline-variant)',
+    height: '80px',
+    padding: '0 2rem',
+    borderTop: '1px solid rgba(199,196,215,0.1)',
+    background: '#fafafa',
     flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '0.75rem',
   },
   exportBtn: {
-    width: '100%',
-    padding: 'var(--spacing-sm) var(--spacing-lg)',
-    background: 'var(--md-sys-color-primary)',
-    color: 'var(--md-sys-color-on-primary)',
+    padding: '0.625rem 2rem',
+    background: '#4343d5',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '0.75rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-base)',
-    fontWeight: 500,
+    fontSize: '0.75rem',
+    fontWeight: 700,
     cursor: 'pointer',
-    transition: 'opacity var(--transition-fast)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(67,67,213,0.2)',
+    transition: 'all 0.2s',
   },
-  exportBtnDisabled: {
-    opacity: 0.6,
-    cursor: 'not-allowed',
+  secondaryBtn: {
+    padding: '0.625rem 1.5rem',
+    background: 'none',
+    color: '#52525b',
+    border: 'none',
+    borderRadius: '0.75rem',
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    cursor: 'pointer',
   },
+  exportBtnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
   exportingRow: {
     display: 'flex',
     alignItems: 'center',
@@ -434,130 +512,135 @@ const styles: Record<string, React.CSSProperties> = {
     animation: 'spin 0.8s linear infinite',
   },
   successMsg: {
-    background: '#d4edda',
-    color: '#155724',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
+    background: 'rgba(16,185,129,0.08)',
+    color: '#065f46',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
   },
   errorMsg: {
-    background: 'var(--md-sys-color-error-container)',
-    color: 'var(--md-sys-color-on-error-container)',
-    borderRadius: 'var(--radius-md)',
-    padding: 'var(--spacing-sm) var(--spacing-md)',
+    background: 'rgba(239,68,68,0.08)',
+    color: '#991b1b',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+  },
+  warningMsg: {
+    background: 'rgba(245,158,11,0.08)',
+    color: '#92400e',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
+    fontFamily: 'var(--font-family-ui)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
   },
 };
 
 const subStyles: Record<string, React.CSSProperties> = {
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--spacing-sm)',
-  },
+  section: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   sectionLabel: {
-    fontSize: 'var(--font-size-xs)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface-variant)',
+    fontSize: '10px',
+    fontWeight: 700,
+    color: '#a1a1aa',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.1em',
     fontFamily: 'var(--font-family-ui)',
   },
   formatGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 'var(--spacing-sm)',
+    gap: '1rem',
   },
   formatBtn: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2px',
-    padding: 'var(--spacing-sm)',
-    background: 'rgba(255, 255, 255, 0.5)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-md)',
+    gap: '4px',
+    padding: '1rem',
+    background: '#f3f4f5',
+    border: '2px solid transparent',
+    borderRadius: '0.75rem',
     cursor: 'pointer',
     fontFamily: 'var(--font-family-ui)',
-    transition: 'border-color var(--transition-fast), background var(--transition-fast)',
+    transition: 'all 0.2s',
   },
   formatBtnSelected: {
-    background: 'var(--md-sys-color-primary-container)',
-    borderColor: 'var(--md-sys-color-primary)',
+    background: 'rgba(67,67,213,0.05)',
+    borderColor: 'rgba(67,67,213,0.4)',
   },
   formatLabel: {
-    fontSize: 'var(--font-size-sm)',
-    fontWeight: 600,
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: '#18181b',
   },
   formatDesc: {
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
+    fontSize: '11px',
+    color: '#71717a',
     textAlign: 'center',
+    lineHeight: 1.4,
   },
-  pageSizeRow: {
-    display: 'flex',
-    gap: 'var(--spacing-sm)',
-  },
+  pageSizeRow: { display: 'flex', gap: '0.75rem' },
   pageSizeBtn: {
-    padding: 'var(--spacing-xs) var(--spacing-md)',
-    background: 'rgba(255, 255, 255, 0.5)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-md)',
+    padding: '0.5rem 1rem',
+    background: '#f3f4f5',
+    border: '2px solid transparent',
+    borderRadius: '0.5rem',
     cursor: 'pointer',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-    color: 'var(--md-sys-color-on-surface)',
-    transition: 'border-color var(--transition-fast), background var(--transition-fast)',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: '#18181b',
+    transition: 'all 0.2s',
   },
   pageSizeBtnSelected: {
-    background: 'var(--md-sys-color-primary-container)',
-    borderColor: 'var(--md-sys-color-primary)',
-    color: 'var(--md-sys-color-on-primary-container)',
+    background: 'rgba(67,67,213,0.05)',
+    borderColor: 'rgba(67,67,213,0.4)',
+    color: '#4343d5',
   },
   marginsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 'var(--spacing-sm)',
+    gap: '1rem',
   },
   marginLabel: {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
     fontFamily: 'var(--font-family-ui)',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+    color: '#71717a',
   },
-  marginSideLabel: {
-    fontSize: 'var(--font-size-xs)',
-    color: 'var(--md-sys-color-on-surface-variant)',
-  },
+  marginSideLabel: { textTransform: 'capitalize', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' },
   marginInput: {
-    width: '100%',
-    padding: 'var(--spacing-xs)',
-    border: '1px solid var(--md-sys-color-outline-variant)',
-    borderRadius: 'var(--radius-sm)',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '0.5rem',
+    border: 'none',
+    background: '#f3f4f5',
     fontFamily: 'var(--font-family-ui)',
-    fontSize: 'var(--font-size-sm)',
-    background: 'rgba(255,255,255,0.5)',
-    color: 'var(--md-sys-color-on-surface)',
+    fontSize: '0.875rem',
+    width: '100%',
     boxSizing: 'border-box',
   },
   fontSizeRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 'var(--spacing-md)',
+    gap: '1rem',
   },
-  fontSizeSlider: {
-    flex: 1,
-    accentColor: 'var(--md-sys-color-primary)',
-  },
+  fontSizeSlider: { flex: 1, accentColor: '#4343d5' },
   fontSizeValue: {
-    fontSize: 'var(--font-size-sm)',
-    color: 'var(--md-sys-color-on-surface)',
+    minWidth: '48px',
     fontFamily: 'var(--font-family-ui)',
-    minWidth: '32px',
-    textAlign: 'right',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    color: '#4343d5',
+    background: 'rgba(67,67,213,0.08)',
+    padding: '2px 8px',
+    borderRadius: '4px',
   },
 };
 

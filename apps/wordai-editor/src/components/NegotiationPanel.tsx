@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AISuggestion } from '../types/ai';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -126,6 +127,7 @@ export function NegotiationPanel({
   onReject,
   onClose,
 }: NegotiationPanelProps) {
+  const { t } = useTranslation();
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedText, setEditedText] = useState('');
 
@@ -189,7 +191,7 @@ export function NegotiationPanel({
         <div style={styles.header}>
           <span style={styles.title}>
             <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>compare_arrows</span>
-            So sánh đề xuất AI
+            {t('ai.negotiation.title')}
           </span>
           <button style={styles.closeBtn} onClick={onClose} aria-label="Close negotiation panel">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
@@ -200,7 +202,7 @@ export function NegotiationPanel({
         <div style={styles.comparisonRow}>
           {/* Original */}
           <div style={{ ...styles.comparisonCol, background: 'var(--md-sys-color-surface-container)' }}>
-            <div style={styles.colLabel}>Bản gốc</div>
+            <div style={styles.colLabel}>{t('ai.negotiation.original')}</div>
             <div data-testid="original-text" style={styles.textBox}>
               <OriginalDiff tokens={diffTokens} />
             </div>
@@ -209,7 +211,7 @@ export function NegotiationPanel({
           {/* Suggested */}
           <div style={{ ...styles.comparisonCol, background: '#f1f8f1', borderLeft: '1px solid rgba(199,196,215,0.1)' }}>
             <div style={{ ...styles.colLabel, color: '#2d5a27' }}>
-              Bản AI đề xuất
+              {t('ai.negotiation.suggested')}
               <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#2d5a27', marginLeft: '4px', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
             </div>
             <div data-testid="suggested-text" style={{ ...styles.textBox, color: '#1e3a1a' }}>
@@ -236,9 +238,9 @@ export function NegotiationPanel({
               {suggestion.explanation}
             </p>
           )}
-          <button data-testid="reject-button" style={{ ...styles.btn, ...styles.btnReject }} onClick={handleReject}>Hủy bỏ</button>
-          <button data-testid="edit-button" style={{ ...styles.btn, ...styles.btnEdit }} onClick={handleToggleEdit}>{isEditMode ? 'Preview' : 'Yêu cầu lại'}</button>
-          <button data-testid="accept-button" style={{ ...styles.btn, ...styles.btnAccept }} onClick={handleAccept}>Chấp nhận</button>
+          <button data-testid="reject-button" style={{ ...styles.btn, ...styles.btnReject }} onClick={handleReject}>{t('ai.negotiation.reject')}</button>
+          <button data-testid="edit-button" style={{ ...styles.btn, ...styles.btnEdit }} onClick={handleToggleEdit}>{isEditMode ? 'Preview' : t('ai.negotiation.editRequest')}</button>
+          <button data-testid="accept-button" style={{ ...styles.btn, ...styles.btnAccept }} onClick={handleAccept}>{t('ai.negotiation.accept')}</button>
         </div>
       </div>
     </div>

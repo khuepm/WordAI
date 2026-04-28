@@ -1,4 +1,4 @@
-export type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy';
+export type Tab = 'general' | 'ai-engine' | 'typography' | 'privacy' | 'about';
 
 export interface SettingEntry {
   id: string;
@@ -6,7 +6,7 @@ export interface SettingEntry {
   description: string;
   tab: Tab;
   keywords: string[];
-  type: 'select' | 'toggle' | 'slider' | 'number' | 'radio';
+  type: 'select' | 'toggle' | 'slider' | 'number' | 'radio' | 'text';
   defaultValue: unknown;
 }
 
@@ -19,6 +19,10 @@ export interface Preferences {
     };
     focusMode: boolean;
     language: string;
+    defaultExportPath: string;
+    defaultExportFormat: 'markdown' | 'docx';
+    autoSyncEnabled: boolean;
+    autoSyncInterval: number;
   };
   aiEngine: {
     agent: string;
@@ -53,6 +57,10 @@ export const defaultPreferences: Preferences = {
     },
     focusMode: false,
     language: 'en-US',
+    defaultExportPath: '',
+    defaultExportFormat: 'markdown',
+    autoSyncEnabled: true,
+    autoSyncInterval: 30,
   },
   aiEngine: {
     agent: 'claude',
