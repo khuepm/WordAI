@@ -265,32 +265,32 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 25: Session Uniqueness**
     - **Validates: Requirements 6.12**
 
-- [ ] 13. Implement logout endpoint
-  - [ ] 13.1 Implement POST /auth/logout
+- [x] 13. Implement logout endpoint
+  - [x] 13.1 Implement POST /auth/logout
     - Revoke the specified session (set revoked_at, session_state="revoked")
     - Create audit_log entry with action "session_revoked"
     - Return idempotent success even if session already revoked
     - _Requirements: 7.2, 7.3, 7.4, 7.6, 15.3_
 
-  - [ ] 13.2 Write property test for logout completeness (Property 26)
+  - [x] 13.2 Write property test for logout completeness (Property 26)
     - **Property 26: Logout Completeness**
     - **Validates: Requirements 7.6**
 
-  - [ ] 13.3 Write property test for logout idempotence (Property 27)
+  - [x] 13.3 Write property test for logout idempotence (Property 27)
     - **Property 27: Logout Idempotence**
     - **Validates: Requirements 7.3, 7.4, 15.3**
 
-- [ ] 14. Implement user profile endpoints
-  - [ ] 14.1 Implement GET /users/me
+- [-] 14. Implement user profile endpoints
+  - [x] 14.1 Implement GET /users/me
     - Return current user profile from Directus for the authenticated user
     - _Requirements: 2.5_
 
-  - [ ] 14.2 Implement PATCH /users/me
+  - [x] 14.2 Implement PATCH /users/me
     - Allow modification of display_name (1–100 chars) and avatar_url only
     - Reject requests attempting to modify firebase_uid, email, status, or risk_level with PERMISSION_DENIED
     - _Requirements: 2.6, 2.7, 2.8_
 
-  - [ ] 14.3 Write property test for profile update idempotence (Property 8)
+  - [x] 14.3 Write property test for profile update idempotence (Property 8)
     - **Property 8: Profile Update Idempotence**
     - **Validates: Requirements 2.6, 2.7, 15.2**
 
