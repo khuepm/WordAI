@@ -75,7 +75,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - Log all errors with error_code, user_id, request_context, trace_id, and timestamp
     - _Requirements: 8.9, 8.10, 15.5, 15.6, 15.7, 15.8_
 
-  - [~] 3.6 Write property test for error response consistency (Property 40)
+  - [x] 3.6 Write property test for error response consistency (Property 40)
     - **Property 40: Error Response Consistency**
     - **Validates: Requirements 15.8**
 
