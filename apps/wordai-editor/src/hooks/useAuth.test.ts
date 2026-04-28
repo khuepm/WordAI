@@ -98,12 +98,17 @@ describe('useAuth — signIn', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    await expect(
-      act(async () => {
+    let thrownError: Error | null = null;
+    await act(async () => {
+      try {
         await result.current.signIn('user@example.com', 'wrong');
-      }),
-    ).rejects.toThrow('Wrong password');
+      } catch (err) {
+        thrownError = err as Error;
+      }
+    });
 
+    expect(thrownError).not.toBeNull();
+    expect(thrownError!.message).toBe('Wrong password');
     expect(result.current.authError).toBe('Wrong password');
     expect(result.current.isLoading).toBe(false);
   });
@@ -113,12 +118,17 @@ describe('useAuth — signIn', () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    await expect(
-      act(async () => {
+    let thrownError: Error | null = null;
+    await act(async () => {
+      try {
         await result.current.signIn('user@example.com', 'password123');
-      }),
-    ).rejects.toThrow('TOKEN_EXPIRED_OR_INVALID');
+      } catch (err) {
+        thrownError = err as Error;
+      }
+    });
 
+    expect(thrownError).not.toBeNull();
+    expect(thrownError!.message).toBe('TOKEN_EXPIRED_OR_INVALID');
     expect(result.current.authError).toBe('TOKEN_EXPIRED_OR_INVALID');
   });
 });

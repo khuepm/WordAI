@@ -338,7 +338,7 @@ Implement the User Management system for the WordAI desktop application, integra
 - [x] 18. Checkpoint — Ensure all tests pass for user management and audit
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 19. Implement Client App authentication state management
+- [x] 19. Implement Client App authentication state management
   - [x] 19.1 Implement `deriveAIAccessState(context: AccessContext | null): AIAccessState`
     - Return "guest" when no active session
     - Return "active" when status="active", used_quota < monthly_quota, ai_enabled=true
@@ -355,12 +355,12 @@ Implement the User Management system for the WordAI desktop application, integra
     - Expose derived AI access state to components
     - _Requirements: 13.1, 13.2_
 
-  - [-] 19.4 Implement Firebase login/logout flow in Client App
+  - [x] 19.4 Implement Firebase login/logout flow in Client App
     - Call Firebase signInWithEmailAndPassword, then POST /auth/exchange with firebaseIdToken and deviceId
     - On logout: call Firebase signOut, POST /auth/logout, clear local auth cache and tokens
     - _Requirements: 1.1, 1.2, 7.1, 7.2, 7.5, 7.7_
 
-  - [-] 19.5 Implement Access Context refresh on error responses
+  - [x] 19.5 Implement Access Context refresh on error responses
     - When API returns ACCOUNT_SUSPENDED, SESSION_REVOKED, or AI_QUOTA_EXCEEDED, call GET /auth/context and update state
     - _Requirements: 13.12_
 
