@@ -61,11 +61,11 @@ Implement the User Management system for the WordAI desktop application, integra
     - Throw `TOKEN_EXPIRED_OR_INVALID` error on any verification failure
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-  - [~] 3.3 Write property test for invalid token rejection (Property 4)
+  - [x] 3.3 Write property test for invalid token rejection (Property 4)
     - **Property 4: Invalid Token Rejection**
     - **Validates: Requirements 1.10, 11.1–11.5**
 
-  - [~] 3.4 Write property test for Firebase UID extraction correctness (Property 3)
+  - [x] 3.4 Write property test for Firebase UID extraction correctness (Property 3)
     - **Property 3: Firebase UID Extraction Correctness**
     - **Validates: Requirements 1.4**
 
