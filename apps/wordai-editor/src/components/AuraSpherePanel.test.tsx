@@ -18,6 +18,13 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
+// Mock authStore so AuraSpherePanel can render without AuthStateProvider
+vi.mock('../services/authStore', () => ({
+  useAIAccessState: () => 'active',
+  useAuthState: () => ({ authState: { accessContext: null, aiAccessState: 'active', isLoading: false, authError: null } }),
+  useAccessContext: () => null,
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeSuggestion(overrides: Partial<AISuggestion> = {}): AISuggestion {

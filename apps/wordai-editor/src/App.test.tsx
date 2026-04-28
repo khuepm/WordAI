@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { AppStateProvider } from './services/stateManager';
+import { AuthStateProvider } from './services/authStore';
 import App from './App';
 import * as auraBrainManager from './services/auraBrainManager';
 
@@ -54,9 +55,11 @@ function makeAuraIntent(overrides: Record<string, unknown> = {}) {
 
 function renderApp() {
   return render(
-    <AppStateProvider>
-      <App />
-    </AppStateProvider>
+    <AuthStateProvider>
+      <AppStateProvider>
+        <App />
+      </AppStateProvider>
+    </AuthStateProvider>
   );
 }
 

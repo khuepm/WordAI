@@ -364,8 +364,8 @@ Implement the User Management system for the WordAI desktop application, integra
     - When API returns ACCOUNT_SUSPENDED, SESSION_REVOKED, or AI_QUOTA_EXCEEDED, call GET /auth/context and update state
     - _Requirements: 13.12_
 
-- [~] 20. Wire AI feature access control to UI components
-  - [ ] 20.1 Implement AI feature gating based on AI access state
+- [x] 20. Wire AI feature access control to UI components
+  - [x] 20.1 Implement AI feature gating based on AI access state
     - "guest": disable AI features, show login prompt
     - "active": enable AI features
     - "quota_exceeded": disable AI features, show quota exceeded message with reset date
