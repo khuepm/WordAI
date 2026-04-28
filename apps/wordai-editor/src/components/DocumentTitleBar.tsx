@@ -11,6 +11,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface DocumentTitleBarProps {
   intentName: string | null; // null → display "Untitled Intent"
@@ -21,7 +22,8 @@ interface DocumentTitleBarProps {
 }
 
 export function DocumentTitleBar({ intentName, isDirty, isSyncing: _isSyncing, onRename }: DocumentTitleBarProps) {
-  const displayName = intentName ?? 'Untitled Intent';
+  const { t } = useTranslation();
+  const displayName = intentName ?? t('document.untitled');
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(displayName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,7 +94,7 @@ export function DocumentTitleBar({ intentName, isDirty, isSyncing: _isSyncing, o
             width: `${Math.max(draft.length, 4)}ch`,
             textAlign: 'center',
           }}
-          aria-label="Document title"
+          aria-label={t('document.titleAriaLabel')}
         />
         <span style={{ marginLeft: 4, color: '#71717a' }}> — WordAI</span>
       </div>
@@ -117,7 +119,7 @@ export function DocumentTitleBar({ intentName, isDirty, isSyncing: _isSyncing, o
       <span
         data-testid="document-title-text"
         onClick={onRename ? () => { setDraft(displayName); setIsEditing(true); } : undefined}
-        title={onRename ? 'Click to rename' : undefined}
+        title={onRename ? t('document.clickToRename') : undefined}
         style={{
           cursor: onRename ? 'text' : 'default',
           borderRadius: 4,

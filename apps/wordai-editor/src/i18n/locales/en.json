@@ -326,6 +326,82 @@
   },
   "document": {
     "untitled": "Untitled Intent",
-    "dirtyIndicator": "●"
+    "dirtyIndicator": "●",
+    "clickToRename": "Click to rename",
+    "titleAriaLabel": "Document title",
+    "edited": "Edited {{time}}",
+    "unsaved": "Unsaved",
+    "words": "words",
+    "word": "word",
+    "minRead": "min read",
+    "saveFailed": "Save failed: {{message}}. Retrying..."
+  },
+  "nav": {
+    "drafts": "Drafts",
+    "archive": "Archive",
+    "library": "Library",
+    "export": "Export",
+    "newDocument": "New document",
+    "preferences": "Preferences",
+    "profile": "Profile",
+    "subscription": "Subscription",
+    "signOut": "Sign Out"
+  },
+  "sidebar": {
+    "auraSphereAI": "AuraSphere AI",
+    "analytics": "Analytics",
+    "versionHistory": "Version History",
+    "settings": "Settings",
+    "signInToUseAI": "Sign in to use AuraSphere AI",
+    "aiQuotaExceeded": "AI quota exceeded",
+    "aiUnavailable": "AI features unavailable — account suspended"
+  },
+  "auraPanel": {
+    "subtitle": "AI Writing Partner",
+    "closeAriaLabel": "Close AI panel",
+    "dismissSuggestion": "Dismiss suggestion",
+    "retryButton": "Retry",
+    "chatPlaceholder": "Ask AuraSphere...",
+    "sendButton": "Send"
+  },
+  "aiAccess": {
+    "guest": {
+      "title": "Sign in to use AI features",
+      "description": "AuraSphere AI is available to authenticated users. Sign in to access AI writing assistance, suggestions, and more.",
+      "signIn": "Sign In"
+    },
+    "quotaExceeded": {
+      "title": "AI quota exceeded",
+      "description": "You've reached your monthly AI usage limit. Your quota will reset on {{date}}.",
+      "hint": "Upgrade your plan for higher limits and priority access."
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "description": "Your account has been suspended. AI features are currently unavailable.",
+      "hint": "Please contact support for assistance with your account."
+    }
+  },
+  "versionHistory": {
+    "title": "Version History",
+    "closeAriaLabel": "Close version history",
+    "loading": "Loading…",
+    "empty": "No saved versions yet.",
+    "previewHint": "Select a version to preview its content.",
+    "emptyDocument": "(empty document)",
+    "restoreButton": "Restore this version",
+    "restoreAriaLabel": "Restore version {{version}}"
+  },
+  "startup": {
+    "unavailable": "AuraBrain storage is unavailable",
+    "retry": "Retry",
+    "revealDiagnostics": "Reveal diagnostics",
+    "loading": "Loading…"
+  },
+  "toast": {
+    "aiUnavailable": "AI unavailable. Editing continues.",
+    "retry": "Retry",
+    "settings": "Settings",
+    "syncFailed": "Sync failed: {{error}}",
+    "dismissAriaLabel": "Close"
   }
 }
