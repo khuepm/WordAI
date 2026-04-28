@@ -79,7 +79,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 40: Error Response Consistency**
     - **Validates: Requirements 15.8**
 
-- [ ] 4. Implement email normalization and user upsert logic
+- [x] 4. Implement email normalization and user upsert logic
   - [x] 4.1 Implement `normalizeEmail(email: string): string`
     - Lowercase and trim whitespace from email addresses
     - _Requirements: 2.9_
@@ -104,21 +104,21 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Validates: Requirements 1.11, 10.2**
 
 - [ ] 5. Implement Access Context construction
-  - [~] 5.1 Implement `buildAccessContext(userId: string): AccessContext`
+  - [x] 5.1 Implement `buildAccessContext(userId: string): AccessContext`
     - Query user record, roles (via user_roles JOIN roles), permissions (via role_permissions), and entitlement from Directus
     - Compute permission set as union of all role permissions
     - Construct and return complete `AccessContext` object
     - _Requirements: 1.7, 1.8, 1.9, 4.10, 4.11, 4.12, 8.1, 8.2, 8.3, 8.4_
 
-  - [~] 5.2 Write property test for Access Context serialization round-trip (Property 2)
+  - [x] 5.2 Write property test for Access Context serialization round-trip (Property 2)
     - **Property 2: Access Context Serialization Round-Trip**
     - **Validates: Requirements 1.8, 1.9**
 
-  - [~] 5.3 Write property test for permission closure (Property 13)
+  - [x] 5.3 Write property test for permission closure (Property 13)
     - **Property 13: Permission Closure**
     - **Validates: Requirements 4.10–4.12**
 
-  - [~] 5.4 Write property test for Access Context consistency (Property 29)
+  - [x] 5.4 Write property test for Access Context consistency (Property 29)
     - **Property 29: Access Context Consistency**
     - **Validates: Requirements 8.8**
 
