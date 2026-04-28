@@ -372,18 +372,18 @@ Implement the User Management system for the WordAI desktop application, integra
     - "suspended": disable AI features, show account suspended message
     - _Requirements: 13.8, 13.9, 13.10, 13.11_
 
-- [~] 21. Implement transaction atomicity for multi-record operations
-  - [ ] 21.1 Wrap all multi-record Bridge API operations in database transactions
+- [x] 21. Implement transaction atomicity for multi-record operations
+  - [x] 21.1 Wrap all multi-record Bridge API operations in database transactions
     - User upsert + entitlement creation + session upsert + audit log creation in POST /auth/exchange
     - Role assignment + audit log creation in role management
     - Session revocation + audit log creation in logout/revoke
     - _Requirements: 15.9, 15.10_
 
-  - [ ] 21.2 Write property test for transaction atomicity (Property 39)
+  - [x] 21.2 Write property test for transaction atomicity (Property 39)
     - **Property 39: Transaction Atomicity**
     - **Validates: Requirements 15.9, 15.10**
 
-- [~] 22. Final checkpoint — Ensure all tests pass
+- [x] 22. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
