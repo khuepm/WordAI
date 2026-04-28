@@ -47,7 +47,7 @@ Implement the User Management system for the WordAI desktop application, integra
 - [x] 2. Checkpoint — Ensure all migrations apply and roll back cleanly
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Implement Bridge API project structure and Firebase token verification
+- [x] 3. Implement Bridge API project structure and Firebase token verification
   - [x] 3.1 Set up Bridge API project (Node.js + TypeScript + Express/Fastify)
     - Initialize project with TypeScript config, ESLint, Prettier
     - Install dependencies: firebase-admin, @directus/sdk, express, winston, fast-check (dev)
@@ -80,26 +80,26 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Validates: Requirements 15.8**
 
 - [ ] 4. Implement email normalization and user upsert logic
-  - [~] 4.1 Implement `normalizeEmail(email: string): string`
+  - [x] 4.1 Implement `normalizeEmail(email: string): string`
     - Lowercase and trim whitespace from email addresses
     - _Requirements: 2.9_
 
-  - [~] 4.2 Write property test for email normalization idempotence (Property 7)
+  - [x] 4.2 Write property test for email normalization idempotence (Property 7)
     - **Property 7: Email Normalization Idempotence**
     - **Validates: Requirements 2.9**
 
-  - [~] 4.3 Implement user upsert function
+  - [x] 4.3 Implement user upsert function
     - On first login: create user record with firebase_uid, email (normalized), display_name, avatar_url, status="pending"
     - On subsequent logins: update display_name, avatar_url, last_login_at only; never modify firebase_uid, email, status, or risk_level
     - Create default `user_entitlements` record (free plan) for new users
     - Create audit_log entry with action "user_created" for new users
     - _Requirements: 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 5.3_
 
-  - [~] 4.4 Write property test for profile field immutability (Property 6)
+  - [x] 4.4 Write property test for profile field immutability (Property 6)
     - **Property 6: Profile Field Immutability**
     - **Validates: Requirements 2.4, 2.10, 2.11**
 
-  - [~] 4.5 Write property test for user creation audit log (Property 5)
+  - [x] 4.5 Write property test for user creation audit log (Property 5)
     - **Property 5: User Creation Audit Log**
     - **Validates: Requirements 1.11, 10.2**
 
