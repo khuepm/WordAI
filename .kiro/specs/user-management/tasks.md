@@ -188,7 +188,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - Create audit_log entry with action "permission_changed"
     - _Requirements: 4.14_
 
-- [-] 10. Implement AI quota management
+- [x] 10. Implement AI quota management
   - [x] 10.1 Implement `validateAIAccess(userId, model)` pre-check
     - Verify user status is "active", has "ai.use" permission, used_quota < monthly_quota, and model is in allowed_models
     - Return appropriate error code on failure: ACCOUNT_SUSPENDED, PERMISSION_DENIED, AI_QUOTA_EXCEEDED, MODEL_NOT_ALLOWED
@@ -198,39 +198,39 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 20: Model Validation**
     - **Validates: Requirements 5.8, 5.9**
 
-  - [-] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
+  - [x] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
     - Use SQL transaction: `UPDATE user_entitlements SET used_quota = used_quota + 1 WHERE id = ? AND used_quota < monthly_quota`
     - If UPDATE affects 0 rows, rollback and return AI_QUOTA_EXCEEDED
     - Apply rate limiting on this endpoint
     - _Requirements: 5.10, 5.11, 11.9_
 
-  - [-] 10.4 Write property test for quota constraint invariant (Property 16)
+  - [x] 10.4 Write property test for quota constraint invariant (Property 16)
     - **Property 16: Quota Constraint Invariant**
     - **Validates: Requirements 5.4, 5.10, 5.11**
 
-  - [-] 10.5 Write property test for quota atomicity (Property 17)
+  - [x] 10.5 Write property test for quota atomicity (Property 17)
     - **Property 17: Quota Atomicity**
     - **Validates: Requirements 5.10, 5.11**
 
-  - [-] 10.6 Write property test for no negative quota (Property 18)
+  - [x] 10.6 Write property test for no negative quota (Property 18)
     - **Property 18: No Negative Quota**
     - **Validates: Requirements 5.4**
 
-  - [-] 10.7 Implement quota reset scheduler
+  - [x] 10.7 Implement quota reset scheduler
     - When current date reaches quota_reset_at: set used_quota=0, set quota_reset_at to first day of next month
     - Implement as idempotent operation safe to run multiple times
     - _Requirements: 5.12, 5.13_
 
-  - [-] 10.8 Write property test for quota reset idempotence (Property 19)
+  - [x] 10.8 Write property test for quota reset idempotence (Property 19)
     - **Property 19: Quota Reset Idempotence**
     - **Validates: Requirements 5.12, 5.13, 15.4**
 
-  - [-] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
+  - [x] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
     - Update user_entitlements fields
     - Create audit_log entry with action "entitlement_overridden"
     - _Requirements: 5.14, 9.6_
 
-  - [ ] 10.10 Write property test for entitlement override audit (Property 21)
+  - [x] 10.10 Write property test for entitlement override audit (Property 21)
     - **Property 21: Entitlement Override Audit**
     - **Validates: Requirements 5.14, 10.2**
 
