@@ -1,7 +1,23 @@
 {
   "app": {
     "name": "WordAI",
-    "tagline": "Dữ liệu của bạn, thiết bị của bạn. AuraBrain lưu trữ mọi thứ trên máy."
+    "tagline": "Dữ liệu của bạn, thiết bị của bạn. AuraBrain lưu trữ mọi thứ tại chỗ.",
+    "loading": "Đang tải…",
+    "startupError": {
+      "title": "Không thể truy cập bộ nhớ AuraBrain",
+      "retry": "Thử lại",
+      "revealDiagnostics": "Mở chẩn đoán"
+    },
+    "aiBanner": {
+      "message": "AI không khả dụng. Vẫn tiếp tục soạn thảo.",
+      "retry": "Thử lại",
+      "settings": "Cài đặt",
+      "closeAriaLabel": "Đóng"
+    },
+    "syncError": {
+      "prefix": "Đồng bộ thất bại: {{error}}",
+      "dismissAriaLabel": "Đóng thông báo lỗi đồng bộ"
+    }
   },
   "common": {
     "cancel": "Hủy",

@@ -4,8 +4,8 @@
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
-import './i18n';
 import { useTranslation } from 'react-i18next';
+import './i18n';
 import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
@@ -382,7 +382,7 @@ function App() {
           background: 'var(--md-sys-color-surface)',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{t('startup.unavailable')}</h1>
+        <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{t('app.startupError.title')}</h1>
         <p style={{ margin: 0, maxWidth: 560, color: 'var(--md-sys-color-on-surface-variant)' }}>
           {startupError}
         </p>
@@ -392,19 +392,20 @@ function App() {
             onClick={() => setStartupRetryKey((key) => key + 1)}
             style={{ padding: '0.625rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}
           >
-            {t('startup.retry')}
-          </button>
+            {t('app.startupError.retry')}
+          </button >
           {storagePath && (
             <button
               type="button"
               onClick={handleRevealDiagnostics}
               style={{ padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid currentColor', cursor: 'pointer' }}
             >
-              {t('startup.revealDiagnostics')}
-            </button>
-          )}
-        </div>
-      </div>
+              {t('app.startupError.revealDiagnostics')}
+            </button >
+          )
+          }
+        </div >
+      </div >
     );
   }
 
@@ -434,8 +435,8 @@ function App() {
           }}
           aria-hidden="true"
         />
-        <span>{t('startup.loading')}</span>
-      </div>
+        <span>{t('app.loading')}</span>
+      </div >
     );
   }
 
@@ -477,7 +478,7 @@ function App() {
           role="alert"
         >
           <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('toast.aiUnavailable')}</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.aiBanner.message')}</span>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
               data-testid="ai-service-retry-button"
@@ -495,8 +496,8 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {t('toast.retry')}
-            </button>
+              {t('app.aiBanner.retry')}
+            </button >
             <button
               data-testid="ai-service-preferences-button"
               onClick={() => setIsPreferencesOpen(true)}
@@ -512,12 +513,12 @@ function App() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {t('toast.settings')}
-            </button>
+              {t('app.aiBanner.settings')}
+            </button >
             <button
               data-testid="ai-service-close-button"
               onClick={() => setBannerDismissed(true)}
-              aria-label={t('toast.dismissAriaLabel')}
+              aria-label={t('app.aiBanner.closeAriaLabel')}
               style={{
                 background: 'transparent',
                 color: '#9ca3af',
@@ -532,56 +533,58 @@ function App() {
             >
               ✕
             </button>
-          </div>
-        </div>
+          </div >
+        </div >
       )}
 
       {/* Sync error notification (Req 1.4) — non-blocking toast, keeps dirty indicator */}
-      {syncView.syncError && !syncErrorDismissed && (
-        <div
-          data-testid="sync-error-notification"
-          role="alert"
-          aria-live="assertive"
-          style={{
-            position: 'fixed',
-            bottom: aiServiceAvailable === false && !bannerDismissed ? '80px' : '24px',
-            left: '24px',
-            zIndex: 200,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 14px',
-            background: '#7f1d1d',
-            color: '#fef2f2',
-            fontFamily: 'var(--font-family-ui)',
-            fontSize: '12px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            maxWidth: '360px',
-          }}
-        >
-          <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>{t('toast.syncFailed', { error: syncView.syncError })}</span>
-          <button
-            data-testid="sync-error-close-button"
-            onClick={() => setSyncErrorDismissed(true)}
-            aria-label={t('toast.dismissAriaLabel')}
+      {
+        syncView.syncError && !syncErrorDismissed && (
+          <div
+            data-testid="sync-error-notification"
+            role="alert"
+            aria-live="assertive"
             style={{
-              background: 'transparent',
-              color: '#fca5a5',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '2px 4px',
-              cursor: 'pointer',
+              position: 'fixed',
+              bottom: aiServiceAvailable === false && !bannerDismissed ? '80px' : '24px',
+              left: '24px',
+              zIndex: 200,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              background: '#7f1d1d',
+              color: '#fef2f2',
               fontFamily: 'var(--font-family-ui)',
-              fontSize: '14px',
-              lineHeight: 1,
+              fontSize: '12px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              maxWidth: '360px',
             }}
           >
-            ✕
-          </button>
-        </div>
-      )}
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+            <span style={{ flex: 1, lineHeight: 1.4 }}>{t('app.syncError.prefix', { error: syncView.syncError })}</span>
+            <button
+              data-testid="sync-error-close-button"
+              onClick={() => setSyncErrorDismissed(true)}
+              aria-label={t('app.syncError.dismissAriaLabel')}
+              style={{
+                background: 'transparent',
+                color: '#fca5a5',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '2px 4px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: '14px',
+                lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          </div >
+        )
+      }
       <aside style={{
         position: 'fixed',
         left: 0,
