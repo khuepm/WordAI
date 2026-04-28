@@ -11,7 +11,7 @@ import { useViewportSize, MODAL_BREAKPOINTS } from '../hooks/useViewportSize';
 import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platformService';
 import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
 import { SETTING_REGISTRY } from '../data/settingRegistry';
-import { filterSettings } from './QuickSearchPopup';
+import { filterSettings, SETTING_I18N_MAP } from './QuickSearchPopup';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -955,11 +955,14 @@ function SearchResultsTab({ query }: { query: string }) {
   const { t } = useTranslation();
 
   // Build translated entries for bilingual matching
-  const translatedEntries = SETTING_REGISTRY.map((entry) => ({
-    id: entry.id,
-    label: t(`settings.${entry.id}.label`, entry.label),
-    description: t(`settings.${entry.id}.description`, entry.description),
-  }));
+  const translatedEntries = SETTING_REGISTRY.map((entry) => {
+    const keys = SETTING_I18N_MAP[entry.id];
+    return {
+      id: entry.id,
+      label: keys ? t(keys.label) : entry.label,
+      description: keys ? t(keys.description) : entry.description,
+    };
+  });
 
   const results = filterSettings(query, translatedEntries);
 
