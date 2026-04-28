@@ -169,21 +169,21 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 12: Suspended User Session Prevention**
     - **Validates: Requirements 3.14**
 
-- [~] 9. Implement role and permission management
-  - [ ] 9.1 Implement `assignRole(actorId, userId, roleCode)` and `removeRole(actorId, userId, roleCode)`
+- [x] 9. Implement role and permission management
+  - [x] 9.1 Implement `assignRole(actorId, userId, roleCode)` and `removeRole(actorId, userId, roleCode)`
     - Create/delete user_roles record
     - Create audit_log entry with action "role_assigned" or "role_removed"
     - _Requirements: 4.6, 4.7, 4.8, 4.9_
 
-  - [ ] 9.2 Write property test for role assignment audit completeness (Property 14)
+  - [x] 9.2 Write property test for role assignment audit completeness (Property 14)
     - **Property 14: Role Assignment Audit Completeness**
     - **Validates: Requirements 4.7, 4.9, 10.2**
 
-  - [ ] 9.3 Write property test for multiple role support (Property 15)
+  - [x] 9.3 Write property test for multiple role support (Property 15)
     - **Property 15: Multiple Role Support**
     - **Validates: Requirements 4.13**
 
-  - [ ] 9.4 Implement `updateRolePermissions(actorId, roleCode, permissionCodes[])` with audit logging
+  - [x] 9.4 Implement `updateRolePermissions(actorId, roleCode, permissionCodes[])` with audit logging
     - Update role_permissions mappings
     - Create audit_log entry with action "permission_changed"
     - _Requirements: 4.14_
