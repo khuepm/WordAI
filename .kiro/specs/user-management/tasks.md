@@ -188,13 +188,13 @@ Implement the User Management system for the WordAI desktop application, integra
     - Create audit_log entry with action "permission_changed"
     - _Requirements: 4.14_
 
-- [~] 10. Implement AI quota management
+- [-] 10. Implement AI quota management
   - [x] 10.1 Implement `validateAIAccess(userId, model)` pre-check
     - Verify user status is "active", has "ai.use" permission, used_quota < monthly_quota, and model is in allowed_models
     - Return appropriate error code on failure: ACCOUNT_SUSPENDED, PERMISSION_DENIED, AI_QUOTA_EXCEEDED, MODEL_NOT_ALLOWED
     - _Requirements: 5.5, 5.6, 5.7, 5.8, 5.9_
 
-  - [-] 10.2 Write property test for model validation (Property 20)
+  - [x] 10.2 Write property test for model validation (Property 20)
     - **Property 20: Model Validation**
     - **Validates: Requirements 5.8, 5.9**
 
@@ -338,33 +338,33 @@ Implement the User Management system for the WordAI desktop application, integra
 - [x] 18. Checkpoint — Ensure all tests pass for user management and audit
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 19. Implement Client App authentication state management
-  - [ ] 19.1 Implement `deriveAIAccessState(context: AccessContext | null): AIAccessState`
+- [-] 19. Implement Client App authentication state management
+  - [x] 19.1 Implement `deriveAIAccessState(context: AccessContext | null): AIAccessState`
     - Return "guest" when no active session
     - Return "active" when status="active", used_quota < monthly_quota, ai_enabled=true
     - Return "quota_exceeded" when status="active" and used_quota >= monthly_quota
     - Return "suspended" when status="suspended"
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-  - [ ] 19.2 Write property test for client state derivation determinism (Property 38)
+  - [x] 19.2 Write property test for client state derivation determinism (Property 38)
     - **Property 38: Client State Derivation Determinism**
     - **Validates: Requirements 13.2–13.7**
 
-  - [ ] 19.3 Implement Access Context store (Zustand or Redux Toolkit slice)
+  - [x] 19.3 Implement Access Context store (Zustand or Redux Toolkit slice)
     - Store Access Context in application state after token exchange
     - Expose derived AI access state to components
     - _Requirements: 13.1, 13.2_
 
-  - [ ] 19.4 Implement Firebase login/logout flow in Client App
+  - [-] 19.4 Implement Firebase login/logout flow in Client App
     - Call Firebase signInWithEmailAndPassword, then POST /auth/exchange with firebaseIdToken and deviceId
     - On logout: call Firebase signOut, POST /auth/logout, clear local auth cache and tokens
     - _Requirements: 1.1, 1.2, 7.1, 7.2, 7.5, 7.7_
 
-  - [ ] 19.5 Implement Access Context refresh on error responses
+  - [-] 19.5 Implement Access Context refresh on error responses
     - When API returns ACCOUNT_SUSPENDED, SESSION_REVOKED, or AI_QUOTA_EXCEEDED, call GET /auth/context and update state
     - _Requirements: 13.12_
 
-- [ ] 20. Wire AI feature access control to UI components
+- [~] 20. Wire AI feature access control to UI components
   - [ ] 20.1 Implement AI feature gating based on AI access state
     - "guest": disable AI features, show login prompt
     - "active": enable AI features
@@ -372,7 +372,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - "suspended": disable AI features, show account suspended message
     - _Requirements: 13.8, 13.9, 13.10, 13.11_
 
-- [ ] 21. Implement transaction atomicity for multi-record operations
+- [~] 21. Implement transaction atomicity for multi-record operations
   - [ ] 21.1 Wrap all multi-record Bridge API operations in database transactions
     - User upsert + entitlement creation + session upsert + audit log creation in POST /auth/exchange
     - Role assignment + audit log creation in role management
@@ -383,7 +383,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 39: Transaction Atomicity**
     - **Validates: Requirements 15.9, 15.10**
 
-- [ ] 22. Final checkpoint — Ensure all tests pass
+- [~] 22. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
