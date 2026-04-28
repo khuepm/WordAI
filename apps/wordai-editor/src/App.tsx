@@ -1,6 +1,6 @@
 /**
  * App - Application root wired to global state manager
- * Requirements: 1.1, 1.2, 1.4, 3.3, 3.4, 5.1–5.5, 13.2, 13.3, 17.1–17.5, 21.1, 25.1–25.3
+ * Requirements: 1.1, 1.2, 1.4, 3.3, 3.4, 5.1–5.5, 13.2, 13.3, 13.8–13.11, 17.1–17.5, 21.1, 25.1–25.3
  */
 
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -9,6 +9,7 @@ import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
+import { AIAccessGate } from './components/AIAccessGate';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
@@ -20,6 +21,7 @@ import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
+import { useAIAccessState } from './services/authStore';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -95,6 +97,7 @@ function App() {
     state,
     setDocument,
     updateDocument,
+    renameDocument,
     openAIPanel,
     closeAIPanel,
     openNegotiation,
@@ -105,6 +108,9 @@ function App() {
     closeVersionHistory,
     setAiServiceStatus,
   } = useAppState();
+
+  // Req 13.8–13.11 — derive AI access state to gate AI features
+  const aiAccessState = useAIAccessState();
 
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -313,6 +319,10 @@ function App() {
     updateDocument({ ...document, content: ensureBlockValue(content), lastModified: new Date() });
   }, [document, updateDocument]);
 
+  const handleRename = useCallback((newTitle: string) => {
+    renameDocument(newTitle);
+  }, [renameDocument]);
+
   const handleNew = useCallback(() => {
     const doc = createInMemoryDocument();
     setDocument(doc, '', false);
@@ -439,6 +449,7 @@ function App() {
         onOpenPreferences={() => setIsPreferencesOpen(true)}
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
+        onRename={handleRename}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -588,7 +599,24 @@ function App() {
       }}>
         <Tooltip text="AuraSphere AI">
           <button
-            onClick={() => openAIPanel({ start: 0, end: 0, text: '' })}
+            onClick={() => {
+              // Req 13.8 — only open AI panel when access is "active"
+              if (aiAccessState === 'active') {
+                openAIPanel({ start: 0, end: 0, text: '' });
+              } else {
+                // Open the panel to show the gated message
+                openAIPanel({ start: 0, end: 0, text: '' });
+              }
+            }}
+            aria-label={
+              aiAccessState === 'guest'
+                ? 'Sign in to use AuraSphere AI'
+                : aiAccessState === 'quota_exceeded'
+                  ? 'AI quota exceeded'
+                  : aiAccessState === 'suspended'
+                    ? 'AI features unavailable — account suspended'
+                    : 'AuraSphere AI'
+            }
             style={{
               padding: '0.75rem',
               background: isAIPanelOpen ? 'rgba(255,255,255,0.5)' : 'none',
@@ -600,6 +628,7 @@ function App() {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: isAIPanelOpen ? 'var(--shadow-ambient)' : 'none',
+              opacity: aiAccessState !== 'active' ? 0.5 : 1,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>

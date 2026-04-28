@@ -1,6 +1,6 @@
 /**
  * EditorCanvas - Main writing surface component
- * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
+ * Requirements: 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 13.8, 13.9, 19.1, 19.3, 19.4, 21.5, 2.5, 17.2, 17.3
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -9,6 +9,7 @@ import ReactBlockText, { headerPlugin, listPlugin, quotePlugin, todoPlugin } fro
 import type { Document, TextSelection } from '../types/document';
 import type { IPCError } from '../types/ipc';
 import { ensureBlockValue, extractPlainText } from '../utils/blockText';
+import { useAIAccessState } from '../services/authStore';
 
 /** Returns a human-readable relative time string (Req 4.4) */
 function formatRelativeTime(date: Date): string {
@@ -59,9 +60,12 @@ export function EditorCanvas({
   const [fontSize, setFontSize] = useState(fontSizeProp);
   const [blockValue, setBlockValue] = useState(() => ensureBlockValue(document.content));
 
+  // Req 13.8, 13.9 — only allow Cmd+K AI trigger when AI access is "active"
+  const aiAccessState = useAIAccessState();
+
   useEffect(() => {
     setBlockValue(ensureBlockValue(document.content));
-  }, [document.content, document.id]);
+  }, [document.id]); // only reset editor when switching to a different document
 
   const handleDecreaseFontSize = useCallback(() => {
     setFontSize((prev) => {
@@ -133,10 +137,19 @@ export function EditorCanvas({
       if (!isMod) return;
       if (e.key === 'k') {
         e.preventDefault();
-        const selectionText = window.getSelection()?.toString() ?? '';
-        const text = selectionText || plainText;
-        const selection: TextSelection = { start: 0, end: text.length, text };
-        onAITrigger(selection);
+        // Req 13.8, 13.9 — only trigger AI panel when access is "active"
+        if (aiAccessState === 'active') {
+          const selectionText = window.getSelection()?.toString() ?? '';
+          const text = selectionText || plainText;
+          const selection: TextSelection = { start: 0, end: text.length, text };
+          onAITrigger(selection);
+        } else {
+          // Open the panel to show the gated message
+          const selectionText = window.getSelection()?.toString() ?? '';
+          const text = selectionText || plainText;
+          const selection: TextSelection = { start: 0, end: text.length, text };
+          onAITrigger(selection);
+        }
       }
       if (e.key === 'e') {
         e.preventDefault();
@@ -147,7 +160,7 @@ export function EditorCanvas({
         onOpenVersionHistory?.();
       }
     },
-    [onAITrigger, onOpenExport, onOpenVersionHistory, plainText]
+    [onAITrigger, onOpenExport, onOpenVersionHistory, plainText, aiAccessState]
   );
 
   return (

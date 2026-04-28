@@ -19,9 +19,11 @@ interface TopNavBarProps {
   isDirty?: boolean;
   /** AuraBrain syncing state — true while sync is in progress (Req 1.1) */
   isSyncing?: boolean;
+  /** Called when the user renames the document via the title bar. */
+  onRename?: (newTitle: string) => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false, onRename }: TopNavBarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +95,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
             intentName={documentTitle || null}
             isDirty={isDirty}
             isSyncing={isSyncing}
+            onRename={onRename}
           />
         </div>
 
