@@ -140,7 +140,7 @@ Implement the User Management system for the WordAI desktop application, integra
 - [x] 7. Checkpoint — Ensure all tests pass for authentication foundation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement user lifecycle state machine
+- [x] 8. Implement user lifecycle state machine
   - [x] 8.1 Implement `validateStatusTransition(from: UserStatus, to: UserStatus): boolean`
     - Allow: pending→active, active→suspended, suspended→active, active→deleted, suspended→deleted
     - Deny: deleted→any, pending→suspended, pending→deleted, and all other unlisted transitions
@@ -165,207 +165,207 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 10: Status Change Audit Completeness**
     - **Validates: Requirements 3.11, 3.12, 10.2**
 
-  - [ ] 8.6 Write property test for suspended user session prevention (Property 12)
+  - [x] 8.6 Write property test for suspended user session prevention (Property 12)
     - **Property 12: Suspended User Session Prevention**
     - **Validates: Requirements 3.14**
 
-- [ ] 9. Implement role and permission management
-  - [~] 9.1 Implement `assignRole(actorId, userId, roleCode)` and `removeRole(actorId, userId, roleCode)`
+- [~] 9. Implement role and permission management
+  - [ ] 9.1 Implement `assignRole(actorId, userId, roleCode)` and `removeRole(actorId, userId, roleCode)`
     - Create/delete user_roles record
     - Create audit_log entry with action "role_assigned" or "role_removed"
     - _Requirements: 4.6, 4.7, 4.8, 4.9_
 
-  - [~] 9.2 Write property test for role assignment audit completeness (Property 14)
+  - [ ] 9.2 Write property test for role assignment audit completeness (Property 14)
     - **Property 14: Role Assignment Audit Completeness**
     - **Validates: Requirements 4.7, 4.9, 10.2**
 
-  - [~] 9.3 Write property test for multiple role support (Property 15)
+  - [ ] 9.3 Write property test for multiple role support (Property 15)
     - **Property 15: Multiple Role Support**
     - **Validates: Requirements 4.13**
 
-  - [~] 9.4 Implement `updateRolePermissions(actorId, roleCode, permissionCodes[])` with audit logging
+  - [ ] 9.4 Implement `updateRolePermissions(actorId, roleCode, permissionCodes[])` with audit logging
     - Update role_permissions mappings
     - Create audit_log entry with action "permission_changed"
     - _Requirements: 4.14_
 
-- [ ] 10. Implement AI quota management
-  - [~] 10.1 Implement `validateAIAccess(userId, model)` pre-check
+- [~] 10. Implement AI quota management
+  - [ ] 10.1 Implement `validateAIAccess(userId, model)` pre-check
     - Verify user status is "active", has "ai.use" permission, used_quota < monthly_quota, and model is in allowed_models
     - Return appropriate error code on failure: ACCOUNT_SUSPENDED, PERMISSION_DENIED, AI_QUOTA_EXCEEDED, MODEL_NOT_ALLOWED
     - _Requirements: 5.5, 5.6, 5.7, 5.8, 5.9_
 
-  - [~] 10.2 Write property test for model validation (Property 20)
+  - [ ] 10.2 Write property test for model validation (Property 20)
     - **Property 20: Model Validation**
     - **Validates: Requirements 5.8, 5.9**
 
-  - [~] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
+  - [ ] 10.3 Implement atomic quota consumption in POST /ai/usage/consume
     - Use SQL transaction: `UPDATE user_entitlements SET used_quota = used_quota + 1 WHERE id = ? AND used_quota < monthly_quota`
     - If UPDATE affects 0 rows, rollback and return AI_QUOTA_EXCEEDED
     - Apply rate limiting on this endpoint
     - _Requirements: 5.10, 5.11, 11.9_
 
-  - [~] 10.4 Write property test for quota constraint invariant (Property 16)
+  - [ ] 10.4 Write property test for quota constraint invariant (Property 16)
     - **Property 16: Quota Constraint Invariant**
     - **Validates: Requirements 5.4, 5.10, 5.11**
 
-  - [~] 10.5 Write property test for quota atomicity (Property 17)
+  - [ ] 10.5 Write property test for quota atomicity (Property 17)
     - **Property 17: Quota Atomicity**
     - **Validates: Requirements 5.10, 5.11**
 
-  - [~] 10.6 Write property test for no negative quota (Property 18)
+  - [ ] 10.6 Write property test for no negative quota (Property 18)
     - **Property 18: No Negative Quota**
     - **Validates: Requirements 5.4**
 
-  - [~] 10.7 Implement quota reset scheduler
+  - [ ] 10.7 Implement quota reset scheduler
     - When current date reaches quota_reset_at: set used_quota=0, set quota_reset_at to first day of next month
     - Implement as idempotent operation safe to run multiple times
     - _Requirements: 5.12, 5.13_
 
-  - [~] 10.8 Write property test for quota reset idempotence (Property 19)
+  - [ ] 10.8 Write property test for quota reset idempotence (Property 19)
     - **Property 19: Quota Reset Idempotence**
     - **Validates: Requirements 5.12, 5.13, 15.4**
 
-  - [~] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
+  - [ ] 10.9 Implement `overrideEntitlement(actorId, userId, changes)` with audit logging
     - Update user_entitlements fields
     - Create audit_log entry with action "entitlement_overridden"
     - _Requirements: 5.14, 9.6_
 
-  - [~] 10.10 Write property test for entitlement override audit (Property 21)
+  - [ ] 10.10 Write property test for entitlement override audit (Property 21)
     - **Property 21: Entitlement Override Audit**
     - **Validates: Requirements 5.14, 10.2**
 
 - [~] 11. Checkpoint — Ensure all tests pass for authorization and quota
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Implement session management endpoints
-  - [~] 12.1 Implement GET /users/me/sessions
+- [~] 12. Implement session management endpoints
+  - [ ] 12.1 Implement GET /users/me/sessions
     - Return all sessions where session_state="active" and revoked_at is null for the authenticated user
     - _Requirements: 6.5_
 
-  - [~] 12.2 Implement `revokeSession(actorId, sessionId)` and POST /users/me/sessions/revoke
+  - [ ] 12.2 Implement `revokeSession(actorId, sessionId)` and POST /users/me/sessions/revoke
     - Set revoked_at=now() and session_state="revoked" for specified session(s)
     - Support revokeAll flag to revoke all sessions except current
     - Create audit_log entry with action "session_revoked" for each revoked session
     - Reject new token exchange requests for revoked sessions with SESSION_REVOKED
     - _Requirements: 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 9.7, 9.8_
 
-  - [~] 12.3 Write property test for session revocation effectiveness (Property 22)
+  - [ ] 12.3 Write property test for session revocation effectiveness (Property 22)
     - **Property 22: Session Revocation Effectiveness**
     - **Validates: Requirements 6.9, 6.10**
 
-  - [~] 12.4 Write property test for session isolation (Property 23)
+  - [ ] 12.4 Write property test for session isolation (Property 23)
     - **Property 23: Session Isolation**
     - **Validates: Requirements 6.11**
 
-  - [~] 12.5 Write property test for session revocation audit (Property 24)
+  - [ ] 12.5 Write property test for session revocation audit (Property 24)
     - **Property 24: Session Revocation Audit**
     - **Validates: Requirements 6.8, 10.2**
 
-  - [~] 12.6 Write property test for session uniqueness (Property 25)
+  - [ ] 12.6 Write property test for session uniqueness (Property 25)
     - **Property 25: Session Uniqueness**
     - **Validates: Requirements 6.12**
 
-- [ ] 13. Implement logout endpoint
-  - [~] 13.1 Implement POST /auth/logout
+- [~] 13. Implement logout endpoint
+  - [ ] 13.1 Implement POST /auth/logout
     - Revoke the specified session (set revoked_at, session_state="revoked")
     - Create audit_log entry with action "session_revoked"
     - Return idempotent success even if session already revoked
     - _Requirements: 7.2, 7.3, 7.4, 7.6, 15.3_
 
-  - [~] 13.2 Write property test for logout completeness (Property 26)
+  - [ ] 13.2 Write property test for logout completeness (Property 26)
     - **Property 26: Logout Completeness**
     - **Validates: Requirements 7.6**
 
-  - [~] 13.3 Write property test for logout idempotence (Property 27)
+  - [ ] 13.3 Write property test for logout idempotence (Property 27)
     - **Property 27: Logout Idempotence**
     - **Validates: Requirements 7.3, 7.4, 15.3**
 
-- [ ] 14. Implement user profile endpoints
-  - [~] 14.1 Implement GET /users/me
+- [~] 14. Implement user profile endpoints
+  - [ ] 14.1 Implement GET /users/me
     - Return current user profile from Directus for the authenticated user
     - _Requirements: 2.5_
 
-  - [~] 14.2 Implement PATCH /users/me
+  - [ ] 14.2 Implement PATCH /users/me
     - Allow modification of display_name (1–100 chars) and avatar_url only
     - Reject requests attempting to modify firebase_uid, email, status, or risk_level with PERMISSION_DENIED
     - _Requirements: 2.6, 2.7, 2.8_
 
-  - [~] 14.3 Write property test for profile update idempotence (Property 8)
+  - [ ] 14.3 Write property test for profile update idempotence (Property 8)
     - **Property 8: Profile Update Idempotence**
     - **Validates: Requirements 2.6, 2.7, 15.2**
 
 - [ ] 15. Implement GET /auth/context and authorization source-of-truth enforcement
-  - [~] 15.1 Implement GET /auth/context
+  - [ ] 15.1 Implement GET /auth/context
     - Always fetch fresh Access Context from Directus (no caching)
     - Return same structure as ExchangeResponse
     - _Requirements: 8.8_
 
-  - [~] 15.2 Enforce server-side authorization source of truth
+  - [ ] 15.2 Enforce server-side authorization source of truth
     - Ensure Bridge API never trusts role, permission, or quota data from Client_App requests
     - All authorization data retrieved from Directus on every request
     - _Requirements: 8.6, 8.7_
 
-  - [~] 15.3 Write property test for authorization source of truth (Property 28)
+  - [ ] 15.3 Write property test for authorization source of truth (Property 28)
     - **Property 28: Authorization Source of Truth**
     - **Validates: Requirements 8.6, 8.7**
 
-  - [~] 15.4 Write property test for error code determinism (Property 30)
+  - [ ] 15.4 Write property test for error code determinism (Property 30)
     - **Property 30: Error Code Determinism**
     - **Validates: Requirements 8.10**
 
-- [~] 16. Implement GET /ai/entitlement endpoint
+- [ ] 16. Implement GET /ai/entitlement endpoint
   - Retrieve current AI entitlement and quota status for authenticated user
   - Include computed `remaining_quota` field (monthly_quota - used_quota)
   - _Requirements: 5.1, 5.2_
 
 - [ ] 17. Implement audit log immutability and query support
-  - [~] 17.1 Verify audit_logs immutability rules are enforced at the application layer
+  - [ ] 17.1 Verify audit_logs immutability rules are enforced at the application layer
     - Ensure no code path allows UPDATE or DELETE on audit_logs (rely on PostgreSQL rules from migration 004_audit)
     - _Requirements: 10.6, 10.7_
 
-  - [~] 17.2 Write property test for audit log immutability (Property 31)
+  - [ ] 17.2 Write property test for audit log immutability (Property 31)
     - **Property 31: Audit Log Immutability**
     - **Validates: Requirements 10.6**
 
-  - [~] 17.3 Write property test for audit completeness (Property 32)
+  - [ ] 17.3 Write property test for audit completeness (Property 32)
     - **Property 32: Audit Completeness**
     - **Validates: Requirements 10.2, 10.3**
 
-  - [~] 17.4 Write property test for audit temporal ordering (Property 33)
+  - [ ] 17.4 Write property test for audit temporal ordering (Property 33)
     - **Property 33: Audit Temporal Ordering**
     - **Validates: Requirements 10.5**
 
-- [~] 18. Checkpoint — Ensure all tests pass for user management and audit
+- [ ] 18. Checkpoint — Ensure all tests pass for user management and audit
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 19. Implement Client App authentication state management
-  - [~] 19.1 Implement `deriveAIAccessState(context: AccessContext | null): AIAccessState`
+  - [ ] 19.1 Implement `deriveAIAccessState(context: AccessContext | null): AIAccessState`
     - Return "guest" when no active session
     - Return "active" when status="active", used_quota < monthly_quota, ai_enabled=true
     - Return "quota_exceeded" when status="active" and used_quota >= monthly_quota
     - Return "suspended" when status="suspended"
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-  - [~] 19.2 Write property test for client state derivation determinism (Property 38)
+  - [ ] 19.2 Write property test for client state derivation determinism (Property 38)
     - **Property 38: Client State Derivation Determinism**
     - **Validates: Requirements 13.2–13.7**
 
-  - [~] 19.3 Implement Access Context store (Zustand or Redux Toolkit slice)
+  - [ ] 19.3 Implement Access Context store (Zustand or Redux Toolkit slice)
     - Store Access Context in application state after token exchange
     - Expose derived AI access state to components
     - _Requirements: 13.1, 13.2_
 
-  - [~] 19.4 Implement Firebase login/logout flow in Client App
+  - [ ] 19.4 Implement Firebase login/logout flow in Client App
     - Call Firebase signInWithEmailAndPassword, then POST /auth/exchange with firebaseIdToken and deviceId
     - On logout: call Firebase signOut, POST /auth/logout, clear local auth cache and tokens
     - _Requirements: 1.1, 1.2, 7.1, 7.2, 7.5, 7.7_
 
-  - [~] 19.5 Implement Access Context refresh on error responses
+  - [ ] 19.5 Implement Access Context refresh on error responses
     - When API returns ACCOUNT_SUSPENDED, SESSION_REVOKED, or AI_QUOTA_EXCEEDED, call GET /auth/context and update state
     - _Requirements: 13.12_
 
 - [ ] 20. Wire AI feature access control to UI components
-  - [~] 20.1 Implement AI feature gating based on AI access state
+  - [ ] 20.1 Implement AI feature gating based on AI access state
     - "guest": disable AI features, show login prompt
     - "active": enable AI features
     - "quota_exceeded": disable AI features, show quota exceeded message with reset date
@@ -373,17 +373,17 @@ Implement the User Management system for the WordAI desktop application, integra
     - _Requirements: 13.8, 13.9, 13.10, 13.11_
 
 - [ ] 21. Implement transaction atomicity for multi-record operations
-  - [~] 21.1 Wrap all multi-record Bridge API operations in database transactions
+  - [ ] 21.1 Wrap all multi-record Bridge API operations in database transactions
     - User upsert + entitlement creation + session upsert + audit log creation in POST /auth/exchange
     - Role assignment + audit log creation in role management
     - Session revocation + audit log creation in logout/revoke
     - _Requirements: 15.9, 15.10_
 
-  - [~] 21.2 Write property test for transaction atomicity (Property 39)
+  - [ ] 21.2 Write property test for transaction atomicity (Property 39)
     - **Property 39: Transaction Atomicity**
     - **Validates: Requirements 15.9, 15.10**
 
-- [~] 22. Final checkpoint — Ensure all tests pass
+- [ ] 22. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
