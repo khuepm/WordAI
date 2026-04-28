@@ -165,7 +165,7 @@ Implement the User Management system for the WordAI desktop application, integra
     - **Property 10: Status Change Audit Completeness**
     - **Validates: Requirements 3.11, 3.12, 10.2**
 
-  - [x] 8.6 Write property test for suspended user session prevention (Property 12)
+  - [ ] 8.6 Write property test for suspended user session prevention (Property 12)
     - **Property 12: Suspended User Session Prevention**
     - **Validates: Requirements 3.14**
 
