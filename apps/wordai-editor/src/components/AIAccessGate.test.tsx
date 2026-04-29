@@ -10,14 +10,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { AIAccessState } from '../types/auth';
+import type { AIAccessState, AccessContext } from '../types/auth';
 
 // ---------------------------------------------------------------------------
 // Mock authStore so we can control aiAccessState and accessContext per test
 // ---------------------------------------------------------------------------
 
 const mockUseAIAccessState = vi.fn<() => AIAccessState>(() => 'guest');
-const mockUseAccessContext = vi.fn(() => null);
+const mockUseAccessContext = vi.fn<() => AccessContext | null>(() => null);
 
 vi.mock('../services/authStore', () => ({
   useAIAccessState: () => mockUseAIAccessState(),
@@ -26,7 +26,6 @@ vi.mock('../services/authStore', () => ({
 
 // Import AFTER mocks are set up
 import { AIAccessGate } from './AIAccessGate';
-import type { AccessContext } from '../types/auth';
 
 // ---------------------------------------------------------------------------
 // Helper to build test AccessContext

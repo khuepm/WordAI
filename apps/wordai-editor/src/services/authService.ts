@@ -21,11 +21,7 @@ import { BridgeErrorCode } from '../types/auth';
  * overridden by mocking `fetchJson`.
  */
 const BRIDGE_API_BASE_URL =
-  (typeof import.meta !== 'undefined' &&
-    (import.meta as Record<string, unknown>).env &&
-    ((import.meta as Record<string, unknown>).env as Record<string, string>)
-      .VITE_BRIDGE_API_URL) ||
-  'http://localhost:3001';
+  import.meta.env.VITE_BRIDGE_API_URL || 'http://localhost:3001';
 
 // ---------------------------------------------------------------------------
 // Internal helpers

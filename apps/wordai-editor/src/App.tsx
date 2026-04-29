@@ -10,7 +10,6 @@ import { invoke } from '@tauri-apps/api/core';
 import EditorCanvas from './components/EditorCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
-import { AIAccessGate } from './components/AIAccessGate';
 import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
