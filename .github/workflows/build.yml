@@ -24,7 +24,12 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout release sources
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .nvmrc
+            apps/wordai-editor
 
       - name: Install dependencies (Ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
