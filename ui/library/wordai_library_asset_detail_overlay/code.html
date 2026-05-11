@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AuraSphere - Knowledge Asset Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdbc8",
+                        "surface-variant": "#e1e3e4",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-fixed": "#12134d",
+                        "secondary-fixed": "#e1e0ff",
+                        "on-primary-fixed": "#07006c",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#babbfe",
+                        "on-tertiary-container": "#fff6f3",
+                        "on-surface-variant": "#464555",
+                        "primary": "#4343d5",
+                        "on-background": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "on-surface": "#191c1d",
+                        "surface-tint": "#4849da",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#edeeef",
+                        "on-secondary-container": "#474984",
+                        "primary-container": "#5d5fef",
+                        "tertiary": "#904400",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "surface": "#f8f9fa",
+                        "secondary": "#575995",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-high": "#e7e8e9",
+                        "background": "#f8f9fa",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary-fixed-variant": "#3f417b",
+                        "on-primary-container": "#faf7ff",
+                        "outline-variant": "#c7c4d7",
+                        "on-tertiary-fixed": "#321300",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "inverse-surface": "#2e3132",
+                        "inverse-primary": "#c1c1ff",
+                        "tertiary-container": "#b65700",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "outline": "#767586"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body": ["Newsreader"],
+                        "label": ["Inter"]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body overflow-hidden h-screen flex">
+<!-- Blurred Background Context (Library Screen) -->
+<div class="absolute inset-0 z-0 flex flex-col pointer-events-none opacity-40 blur-[2px]">
+<!-- Mock TopAppBar -->
+<header class="docked full-width top-0 z-50 bg-[#f8f9fa] shadow-[0_1px_0_0_rgba(0,0,0,0.05)] dark:shadow-none dark:bg-[#2e3132] flex justify-between items-center w-full px-12 py-8 max-w-[1920px] mx-auto transition-transform scale-100">
+<div class="flex items-center gap-8">
+<h1 class="text-2xl font-bold tracking-tighter text-[#4343d5] dark:text-[#5d5fef] font-headline">AuraSphere</h1>
+<nav class="hidden md:flex gap-6">
+<a class="text-[#191c1d]/60 dark:text-[#f8f9fa]/60 font-medium hover:text-[#4343d5] dark:hover:text-[#5d5fef] font-headline transition-all duration-300 ease-out hover:opacity-80" href="#">Drafts</a>
+<a class="text-[#191c1d]/60 dark:text-[#f8f9fa]/60 font-medium hover:text-[#4343d5] dark:hover:text-[#5d5fef] font-headline transition-all duration-300 ease-out hover:opacity-80" href="#">Archive</a>
+<a class="text-[#4343d5] dark:text-[#5d5fef] font-bold border-b-2 border-[#4343d5] dark:border-[#5d5fef] pb-1 font-headline transition-all duration-300 ease-out hover:opacity-80" href="#">Library</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#4343d5] dark:text-[#5d5fef] p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-[#4343d5] dark:text-[#5d5fef] p-2 rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover border border-outline-variant/15" data-alt="professional headshot of a woman with natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi2c1YPxfnglA-Vj8-Qb1s5cLIaX0EnDNbB1TrV_YuVeqI4-SKV0KS66lQwMnIeodweeFfSblP27N8TYWQT4Nuoc1T-_EqlG74-g2eViD6EmvrAnI6aZcGW9nZAHmok1lhjwDyAkZiQE6dKLQz8Vcbgg6slq9Mdaf3ESyyjnLJktP1llmFvcPLREJvZsjRpRyEIcZZxT9SlAtSXB1PLSYok-ZIKojJdWXemkQHfqDq12_9A68eEbb6iWW4I48KQfum1kKvKetPCOk"/>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Mock SideNavBar -->
+<aside class="hidden md:flex flex-col h-full py-12 space-y-8 bg-[#edeeef] dark:bg-[#3e4142] docked h-screen left-0 w-64 border-none transition-transform ease-in-out duration-200">
+<div class="px-8 flex items-center gap-3">
+<img alt="WordAI Assistant" class="w-8 h-8 rounded-full object-cover" data-alt="abstract liquid 3d sphere gradient in blue and purple tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnUnaBqeL1UFsCTGKeBasm1Slji9z1y-UxgZeTW7hZuVjISB4ffCjxY_ZNLA9VIQwmZCMZP1bgEp74gcuBEjZAMko1glqE1GVot9XT9B6uISDQ6uEb3zrqBjQgNDIpDXqrMTkjS5-lhsl-I8Hp58Vwzj0uh_HEC_iTyYlfzEoygGuTAkEdfc73_Bm_ELfKh9_mIQk8qo270cVdKdiJiOrTB5OnyeU4Q2PRnSaEy8MBnQeRrtTPDz8-5oPyyi_tUsDTRhb_g56giA0"/>
+<div>
+<div class="text-lg font-black text-[#191c1d] dark:text-[#f8f9fa] font-headline tracking-tight">WordAI</div>
+<div class="font-['Manrope'] uppercase tracking-widest text-[0.75rem] text-[#4343d5] dark:text-[#5d5fef]">Digital Curator</div>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 text-[#191c1d]/40 dark:text-[#f8f9fa]/40 hover:text-[#191c1d] dark:hover:text-[#f8f9fa] px-8 py-3 font-label text-sm uppercase tracking-wider hover:bg-[#f8f9fa]/50 dark:hover:bg-[#2e3132]/50 rounded-lg mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="construction">construction</span> Tools
+                    </a>
+<a class="flex items-center gap-4 text-[#191c1d]/40 dark:text-[#f8f9fa]/40 hover:text-[#191c1d] dark:hover:text-[#f8f9fa] px-8 py-3 font-label text-sm uppercase tracking-wider hover:bg-[#f8f9fa]/50 dark:hover:bg-[#2e3132]/50 rounded-lg mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span> Templates
+                    </a>
+<a class="flex items-center gap-4 bg-[#f8f9fa] dark:bg-[#2e3132] text-[#4343d5] dark:text-[#5d5fef] rounded-l-full ml-4 pl-4 py-3 font-bold font-label text-sm uppercase tracking-wider transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" data-weight="fill" style="font-variation-settings: 'FILL' 1;">analytics</span> Research
+                    </a>
+<a class="flex items-center gap-4 text-[#191c1d]/40 dark:text-[#f8f9fa]/40 hover:text-[#191c1d] dark:hover:text-[#f8f9fa] px-8 py-3 font-label text-sm uppercase tracking-wider hover:bg-[#f8f9fa]/50 dark:hover:bg-[#2e3132]/50 rounded-lg mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span> History
+                    </a>
+</nav>
+<div class="px-8 mt-auto">
+<button class="w-full bg-primary text-on-primary font-headline font-semibold py-3 px-4 rounded-lg hover:bg-primary-container hover:shadow-[0_0_8px_rgba(67,67,213,0.5)] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span> New Asset
+                    </button>
+</div>
+</aside>
+<!-- Mock Main Content Area -->
+<main class="flex-1 p-12 overflow-y-auto">
+<div class="max-w-4xl mx-auto space-y-8">
+<h2 class="font-headline text-[2rem] tracking-tight font-extrabold text-on-surface">Library</h2>
+<div class="grid grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest h-64 rounded-xl border border-outline-variant/15 p-6 shadow-[0_4px_20px_-5px_rgba(25,28,29,0.04)]"></div>
+<div class="bg-surface-container-lowest h-64 rounded-xl border border-outline-variant/15 p-6 shadow-[0_4px_20px_-5px_rgba(25,28,29,0.04)]"></div>
+<div class="bg-surface-container-lowest h-64 rounded-xl border border-outline-variant/15 p-6 shadow-[0_4px_20px_-5px_rgba(25,28,29,0.04)]"></div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- Scrim / Backdrop -->
+<div class="absolute inset-0 bg-on-surface/5 backdrop-blur-sm z-40 transition-opacity duration-300"></div>
+<!-- Detail Overlay (Right Side Panel) -->
+<div class="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-surface-container-lowest z-50 shadow-[-10px_0_40px_-5px_rgba(25,28,29,0.08)] flex flex-col transform transition-transform duration-300 ease-out border-l border-outline-variant/15">
+<!-- Panel Header -->
+<div class="px-12 py-8 flex items-start justify-between border-b border-outline-variant/10">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<span class="bg-primary-container/20 text-primary px-2.5 py-0.5 rounded-full font-label text-[0.65rem] uppercase tracking-widest font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span> Verified
+                    </span>
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-wider">Document</span>
+</div>
+<h2 class="font-body text-[1.375rem] font-medium leading-tight text-on-surface pr-8">Q1 Growth Report</h2>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-2 rounded-full hover:bg-surface-container-low transition-colors -mr-2">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Panel Scrollable Content -->
+<div class="flex-1 overflow-y-auto px-12 py-8 space-y-10">
+<!-- Metadata Grid (Asymmetric) -->
+<div class="grid grid-cols-2 gap-x-8 gap-y-6">
+<div class="space-y-1">
+<p class="font-label text-[0.75rem] uppercase tracking-widest text-on-surface-variant">Alias</p>
+<p class="font-headline text-sm font-medium text-on-surface bg-surface-container-low inline-block px-2 py-1 rounded-md">@Báo_cáo_Q1</p>
+</div>
+<div class="space-y-1">
+<p class="font-label text-[0.75rem] uppercase tracking-widest text-on-surface-variant">Type</p>
+<p class="font-headline text-sm font-medium text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-sm" data-icon="description">description</span> Final Report
+                    </p>
+</div>
+<div class="space-y-1">
+<p class="font-label text-[0.75rem] uppercase tracking-widest text-on-surface-variant">Last Updated</p>
+<p class="font-headline text-sm font-medium text-on-surface">2 days ago</p>
+</div>
+<div class="space-y-1">
+<p class="font-label text-[0.75rem] uppercase tracking-widest text-on-surface-variant">Used In</p>
+<p class="font-headline text-sm font-medium text-primary hover:underline cursor-pointer flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="link">link</span> AuraCare Draft
+                    </p>
+</div>
+</div>
+<!-- AI Summary (AuraSphere styling) -->
+<div class="relative bg-gradient-to-br from-surface-container-lowest to-surface-container-low rounded-xl p-6 border border-outline-variant/15 shadow-[0_4px_20px_-5px_rgba(67,67,213,0.04)]">
+<!-- AI Glow element -->
+<div class="absolute -top-3 -right-3 w-12 h-12 bg-primary/10 rounded-full blur-xl"></div>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-headline text-sm font-bold text-on-surface">AI Summary</h3>
+</div>
+<p class="font-body text-base leading-[1.6] text-on-surface-variant">
+                    This document details the first quarter growth metrics for 2024. It highlights a 15% year-over-year revenue increase, primarily driven by the launch of the new enterprise tier. Customer acquisition costs decreased by 5%, while churn remained stable. The report concludes with projections for Q2, emphasizing continued expansion in European markets.
+                </p>
+</div>
+<!-- Primary Actions (Fluid Buttons) -->
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary text-on-primary font-headline font-semibold py-4 px-6 rounded-lg hover:bg-primary-container hover:shadow-[0_0_12px_rgba(67,67,213,0.4)] transition-all flex items-center justify-center gap-3 active:bg-surface-tint">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span> Open Document
+                </button>
+<div class="grid grid-cols-2 gap-3">
+<button class="bg-surface-container text-on-surface font-headline font-medium py-3 px-4 rounded-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+<span class="material-symbols-outlined text-sm" data-icon="bookmark">bookmark</span> Use as Reference
+                    </button>
+<button class="bg-surface-container text-on-surface font-headline font-medium py-3 px-4 rounded-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 border border-outline-variant/10">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span> Use as Template
+                    </button>
+</div>
+</div>
+<!-- AI Actions Group -->
+<div class="space-y-3 pt-4 border-t border-outline-variant/10">
+<h4 class="font-label text-[0.75rem] uppercase tracking-widest text-on-surface-variant mb-2">AI Utilities</h4>
+<div class="flex flex-wrap gap-3">
+<button class="bg-surface-container-lowest border border-primary/20 text-primary font-headline text-sm font-medium py-2 px-4 rounded-full hover:bg-primary/5 transition-colors flex items-center gap-2 shadow-[0_2px_8px_-2px_rgba(67,67,213,0.08)]">
+<span class="material-symbols-outlined text-[16px]" data-icon="short_text">short_text</span> Summarize further
+                    </button>
+<button class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-headline text-sm font-medium py-2 px-4 rounded-full hover:bg-surface-container-low transition-colors flex items-center gap-2 shadow-[0_2px_8px_-2px_rgba(25,28,29,0.04)]">
+<span class="material-symbols-outlined text-[16px]" data-icon="update">update</span> Check if outdated
+                    </button>
+</div>
+</div>
+</div>
+<!-- Panel Footer (Secondary Actions) -->
+<div class="px-12 py-6 bg-surface border-t border-outline-variant/15 flex justify-between items-center mt-auto">
+<button class="text-on-surface-variant hover:text-on-surface font-headline text-sm font-medium flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="preview">preview</span> Render Preview
+            </button>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-on-surface p-2 rounded-full hover:bg-surface-container-high transition-colors tooltip-trigger relative group">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-xs font-headline py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Move to Archive</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface p-2 rounded-full hover:bg-surface-container-high transition-colors tooltip-trigger relative group">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-xs font-headline py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Export</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Archive - The Ethereal Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Newsreader:ital,wght@0,400;0,500;1,400&amp;family=Inter:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#12134d",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "on-tertiary-container": "#fff6f3",
+                        "outline": "#767586",
+                        "surface-container-high": "#e7e8e9",
+                        "outline-variant": "#c7c4d7",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "on-primary-fixed": "#07006c",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "secondary-fixed": "#e1e0ff",
+                        "tertiary": "#904400",
+                        "surface-container": "#edeeef",
+                        "on-background": "#191c1d",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#474984",
+                        "background": "#f8f9fa",
+                        "surface": "#f8f9fa",
+                        "primary-container": "#5d5fef",
+                        "tertiary-fixed": "#ffdbc8",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "tertiary-container": "#b65700",
+                        "on-surface-variant": "#464555",
+                        "inverse-on-surface": "#f0f1f2",
+                        "secondary-container": "#babbfe",
+                        "primary": "#4343d5",
+                        "on-error-container": "#93000a",
+                        "secondary": "#575995",
+                        "surface-tint": "#4849da",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "surface-dim": "#d9dadb",
+                        "inverse-primary": "#c1c1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#321300",
+                        "on-secondary-fixed-variant": "#3f417b",
+                        "inverse-surface": "#2e3132",
+                        "primary-fixed": "#e1e0ff",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#faf7ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body": ["Newsreader"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Newsreader', serif; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .font-label { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .aura-shadow {
+            box-shadow: 0 4px 60px -5px rgba(67, 67, 213, 0.08);
+        }
+        .ghost-border {
+            border: 1px solid rgba(199, 196, 215, 0.15);
+        }
+        .bg-blur-effect {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-4 w-full sticky top-0 z-40 bg-slate-50/80 dark:bg-zinc-900/80 backdrop-blur-xl text-[#5D5FEF] dark:text-[#7d7fef] font-['Manrope'] tracking-tight shadow-sm shadow-slate-200/50 dark:shadow-black/20">
+<div class="flex items-center gap-8">
+<h1 class="text-xl font-bold tracking-tighter text-slate-900 dark:text-slate-100">Ethereal</h1>
+<!-- Desktop Nav Cluster -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-500 dark:text-zinc-400 hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+<span class="text-sm font-semibold tracking-wide">Write</span>
+</a>
+<a class="text-[#5D5FEF] dark:text-[#7d7fef] bg-[#5D5FEF]/10 dark:bg-[#5D5FEF]/20 hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="text-sm font-semibold tracking-wide">Archive</span>
+</a>
+<a class="text-slate-500 dark:text-zinc-400 hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span class="text-sm font-semibold tracking-wide">Aura</span>
+</a>
+<a class="text-slate-500 dark:text-zinc-400 hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-semibold tracking-wide">Settings</span>
+</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors p-2 rounded-full scale-95 duration-200 ease-out flex items-center justify-center">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors p-2 rounded-full scale-95 duration-200 ease-out flex items-center justify-center">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex w-full max-w-7xl mx-auto mt-12 px-6 lg:px-12 relative">
+<!-- Background Editor Context (Blurred) -->
+<div class="absolute inset-0 px-6 lg:px-12 z-0 opacity-40 bg-blur-effect pointer-events-none transition-all duration-500">
+<div class="space-y-8 max-w-3xl">
+<h2 class="text-3xl font-headline tracking-tight text-on-surface opacity-60">The Quiet Resonance of Subtext</h2>
+<p class="text-lg leading-relaxed text-on-surface-variant opacity-50">In the architecture of modern narratives, it is often not what is explicitly stated that carries the emotional weight, but the negative space carved out by silence. We build these structures...</p>
+<div class="h-px w-full bg-outline-variant/20 my-8"></div>
+<div class="flex items-start gap-4">
+<div class="w-12 h-16 bg-surface-container-low rounded-lg ghost-border"></div>
+<div class="flex-1 space-y-2">
+<div class="h-4 w-3/4 bg-surface-container-low rounded"></div>
+<div class="h-3 w-1/2 bg-surface-container-low rounded"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Foreground: Archive Header & Filters -->
+<div class="w-full max-w-5xl relative z-10">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-[2rem] font-headline tracking-tight text-on-surface font-semibold">Archive</h2>
+<p class="text-on-surface-variant font-body text-lg mt-1">248 documents stored in stasis.</p>
+</div>
+<!-- Active Filter Button -->
+<div class="relative">
+<button class="flex items-center gap-2 bg-surface-container-lowest text-primary px-5 py-2.5 rounded-xl font-headline text-sm font-semibold shadow-[0_2px_8px_rgba(67,67,213,0.15)] ring-1 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filters Active
+                        <span class="material-symbols-outlined text-[18px] ml-1">expand_less</span>
+</button>
+<!-- Filter Popover Menu (AuraSphere Theme) -->
+<div class="absolute right-0 top-full mt-3 w-72 glass-panel rounded-xl aura-shadow ghost-border p-5 z-50 flex flex-col gap-6">
+<!-- Type Category -->
+<div class="space-y-3">
+<h3 class="font-headline text-xs uppercase tracking-[0.05em] text-outline font-semibold mb-2">Type</h3>
+<div class="flex flex-col gap-1">
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm text-on-surface">Drafts</span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm text-on-surface">Projects</span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm text-on-surface-variant">Versions</span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm text-on-surface-variant">Hidden</span>
+</label>
+</div>
+</div>
+<!-- Status Category -->
+<div class="space-y-3">
+<h3 class="font-headline text-xs uppercase tracking-[0.05em] text-outline font-semibold mb-2">Status</h3>
+<div class="flex flex-col gap-1">
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm flex items-center gap-2 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                                        AI-ready
+                                    </span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm flex items-center gap-2 text-on-surface">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                                        Verified
+                                    </span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="font-headline text-sm flex items-center gap-2 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                                        Paused
+                                    </span>
+</label>
+</div>
+</div>
+<!-- Timeframe Category -->
+<div class="space-y-3">
+<h3 class="font-headline text-xs uppercase tracking-[0.05em] text-outline font-semibold mb-2">Timeframe</h3>
+<div class="flex flex-col gap-1">
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-radio h-4 w-4 text-primary border-outline-variant focus:ring-primary bg-transparent" name="timeframe" type="radio"/>
+<span class="font-headline text-sm text-on-surface-variant">This Week</span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="form-radio h-4 w-4 text-primary border-outline-variant focus:ring-primary bg-transparent" name="timeframe" type="radio"/>
+<span class="font-headline text-sm text-on-surface">This Month</span>
+</label>
+<label class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<input class="form-radio h-4 w-4 text-primary border-outline-variant focus:ring-primary bg-transparent" name="timeframe" type="radio"/>
+<span class="font-headline text-sm text-on-surface-variant">Older</span>
+</label>
+</div>
+</div>
+<!-- Actions -->
+<div class="pt-4 border-t border-outline-variant/10 flex justify-end gap-3">
+<button class="px-4 py-2 rounded-lg font-headline text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors">Clear</button>
+<button class="px-4 py-2 rounded-lg font-headline text-sm bg-primary text-on-primary hover:bg-primary-container transition-colors shadow-[0_0_8px_rgba(67,67,213,0.3)]">Apply</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Grid - Document Previews (Visible beneath filter) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl ghost-border flex flex-col gap-4 relative group hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] transition-all">
+<div class="flex justify-between items-start">
+<span class="font-headline text-xs uppercase tracking-widest text-outline">Project</span>
+<span class="material-symbols-outlined text-outline/50 text-[18px]">more_horiz</span>
+</div>
+<div class="flex-1">
+<h3 class="font-body text-xl font-medium leading-snug text-on-surface mb-2 group-hover:text-primary transition-colors">The Architecture of Silence</h3>
+<p class="font-body text-on-surface-variant text-sm line-clamp-3">In modern narratives, it is often not what is explicitly stated that carries emotional weight, but the negative space...</p>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-surface-container-high/50">
+<span class="font-headline text-xs text-outline">Oct 12, 2023</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">auto_awesome</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl ghost-border flex flex-col gap-4 relative group hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] transition-all">
+<div class="flex justify-between items-start">
+<span class="font-headline text-xs uppercase tracking-widest text-outline">Draft</span>
+<span class="material-symbols-outlined text-outline/50 text-[18px]">more_horiz</span>
+</div>
+<div class="flex-1">
+<h3 class="font-body text-xl font-medium leading-snug text-on-surface mb-2 group-hover:text-primary transition-colors">Notes on Minimalist UI</h3>
+<p class="font-body text-on-surface-variant text-sm line-clamp-3">Rejecting the box-in-a-box layout. Treating the interface as a series of fluid, overlapping sheets of digital paper.</p>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-surface-container-high/50">
+<span class="font-headline text-xs text-outline">Oct 10, 2023</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl ghost-border flex flex-col gap-4 relative group hover:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] transition-all">
+<div class="flex justify-between items-start">
+<span class="font-headline text-xs uppercase tracking-widest text-outline">Project</span>
+<span class="material-symbols-outlined text-outline/50 text-[18px]">more_horiz</span>
+</div>
+<div class="flex-1">
+<h3 class="font-body text-xl font-medium leading-snug text-on-surface mb-2 group-hover:text-primary transition-colors">Liquid Intelligence Specs</h3>
+<p class="font-body text-on-surface-variant text-sm line-clamp-3">AI is not a sidebar tool but a soft, glowing presence that emerges from the negative space when needed.</p>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-surface-container-high/50">
+<span class="font-headline text-xs text-outline">Sep 28, 2023</span>
+<div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on md and up based on JSON shell logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.04)] font-['Manrope'] text-[10px] uppercase tracking-[0.05em] font-semibold text-[#5D5FEF] dark:text-[#7d7fef]">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 px-4 py-1 hover:text-[#5D5FEF] transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1">edit_note</span>
+<span>Write</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#5D5FEF]/10 dark:bg-[#5D5FEF]/20 text-[#5D5FEF] rounded-xl px-4 py-1 hover:text-[#5D5FEF] transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span>Archive</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 px-4 py-1 hover:text-[#5D5FEF] transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1">auto_awesome</span>
+<span>Aura</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 px-4 py-1 hover:text-[#5D5FEF] transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</body></html>
