@@ -24,6 +24,9 @@ export interface AppState {
   /** True once the document has been successfully saved to disk at least once */
   isFilePersisted: boolean;
 
+  // Tab navigation (Req 1.1, 1.2, 1.3, 1.4)
+  activeTab: 'editor' | 'library';
+
   // UI flags (Req 17.2–17.5)
   isAIPanelOpen: boolean;
   isNegotiationOpen: boolean;
@@ -47,6 +50,7 @@ const initialState: AppState = {
   document: null,
   filePath: '',
   isFilePersisted: false,
+  activeTab: 'editor',
   isAIPanelOpen: false,
   isNegotiationOpen: false,
   isRenderDrawerOpen: false,
@@ -64,6 +68,7 @@ type Action =
   | { type: 'SET_DOCUMENT'; payload: { document: Document; filePath: string; isFilePersisted?: boolean } }
   | { type: 'UPDATE_DOCUMENT'; payload: Document }
   | { type: 'RENAME_DOCUMENT'; payload: string }
+  | { type: 'SET_ACTIVE_TAB'; payload: 'editor' | 'library' }
   | { type: 'OPEN_AI_PANEL'; payload: TextSelection }
   | { type: 'CLOSE_AI_PANEL' }
   | { type: 'OPEN_NEGOTIATION'; payload: AISuggestion }
@@ -105,6 +110,9 @@ function appReducer(state: AppState, action: Action): AppState {
         document: { ...state.document, title: action.payload, lastModified: new Date() },
         hasUnsavedChanges: true,
       };
+
+    case 'SET_ACTIVE_TAB':
+      return { ...state, activeTab: action.payload };
 
     // Req 17.4 — open AI panel, set flag
     case 'OPEN_AI_PANEL':
@@ -186,6 +194,8 @@ interface AppContextValue {
   renameDocument: (title: string) => void;
   markSaved: (document: Document) => void;
   setSaveError: (err: IPCError | null) => void;
+  // Tab navigation (Req 1.1, 1.2, 1.3, 1.4)
+  setActiveTab: (tab: 'editor' | 'library') => void;
   // UI flag actions (Req 17.4, 17.5)
   openAIPanel: (selection: TextSelection) => void;
   closeAIPanel: () => void;
@@ -217,6 +227,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const renameDocument = useCallback((title: string) => {
     dispatch({ type: 'RENAME_DOCUMENT', payload: title });
+  }, []);
+
+  const setActiveTab = useCallback((tab: 'editor' | 'library') => {
+    dispatch({ type: 'SET_ACTIVE_TAB', payload: tab });
   }, []);
 
   const markSaved = useCallback((document: Document) => {
@@ -276,6 +290,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         renameDocument,
         markSaved,
         setSaveError,
+        setActiveTab,
         openAIPanel,
         closeAIPanel,
         openNegotiation,
