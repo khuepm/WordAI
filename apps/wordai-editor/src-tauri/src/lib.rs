@@ -8,10 +8,25 @@ pub mod pdf_export;
 pub mod preferences_store;
 pub mod sqlite_store;
 
-use models::{AISuggestion, AuraDocument, Document, DocumentSnapshot, IntentSummary, IPCError};
+use models::{AISuggestion, AuraDocument, CancellationToken, Document, DocumentSnapshot, IntentSummary, IPCError};
 use pdf_export::PDFExportOptions;
 use sqlite_store::SqliteStore;
 use tauri::Manager;
+
+// ── Export Cancellation State ─────────────────────────────────────────────────
+// Requirements: 28.3, 28.4
+
+/// Managed state holding the current export cancellation token.
+/// Replaced each time a new export starts; cleared when export completes.
+pub struct ExportCancelState {
+    pub token: std::sync::Mutex<Option<CancellationToken>>,
+}
+
+impl ExportCancelState {
+    pub fn new() -> Self {
+        Self { token: std::sync::Mutex::new(None) }
+    }
+}
 
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
@@ -150,16 +165,54 @@ async fn export_markdown(path: String, document: AuraDocument) -> Result<(), IPC
 
 /// Export an AuraDocument to a DOCX file at the given path.
 /// Calls docx_exporter::export (runs in spawn_blocking) and writes bytes to disk.
-/// Requirements: 6.3, 7.2, 7.3
+/// For large documents, emits `export-progress` events and supports cancellation.
+/// Requirements: 6.3, 7.2, 7.3, 28.1, 28.2, 28.3, 28.4
 #[tauri::command]
-async fn export_docx(path: String, document: AuraDocument) -> Result<(), IPCError> {
-    let bytes = docx_exporter::export(&document).await?;
+async fn export_docx(
+    app: tauri::AppHandle,
+    path: String,
+    document: AuraDocument,
+    cancel_state: tauri::State<'_, ExportCancelState>,
+) -> Result<(), IPCError> {
+    // Create a new cancellation token for this export
+    let token = CancellationToken::new();
+    {
+        let mut guard = cancel_state.token.lock().unwrap();
+        *guard = Some(token.clone());
+    }
+
+    let result = docx_exporter::export_with_progress(&document, app, token).await;
+
+    // Clear the token after export completes (success or failure)
+    {
+        let mut guard = cancel_state.token.lock().unwrap();
+        *guard = None;
+    }
+
+    let bytes = result?;
+
+    // If cancelled before write, the error was already returned above.
+    // Write the bytes to disk.
     tokio::fs::write(&path, &bytes)
         .await
         .map_err(|e| IPCError {
             code: "FILE_WRITE_ERROR".to_string(),
             message: format!("Cannot write DOCX file '{}': {}", path, e),
         })
+}
+
+/// Cancel the currently running DOCX export.
+/// Sets the cancellation token; the export worker will stop within 50 blocks.
+/// Requirements: 28.3, 28.4
+#[tauri::command]
+async fn cancel_export(
+    cancel_state: tauri::State<'_, ExportCancelState>,
+) -> Result<(), IPCError> {
+    let guard = cancel_state.token.lock().unwrap();
+    if let Some(token) = guard.as_ref() {
+        token.cancel();
+    }
+    Ok(())
 }
 
 /// Import a file (.md or .docx) and return the parsed document with optional Aura_Tag.

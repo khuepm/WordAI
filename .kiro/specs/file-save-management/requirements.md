@@ -405,3 +405,152 @@ Tính năng này mở rộng Requirement 2 (Auto-Save), Requirement 11 (Render D
 6. IF AuraBrain database initialization fails, THEN THE App SHALL show a blocking error state with retry and reveal diagnostics actions.
 7. THE App SHALL not use `wordai_last_document_path` as the primary restore key after AuraBrain migration is complete.
 8. THE app SHALL include tests for startup with last intent, startup with missing last intent, startup with empty database, database init failure, and fallback to most recent intent.
+
+
+---
+
+### Requirement 21: Large File Handling and Streaming Import
+
+**User Story:** Là một writer, tôi muốn import file DOCX lớn (>50MB) mà không bị crash, đợi quá lâu, hoặc làm đơ máy, để tôi có thể làm việc với documents phức tạp từ Microsoft Word.
+
+#### Acceptance Criteria
+
+1. WHEN user selects a file for import, THE Import_Module SHALL check file size before attempting to read the file.
+2. WHEN file size exceeds 50MB, THE Import_Module SHALL display a warning dialog showing file size in MB and estimated import time, with options to "Continue" or "Cancel".
+3. WHEN file size exceeds 100MB, THE Import_Module SHALL reject the import with an error dialog stating: "File quá lớn ({size}MB). WordAI hiện chỉ hỗ trợ file DOCX tối đa 100MB."
+4. WHEN importing a file > 10MB, THE Import_Module SHALL display a progress dialog with: current stage name, progress percentage (0-100), current block/total blocks, and estimated time remaining.
+5. WHEN importing DOCX, THE DOCX_Exporter SHALL read the file in chunks of 1MB to avoid loading the entire file into memory at once.
+6. WHEN parsing DOCX, THE DOCX_Exporter SHALL process XML nodes incrementally and emit DocumentBlock objects as they are parsed, rather than building the entire document tree in memory.
+7. WHEN import progress is displayed, THE Import_Module SHALL update progress through stages: "Reading file", "Parsing DOCX", "Converting blocks", "Saving to AuraBrain".
+8. WHEN saving imported content to AuraBrain, THE SQLite_Store SHALL batch-insert DocumentBlocks in groups of 100 blocks per transaction to avoid single massive transactions.
+9. WHEN user clicks "Cancel" in the progress dialog, THE Import_Module SHALL stop processing immediately, clean up partial data, and not create or update any Intent in AuraBrain.
+10. IF available system memory drops below 200MB during import, THEN THE Import_Module SHALL pause processing and display a memory warning dialog with options to "Continue" or "Cancel".
+11. WHEN import completes successfully, THE Import_Module SHALL close the progress dialog and proceed with normal Aura_Tag detection and conflict resolution flow.
+12. IF import fails due to memory exhaustion, file corruption, or parsing error, THEN THE Import_Module SHALL display a descriptive error message, clean up partial data, and not leave AuraBrain in an inconsistent state.
+13. THE Import_Module SHALL log import performance metrics (file size, parse time, memory peak) to help diagnose performance issues in production.
+14. THE app SHALL include property tests validating that import of files up to 50MB does not exceed 500MB peak memory usage.
+
+---
+
+### Requirement 22: Export Size Validation and Streaming
+
+**User Story:** Là một writer, tôi muốn export documents lớn ra DOCX mà không bị crash, để tôi có thể chia sẻ nội dung dài với người dùng Microsoft Word.
+
+#### Acceptance Criteria
+
+1. WHEN user triggers DOCX export, THE Export_Module SHALL estimate the output file size based on current document content length.
+2. WHEN estimated export size exceeds 50MB, THE Export_Module SHALL display a warning dialog showing estimated size and export time, with options to "Continue" or "Cancel".
+3. WHEN exporting a document with > 10,000 blocks, THE Export_Module SHALL display a progress dialog with: current stage, progress percentage, and estimated time remaining.
+4. WHEN generating DOCX, THE DOCX_Exporter SHALL write XML content incrementally to a file stream rather than building the entire DOCX in memory.
+5. WHEN export progress is displayed, THE Export_Module SHALL update progress through stages: "Preparing content", "Generating DOCX", "Writing file".
+6. WHEN user clicks "Cancel" in the export progress dialog, THE Export_Module SHALL stop processing immediately and delete the partial output file.
+7. IF export fails due to disk space, memory exhaustion, or serialization error, THEN THE Export_Module SHALL display a descriptive error message and delete the partial output file.
+8. THE Export_Module SHALL not create invalid or corrupted DOCX files; if generation fails partway, the output file SHALL be deleted.
+9. THE app SHALL include tests validating that export of documents with 10,000+ blocks does not exceed 500MB peak memory usage.
+
+---
+
+### Requirement 23: Memory Monitoring and Resource Limits
+
+**User Story:** Là một developer, tôi muốn hệ thống giám sát memory usage và áp dụng resource limits, để tránh crash và đảm bảo trải nghiệm ổn định cho người dùng.
+
+#### Acceptance Criteria
+
+1. THE Import_Module và Export_Module SHALL monitor current process memory usage during long-running operations.
+2. WHEN memory usage exceeds 80% of available system memory, THE system SHALL log a warning and consider pausing non-critical operations.
+3. WHEN memory usage exceeds 90% of available system memory, THE system SHALL pause import/export operations and display a memory warning dialog.
+4. THE system SHALL define maximum resource limits: max file size (100MB), max document blocks (50,000), max memory per operation (500MB).
+5. WHEN a document exceeds 50,000 blocks, THE system SHALL display a warning that performance may degrade and some features may be limited.
+6. THE SQLite_Store SHALL enforce a maximum `raw_content` size of 50MB per intent; attempts to sync larger content SHALL fail with a descriptive error.
+7. THE system SHALL include a diagnostic command (accessible via developer menu or command palette) that displays: current memory usage, AuraBrain database size, number of intents, and largest intent size.
+8. THE app SHALL include monitoring tests that simulate memory pressure and verify graceful degradation rather than crashes.
+
+---
+
+### Requirement 24: Import/Export Performance Optimization
+
+**User Story:** Là một writer, tôi muốn import/export hoàn tất nhanh chóng, để tôi không phải chờ đợi lâu khi làm việc với documents lớn.
+
+#### Acceptance Criteria
+
+1. WHEN importing DOCX, THE DOCX_Exporter SHALL use parallel processing for independent XML nodes where possible, utilizing multiple CPU cores.
+2. WHEN parsing DOCX, THE DOCX_Exporter SHALL skip parsing of unsupported elements (images, tables, comments) beyond extracting their type and creating Placeholder, to reduce processing time.
+3. WHEN converting DocumentBlocks, THE adapter SHALL use efficient string operations and avoid unnecessary string copies or allocations.
+4. WHEN saving to AuraBrain, THE SQLite_Store SHALL use prepared statements and batch inserts to minimize database round-trips.
+5. THE Import_Module SHALL cache parsed DOCX structure to avoid re-parsing if user cancels and retries import of the same file within the same session.
+6. THE Export_Module SHALL reuse DOCX templates and XML writers across multiple exports in the same session to reduce initialization overhead.
+7. THE system SHALL target import performance of: <5 seconds for 10MB files, <15 seconds for 50MB files, <60 seconds for 100MB files (on modern hardware).
+8. THE system SHALL target export performance of: <3 seconds for 1,000 blocks, <10 seconds for 10,000 blocks, <30 seconds for 50,000 blocks.
+9. THE app SHALL include performance benchmark tests that measure and report import/export times for various file sizes and block counts.
+
+
+---
+
+### Requirement 25: Large File Validation
+
+**User Story:** Là một writer, tôi muốn được cảnh báo khi chọn file quá lớn trước khi import, để tôi không bị crash ứng dụng hay đợi quá lâu mà không biết.
+
+#### Acceptance Criteria
+
+1. WHEN người dùng chọn file để import, THE Import_Module SHALL kiểm tra kích thước file trước khi bắt đầu đọc nội dung.
+2. WHEN kích thước file nằm trong khoảng từ 20MB đến 100MB, THE Import_Module SHALL hiển thị dialog cảnh báo thông báo kích thước file và thời gian ước tính, cho phép người dùng xác nhận hoặc hủy.
+3. WHEN kích thước file vượt quá 100MB, THE Import_Module SHALL từ chối import và hiển thị thông báo lỗi rõ ràng nêu giới hạn kích thước.
+4. WHEN người dùng hủy dialog cảnh báo kích thước, THE Import_Module SHALL không thực hiện bất kỳ thao tác đọc file nào.
+5. THE Import_Module SHALL hiển thị kích thước file theo định dạng thân thiện (ví dụ: "45.2 MB") trong dialog cảnh báo.
+6. WHEN file DOCX được chọn, THE Import_Module SHALL ước tính thời gian import dựa trên kích thước file (công thức: `ceil(size_mb / 5)` giây) và hiển thị trong dialog cảnh báo.
+7. THE Import_Module SHALL kiểm tra kích thước file bằng metadata (không đọc nội dung) để tránh tốn memory trước khi user xác nhận.
+
+---
+
+### Requirement 26: Import Progress Indicator
+
+**User Story:** Là một writer, tôi muốn thấy tiến trình import file lớn theo thời gian thực, để tôi biết ứng dụng đang hoạt động và ước tính được khi nào xong.
+
+#### Acceptance Criteria
+
+1. WHEN import file có kích thước lớn hơn 5MB, THE Import_Module SHALL hiển thị progress indicator trong suốt quá trình import.
+2. THE progress indicator SHALL hiển thị: giai đoạn hiện tại (`"Reading file..."`, `"Parsing document..."`, `"Converting blocks..."`, `"Saving to AuraBrain..."`), phần trăm hoàn thành (0–100%), và số block đã xử lý trên tổng số block ước tính.
+3. WHEN import hoàn tất, THE Import_Module SHALL tự động đóng progress indicator và hiển thị kết quả (thành công hoặc lỗi).
+4. THE progress indicator SHALL có nút "Cancel" cho phép người dùng hủy import đang diễn ra.
+5. WHEN người dùng nhấn Cancel trong progress indicator, THE Import_Module SHALL dừng xử lý ngay lập tức và dọn dẹp dữ liệu tạm thời.
+6. THE Import_Module SHALL emit progress events qua Tauri IPC event system để frontend có thể cập nhật UI mà không block main thread.
+7. WHEN import bị cancel, THE Import_Module SHALL không tạo hoặc cập nhật bất kỳ Intent nào trong AuraBrain.
+
+---
+
+### Requirement 27: Chunked DOCX Processing
+
+**User Story:** Là một developer, tôi muốn DOCX_Exporter xử lý file theo từng phần thay vì load toàn bộ vào memory, để ứng dụng không bị crash khi import file lớn.
+
+#### Acceptance Criteria
+
+1. WHEN import file DOCX, THE DOCX_Exporter SHALL đọc và parse file theo từng chunk thay vì load toàn bộ bytes vào memory cùng một lúc.
+2. THE DOCX_Exporter SHALL giới hạn memory sử dụng tối đa ở mức 3x kích thước file gốc trong suốt quá trình import.
+3. WHEN parse DOCX, THE DOCX_Exporter SHALL emit `ImportProgressEvent` sau mỗi 50 block được xử lý, bao gồm `blocks_processed`, `blocks_estimated`, và `stage`.
+4. THE DOCX_Exporter SHALL hỗ trợ cancellation token: khi token bị cancel, DOCX_Exporter SHALL dừng xử lý và trả về `Err(ImportCancelled)`.
+5. WHEN import bị cancel, THE DOCX_Exporter SHALL không để lại dữ liệu tạm thời trong memory hay filesystem.
+6. THE DOCX_Exporter SHALL lưu DocumentBlock vào AuraBrain theo batch 100 blocks mỗi transaction thay vì một transaction duy nhất cho toàn bộ document, để giảm memory peak.
+7. WHEN một batch ghi thất bại, THE DOCX_Exporter SHALL rollback batch đó và trả về lỗi, nhưng các batch đã ghi thành công trước đó SHALL được giữ nguyên (partial import với thông báo rõ ràng).
+
+---
+
+### Requirement 28: Export Progress for Large Documents
+
+**User Story:** Là một writer, tôi muốn thấy tiến trình khi export document lớn sang DOCX, để tôi biết quá trình đang diễn ra và không nhầm tưởng ứng dụng bị treo.
+
+#### Acceptance Criteria
+
+1. WHEN export DOCX cho document có hơn 500 block, THE Export_Module SHALL hiển thị progress indicator.
+2. THE progress indicator SHALL hiển thị phần trăm hoàn thành và giai đoạn hiện tại (`"Building document structure..."`, `"Writing DOCX file..."`).
+3. THE progress indicator SHALL có nút "Cancel" cho phép hủy export.
+4. WHEN export bị cancel, THE Export_Module SHALL xóa file DOCX tạm thời nếu đã tạo và không để lại file không hợp lệ.
+5. WHEN export hoàn tất thành công, THE Export_Module SHALL đóng progress indicator và hiển thị thông báo thành công kèm đường dẫn file đã xuất.
+
+---
+
+## Glossary (bổ sung)
+
+- **Import_Progress_Event**: Sự kiện Tauri IPC được emit trong quá trình import file lớn, chứa thông tin về giai đoạn hiện tại, phần trăm hoàn thành, và số block đã xử lý.
+- **Cancellation_Token**: Cơ chế `Arc<AtomicBool>` trong Rust cho phép frontend yêu cầu dừng một thao tác import/export đang diễn ra trên background thread.
+- **File_Size_Warning_Dialog**: Dialog cảnh báo hiển thị khi file import có kích thước từ 20MB đến 100MB, cho phép người dùng xác nhận hoặc hủy trước khi bắt đầu đọc file.
+- **Import_Progress_Dialog**: Dialog hiển thị tiến trình import file lớn (>5MB), bao gồm stage label, progress bar, block count, và nút Cancel.

@@ -668,3 +668,149 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
       - `cd apps/wordai-editor && npm run tauri -- build` → macOS `.app` and `.dmg` bundle build passed
     - Manual GUI QA script is documented in `manual-qa.md`; keep this gate unchecked until the script is run against the built app.
     - _Requirements: 19.9_
+
+---
+
+## Large File Handling
+
+- [ ] 28. Implement file size validation (Rust + TypeScript)
+  - [ ] 28.1 Thêm Tauri IPC command `get_file_size`
+    - Nhận `path: String`, trả về `u64` (bytes) dùng `std::fs::metadata`
+    - Không đọc nội dung file, chỉ đọc metadata
+    - Đăng ký command vào `tauri::Builder`
+    - _Requirements: 25.1, 25.7_
+
+  - [ ] 28.2 Tạo `src/components/FileSizeWarningDialog.tsx`
+    - Props: `isOpen`, `fileSizeMB: number`, `estimatedSeconds: number`, `onConfirm`, `onCancel`
+    - Hiển thị kích thước file theo định dạng "X.X MB"
+    - Hiển thị ước tính thời gian: `ceil(fileSizeMB / 5)` giây
+    - Hai nút: "Tiếp tục" và "Hủy"
+    - _Requirements: 25.2, 25.5, 25.6_
+
+  - [ ] 28.3 Tích hợp size check vào `exportService.importFile()`
+    - Sau khi user chọn file, gọi `get_file_size` trước khi gọi `import_file`
+    - Nếu > 100MB: hiển thị lỗi, return sớm
+    - Nếu 20-100MB: hiển thị `FileSizeWarningDialog`, chờ xác nhận
+    - Nếu < 20MB: tiếp tục import bình thường
+    - _Requirements: 25.1, 25.2, 25.3, 25.4_
+
+  - [ ] 28.4 Viết unit tests cho size validation
+    - Test: file > 100MB bị từ chối, không gọi `import_file`
+    - Test: file 20-100MB hiển thị warning dialog
+    - Test: user hủy warning dialog → không gọi `import_file`
+    - Test: user xác nhận warning dialog → gọi `import_file`
+    - Test: file < 20MB không hiển thị warning
+    - _Requirements: 25.1-25.7_
+
+- [ ] 29. Implement ImportProgressEvent và cancellation (Rust)
+  - [ ] 29.1 Định nghĩa `ImportProgressEvent` và `ImportStage` trong `src-tauri/src/models.rs`
+    - `ImportProgressEvent { stage: ImportStage, blocks_processed: usize, blocks_estimated: usize, percent: u8 }`
+    - `ImportStage`: `ReadingFile`, `ParsingDocument`, `ConvertingBlocks`, `SavingToAuraBrain`
+    - Derive `Serialize`, `Clone`
+    - _Requirements: 26.6, 27.3_
+
+  - [ ] 29.2 Implement `CancellationToken` trong `src-tauri/src/docx_exporter.rs`
+    - Dùng `Arc<AtomicBool>` để share giữa main thread và background worker
+    - Implement `new_cancellation_token()`, `cancel()`, `is_cancelled()`
+    - _Requirements: 26.4, 27.4_
+
+  - [ ] 29.3 Thêm `ImportCancelState` vào Tauri managed state
+    - `ImportCancelState { token: Mutex<Option<CancellationToken>> }`
+    - Implement `#[tauri::command] cancel_import` — set token thành cancelled
+    - Đăng ký state và command vào `tauri::Builder`
+    - _Requirements: 26.4, 26.5_
+
+  - [ ] 29.4 Cập nhật `docx_exporter::import` để nhận `app_handle` và `cancel_token`
+    - Emit `import-progress` event sau mỗi 50 blocks
+    - Check `is_cancelled()` sau mỗi 50 blocks, trả về `Err(IPCError::ImportCancelled)` nếu bị cancel
+    - Emit progress với stage `ReadingFile` → `ParsingDocument` → `ConvertingBlocks` → `SavingToAuraBrain`
+    - _Requirements: 26.6, 27.3, 27.4_
+
+  - [ ] 29.5 Cập nhật `#[tauri::command] import_file` để tạo và lưu cancel token
+    - Tạo `CancellationToken` mới trước khi gọi `docx_exporter::import`
+    - Lưu token vào `ImportCancelState`
+    - Xóa token khỏi state sau khi import hoàn tất (thành công hoặc thất bại)
+    - _Requirements: 26.4, 27.4_
+
+  - [ ] 29.6 Viết property test cho cancellation
+    - **Property: Cancellation Completeness — khi cancel token được set, import dừng trong vòng 50 blocks tiếp theo**
+    - **Validates: Requirements 26.5, 27.4, 27.5**
+
+  - [ ] 29.7 Viết property test cho progress monotonicity
+    - **Property: Progress Monotonicity — `blocks_processed` tăng đơn điệu, `percent` không giảm**
+    - **Validates: Requirements 26.2, 27.3**
+
+- [ ] 30. Implement ImportProgressDialog (TypeScript frontend)
+  - [ ] 30.1 Tạo `src/components/ImportProgressDialog.tsx`
+    - Props: `isOpen: boolean`, `progress: ImportProgressEvent | null`, `onCancel: () => void`
+    - Hiển thị stage label theo `ImportStage`
+    - Hiển thị progress bar (0-100%)
+    - Hiển thị block count: `"{blocks_processed} / ~{blocks_estimated} blocks"`
+    - Nút "Cancel" gọi `onCancel`
+    - _Requirements: 26.1, 26.2, 26.4_
+
+  - [ ] 30.2 Tích hợp progress listener vào `exportService.importFile()`
+    - Dùng `listen('import-progress', handler)` từ `@tauri-apps/api/event`
+    - Cập nhật `importProgress` state khi nhận event
+    - Unlisten khi import hoàn tất hoặc bị cancel
+    - _Requirements: 26.6_
+
+  - [ ] 30.3 Tích hợp `ImportProgressDialog` vào import flow
+    - Hiển thị dialog khi file > 5MB
+    - Khi user nhấn Cancel: gọi `invoke('cancel_import')`, đóng dialog
+    - Khi import hoàn tất: đóng dialog, hiển thị kết quả
+    - _Requirements: 26.1, 26.3, 26.4, 26.5, 26.7_
+
+  - [ ] 30.4 Viết unit tests cho ImportProgressDialog
+    - Test: hiển thị đúng stage label cho từng `ImportStage`
+    - Test: progress bar cập nhật theo `percent`
+    - Test: block count hiển thị đúng format
+    - Test: nút Cancel gọi `onCancel`
+    - _Requirements: 26.1, 26.2, 26.4_
+
+- [ ] 31. Implement batch SQLite write cho large documents (Rust)
+  - [ ] 31.1 Refactor `sqlite_store::upsert_intent` để hỗ trợ batch write
+    - Thêm method `upsert_intent_batched(doc: &Document, batch_size: usize)`
+    - Ghi `intent` metadata trong transaction đầu tiên
+    - Ghi chunks theo batch `batch_size` blocks mỗi transaction
+    - Emit progress event sau mỗi batch
+    - _Requirements: 27.6_
+
+  - [ ] 31.2 Xử lý partial import failure
+    - Nếu một batch ghi thất bại, rollback batch đó
+    - Trả về `PartialImportResult { blocks_saved: usize, error: IPCError }` thay vì fail toàn bộ
+    - Frontend hiển thị thông báo: "Import một phần: đã lưu {N} blocks. Lỗi: {error}"
+    - _Requirements: 27.7_
+
+  - [ ] 31.3 Viết property test cho batch write
+    - **Property: Batch Atomicity — nếu batch N thất bại, chỉ batch N bị rollback, các batch 1..N-1 vẫn còn**
+    - **Validates: Requirements 27.6, 27.7**
+
+- [-] 32. Implement export progress cho large documents (TypeScript + Rust)
+  - [-] 32.1 Thêm progress tracking vào `docx_exporter::export`
+    - Emit `export-progress` event sau mỗi 50 blocks được xử lý
+    - Emit stage: `BuildingStructure` → `WritingFile`
+    - _Requirements: 28.1, 28.2_
+
+  - [-] 32.2 Thêm cancellation support cho export
+    - Tương tự import: `ExportCancelState`, `cancel_export` command
+    - Check cancel token sau mỗi 50 blocks
+    - Nếu bị cancel: xóa file tạm thời nếu đã tạo
+    - _Requirements: 28.3, 28.4_
+
+  - [-] 32.3 Tích hợp export progress vào `exportService.exportDocx()`
+    - Hiển thị `ImportProgressDialog` (tái sử dụng component) khi document > 500 blocks
+    - Lắng nghe `export-progress` event
+    - Khi cancel: gọi `cancel_export`
+    - _Requirements: 28.1, 28.3_
+
+  - [ ] 32.4 Viết unit tests cho export progress
+    - Test: document > 500 blocks hiển thị progress dialog
+    - Test: document ≤ 500 blocks không hiển thị progress dialog
+    - Test: cancel export xóa file tạm thời
+    - _Requirements: 28.1, 28.3, 28.4_
+
+- [ ] 33. Checkpoint — Large File Handling hoàn chỉnh
+  - Đảm bảo tất cả tests pass cho tasks 28-32
+  - Kiểm tra thủ công với file DOCX 5MB, 25MB, và 50MB (nếu có)
+  - Đảm bảo cancel hoạt động đúng ở mọi giai đoạn import/export

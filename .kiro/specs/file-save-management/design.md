@@ -1193,3 +1193,913 @@ Known current blockers that completion tasks must address:
 *Với mọi* document dirty hoặc clean, export Markdown/DOCX thành công không được thay đổi Dirty_Bit, `lastSyncedHash`, `lastSyncedAt`, hoặc `version` trong AuraBrain.
 
 **Validates: Requirements 6.5, 7.5, 18.1-18.6**
+
+
+---
+
+## Large File Handling Design
+
+### Overview
+
+WordAI cần xử lý file DOCX lớn (50-100MB) mà không crash, không làm đơ UI, và cung cấp feedback rõ ràng cho người dùng. Thiết kế này bổ sung streaming import/export, progress tracking, memory monitoring, và resource limits.
+
+### Architecture for Large Files
+
+```mermaid
+graph TB
+    subgraph "Frontend - React"
+        UI[Import/Export UI]
+        PD[ProgressDialog]
+        WD[WarningDialog]
+        MM[MemoryMonitor]
+    end
+    
+    subgraph "Tauri IPC"
+        IPC[IPC Commands]
+        Events[Progress Events]
+    end
+    
+    subgraph "Backend - Rust"
+        FV[FileValidator]
+        SR[StreamReader]
+        SP[StreamParser]
+        SW[StreamWriter]
+        MM_BE[MemoryMonitor]
+        BS[BatchSaver]
+    end
+    
+    subgraph "Storage"
+        FS[File System]
+        DB[AuraBrain SQLite]
+    end
+    
+    UI --> FV
+    FV --> WD
+    UI --> SR
+    SR --> SP
+    SP --> Events
+    Events --> PD
+    SP --> BS
+    BS --> DB
+    SW --> FS
+    MM_BE --> MM
+```
+
+### Streaming Import Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Import UI
+    participant FV as FileValidator
+    participant SR as StreamReader
+    participant SP as StreamParser
+    participant PD as ProgressDialog
+    participant BS as BatchSaver
+    participant DB as AuraBrain
+
+    User->>UI: Select DOCX file
+    UI->>FV: validate_file_size(path)
+    
+    alt File > 100MB
+        FV-->>UI: Error: File too large
+        UI->>User: Show error dialog
+    else File > 50MB
+        FV-->>UI: Warning: Large file
+        UI->>User: Show warning dialog
+        User->>UI: Click "Continue" or "Cancel"
+        alt Cancel
+            UI->>User: Abort import
+        end
+    end
+    
+    UI->>PD: Show progress dialog
+    UI->>SR: import_file_streaming(path)
+    
+    loop For each 1MB chunk
+        SR->>SP: parse_chunk(bytes)
+        SP->>SP: Extract DocumentBlocks
+        SP->>PD: emit_progress(stage, %, blocks)
+        PD->>User: Update progress UI
+        
+        alt Every 100 blocks
+            SP->>BS: batch_save(blocks)
+            BS->>DB: INSERT transaction
+        end
+        
+        alt User clicks Cancel
+            User->>PD: Click Cancel
+            PD->>SR: cancel_import()
+            SR->>BS: rollback_partial()
+            BS->>DB: DELETE partial data
+            SR-->>UI: Cancelled
+            UI->>PD: Close dialog
+        end
+    end
+    
+    SR-->>UI: ImportResult
+    UI->>PD: Close dialog
+    UI->>User: Show success or warnings
+```
+
+### Components and Interfaces
+
+#### FileValidator (Rust)
+
+```rust
+// src-tauri/src/file_validator.rs
+
+pub struct FileValidator;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileSizeInfo {
+    pub size_bytes: u64,
+    pub size_mb: f64,
+    pub estimated_import_time_seconds: u64,
+}
+
+impl FileValidator {
+    /// Check file size and return info for UI warnings
+    pub async fn validate_file_size(path: &str) -> Result<FileSizeInfo, IPCError> {
+        let metadata = tokio::fs::metadata(path).await?;
+        let size_bytes = metadata.len();
+        let size_mb = size_bytes as f64 / (1024.0 * 1024.0);
+        
+        // Estimate: ~2 seconds per 10MB
+        let estimated_import_time_seconds = (size_mb / 10.0 * 2.0).ceil() as u64;
+        
+        Ok(FileSizeInfo {
+            size_bytes,
+            size_mb,
+            estimated_import_time_seconds,
+        })
+    }
+    
+    /// Validate file size against limits
+    pub fn check_size_limits(size_mb: f64) -> Result<SizeWarningLevel, IPCError> {
+        if size_mb > 100.0 {
+            Err(IPCError::FileTooLarge {
+                size_mb,
+                max_mb: 100.0,
+            })
+        } else if size_mb > 50.0 {
+            Ok(SizeWarningLevel::Warning)
+        } else if size_mb > 10.0 {
+            Ok(SizeWarningLevel::Info)
+        } else {
+            Ok(SizeWarningLevel::None)
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SizeWarningLevel {
+    None,
+    Info,      // > 10MB: show progress
+    Warning,   // > 50MB: show warning dialog
+}
+```
+
+#### StreamingDocxImporter (Rust)
+
+```rust
+// src-tauri/src/streaming_docx_importer.rs
+
+use tokio::io::{AsyncReadExt, BufReader};
+use tokio::fs::File;
+
+pub struct StreamingDocxImporter {
+    reader: BufReader<File>,
+    chunk_size: usize,
+    total_bytes: u64,
+    bytes_read: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImportProgress {
+    pub stage: ImportStage,
+    pub progress_percent: u8,  // 0-100
+    pub current_block: usize,
+    pub total_blocks: Option<usize>,
+    pub estimated_time_remaining_seconds: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ImportStage {
+    ReadingFile,
+    ParsingDocx,
+    ConvertingBlocks,
+    SavingToAurabrain,
+}
+
+impl StreamingDocxImporter {
+    pub async fn new(path: &str) -> Result<Self, IPCError> {
+        let file = File::open(path).await?;
+        let metadata = file.metadata().await?;
+        let total_bytes = metadata.len();
+        
+        let reader = BufReader::with_capacity(1024 * 1024, file); // 1MB buffer
+        
+        Ok(Self {
+            reader,
+            chunk_size: 1024 * 1024, // 1MB chunks
+            total_bytes,
+            bytes_read: 0,
+        })
+    }
+    
+    /// Import file with progress callbacks
+    pub async fn import_with_progress<F>(
+        &mut self,
+        progress_callback: F,
+    ) -> Result<ImportResult, IPCError>
+    where
+        F: Fn(ImportProgress) + Send + 'static,
+    {
+        let mut blocks = Vec::new();
+        let mut buffer = vec![0u8; self.chunk_size];
+        
+        // Stage 1: Reading file
+        progress_callback(ImportProgress {
+            stage: ImportStage::ReadingFile,
+            progress_percent: 0,
+            current_block: 0,
+            total_blocks: None,
+            estimated_time_remaining_seconds: 0,
+        });
+        
+        let mut file_bytes = Vec::new();
+        loop {
+            let n = self.reader.read(&mut buffer).await?;
+            if n == 0 {
+                break;
+            }
+            
+            file_bytes.extend_from_slice(&buffer[..n]);
+            self.bytes_read += n as u64;
+            
+            let progress = (self.bytes_read as f64 / self.total_bytes as f64 * 100.0) as u8;
+            progress_callback(ImportProgress {
+                stage: ImportStage::ReadingFile,
+                progress_percent: progress,
+                current_block: 0,
+                total_blocks: None,
+                estimated_time_remaining_seconds: 0,
+            });
+        }
+        
+        // Stage 2: Parsing DOCX
+        progress_callback(ImportProgress {
+            stage: ImportStage::ParsingDocx,
+            progress_percent: 0,
+            current_block: 0,
+            total_blocks: None,
+            estimated_time_remaining_seconds: 0,
+        });
+        
+        let parse_result = tokio::task::spawn_blocking(move || {
+            docx_parser::parse_incremental(&file_bytes, |block_index, total| {
+                // Emit progress during parsing
+                let progress = (block_index as f64 / total as f64 * 100.0) as u8;
+                progress_callback(ImportProgress {
+                    stage: ImportStage::ParsingDocx,
+                    progress_percent: progress,
+                    current_block: block_index,
+                    total_blocks: Some(total),
+                    estimated_time_remaining_seconds: 0,
+                });
+            })
+        }).await??;
+        
+        Ok(parse_result)
+    }
+}
+```
+
+#### BatchSaver (Rust)
+
+```rust
+// src-tauri/src/batch_saver.rs
+
+pub struct BatchSaver {
+    conn: Arc<Mutex<Connection>>,
+    batch_size: usize,
+}
+
+impl BatchSaver {
+    pub fn new(conn: Arc<Mutex<Connection>>) -> Self {
+        Self {
+            conn,
+            batch_size: 100, // Save 100 blocks per transaction
+        }
+    }
+    
+    /// Save document blocks in batches to avoid huge transactions
+    pub async fn save_in_batches(
+        &self,
+        intent_id: &str,
+        blocks: Vec<DocumentBlock>,
+    ) -> Result<(), IPCError> {
+        let total_blocks = blocks.len();
+        
+        for (batch_index, chunk) in blocks.chunks(self.batch_size).enumerate() {
+            let conn = self.conn.lock().await;
+            let tx = conn.transaction()?;
+            
+            for (i, block) in chunk.iter().enumerate() {
+                let chunk_index = batch_index * self.batch_size + i;
+                tx.execute(
+                    "INSERT INTO intent_chunks (id, document_id, chunk_index, chunk_text) 
+                     VALUES (?1, ?2, ?3, ?4)",
+                    params![
+                        Uuid::new_v4().to_string(),
+                        intent_id,
+                        chunk_index,
+                        serde_json::to_string(block)?,
+                    ],
+                )?;
+            }
+            
+            tx.commit()?;
+            
+            // Yield to allow cancellation checks
+            tokio::task::yield_now().await;
+        }
+        
+        Ok(())
+    }
+}
+```
+
+#### ProgressDialog (React Component)
+
+```typescript
+// src/components/ProgressDialog.tsx
+
+interface ProgressDialogProps {
+  isOpen: boolean;
+  title: string;
+  stage: ImportStage;
+  progressPercent: number;
+  currentBlock: number;
+  totalBlocks: number | null;
+  estimatedTimeRemaining: number; // seconds
+  onCancel: () => void;
+}
+
+export function ProgressDialog(props: ProgressDialogProps) {
+  const stageLabels: Record<ImportStage, string> = {
+    reading_file: 'Đang đọc file...',
+    parsing_docx: 'Đang phân tích DOCX...',
+    converting_blocks: 'Đang chuyển đổi nội dung...',
+    saving_to_aurabrain: 'Đang lưu vào AuraBrain...',
+  };
+  
+  return (
+    <Dialog open={props.isOpen} onClose={() => {}}>
+      <DialogTitle>{props.title}</DialogTitle>
+      <DialogContent>
+        <Box sx={{ width: '100%', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {stageLabels[props.stage]}
+          </Typography>
+          
+          <LinearProgress 
+            variant="determinate" 
+            value={props.progressPercent} 
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              {props.progressPercent}%
+            </Typography>
+            
+            {props.totalBlocks && (
+              <Typography variant="caption" color="text.secondary">
+                {props.currentBlock} / {props.totalBlocks} blocks
+              </Typography>
+            )}
+          </Box>
+          
+          {props.estimatedTimeRemaining > 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+              Còn khoảng {props.estimatedTimeRemaining}s
+            </Typography>
+          )}
+        </Box>
+        
+        <Button 
+          onClick={props.onCancel}
+          variant="outlined"
+          color="error"
+          fullWidth
+        >
+          Hủy
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+#### MemoryMonitor (Rust)
+
+```rust
+// src-tauri/src/memory_monitor.rs
+
+use sysinfo::{System, SystemExt};
+
+pub struct MemoryMonitor {
+    system: System,
+    warning_threshold_percent: f64,  // 80%
+    critical_threshold_percent: f64, // 90%
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MemoryStatus {
+    pub used_mb: u64,
+    pub available_mb: u64,
+    pub total_mb: u64,
+    pub usage_percent: f64,
+    pub level: MemoryLevel,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum MemoryLevel {
+    Normal,
+    Warning,   // > 80%
+    Critical,  // > 90%
+}
+
+impl MemoryMonitor {
+    pub fn new() -> Self {
+        Self {
+            system: System::new_all(),
+            warning_threshold_percent: 80.0,
+            critical_threshold_percent: 90.0,
+        }
+    }
+    
+    pub fn check_memory(&mut self) -> MemoryStatus {
+        self.system.refresh_memory();
+        
+        let total = self.system.total_memory();
+        let available = self.system.available_memory();
+        let used = total - available;
+        
+        let usage_percent = (used as f64 / total as f64) * 100.0;
+        
+        let level = if usage_percent >= self.critical_threshold_percent {
+            MemoryLevel::Critical
+        } else if usage_percent >= self.warning_threshold_percent {
+            MemoryLevel::Warning
+        } else {
+            MemoryLevel::Normal
+        };
+        
+        MemoryStatus {
+            used_mb: used / 1024 / 1024,
+            available_mb: available / 1024 / 1024,
+            total_mb: total / 1024 / 1024,
+            usage_percent,
+            level,
+        }
+    }
+    
+    pub fn should_pause_operation(&mut self) -> bool {
+        let status = self.check_memory();
+        status.level == MemoryLevel::Critical
+    }
+}
+```
+
+### IPC Commands for Large Files
+
+```rust
+// src-tauri/src/commands.rs
+
+#[tauri::command]
+async fn validate_import_file_size(
+    path: String,
+) -> Result<FileSizeInfo, IPCError> {
+    FileValidator::validate_file_size(&path).await
+}
+
+#[tauri::command]
+async fn import_file_streaming(
+    path: String,
+    window: tauri::Window,
+) -> Result<ImportResult, IPCError> {
+    let mut importer = StreamingDocxImporter::new(&path).await?;
+    
+    let result = importer.import_with_progress(move |progress| {
+        // Emit progress event to frontend
+        window.emit("import-progress", progress).ok();
+    }).await?;
+    
+    Ok(result)
+}
+
+#[tauri::command]
+fn get_memory_status() -> Result<MemoryStatus, IPCError> {
+    let mut monitor = MemoryMonitor::new();
+    Ok(monitor.check_memory())
+}
+
+#[tauri::command]
+fn get_resource_limits() -> ResourceLimits {
+    ResourceLimits {
+        max_file_size_mb: 100,
+        max_document_blocks: 50_000,
+        max_memory_per_operation_mb: 500,
+        max_raw_content_size_mb: 50,
+    }
+}
+```
+
+### Frontend Import Flow with Size Validation
+
+```typescript
+// src/services/importService.ts
+
+export class ImportService {
+  async importFile(): Promise<void> {
+    // Step 1: Select file
+    const filePath = await dialog.open({
+      filters: [
+        { name: 'Documents', extensions: ['md', 'docx'] }
+      ]
+    });
+    
+    if (!filePath) return;
+    
+    // Step 2: Validate file size
+    const sizeInfo = await invoke<FileSizeInfo>(
+      'validate_import_file_size',
+      { path: filePath }
+    );
+    
+    // Step 3: Show warning for large files
+    if (sizeInfo.size_mb > 100) {
+      await dialog.message(
+        `File quá lớn (${sizeInfo.size_mb.toFixed(1)}MB). ` +
+        `WordAI hiện chỉ hỗ trợ file DOCX tối đa 100MB.`,
+        { type: 'error', title: 'File quá lớn' }
+      );
+      return;
+    }
+    
+    if (sizeInfo.size_mb > 50) {
+      const confirmed = await dialog.confirm(
+        `File này có kích thước ${sizeInfo.size_mb.toFixed(1)}MB.\n\n` +
+        `Import có thể mất khoảng ${sizeInfo.estimated_import_time_seconds}s ` +
+        `và tiêu tốn nhiều RAM.\n\nBạn có muốn tiếp tục?`,
+        { type: 'warning', title: 'File lớn' }
+      );
+      
+      if (!confirmed) return;
+    }
+    
+    // Step 4: Show progress dialog for files > 10MB
+    const showProgress = sizeInfo.size_mb > 10;
+    let progressDialog: ProgressDialogHandle | null = null;
+    
+    if (showProgress) {
+      progressDialog = showProgressDialog({
+        title: 'Đang import file...',
+        onCancel: () => {
+          // TODO: Implement cancellation
+        }
+      });
+    }
+    
+    // Step 5: Listen to progress events
+    const unlisten = await listen<ImportProgress>('import-progress', (event) => {
+      if (progressDialog) {
+        progressDialog.update(event.payload);
+      }
+    });
+    
+    try {
+      // Step 6: Import with streaming
+      const result = await invoke<ImportResult>('import_file_streaming', {
+        path: filePath
+      });
+      
+      // Step 7: Handle result
+      if (result.warnings.length > 0) {
+        await dialog.message(
+          `Import thành công nhưng có cảnh báo:\n\n` +
+          result.warnings.join('\n'),
+          { type: 'warning', title: 'Import hoàn tất' }
+        );
+      }
+      
+      // Continue with Aura_Tag detection...
+      
+    } catch (error) {
+      await dialog.message(
+        `Import thất bại: ${error}`,
+        { type: 'error', title: 'Lỗi import' }
+      );
+    } finally {
+      unlisten();
+      progressDialog?.close();
+    }
+  }
+}
+```
+
+### Resource Limits Configuration
+
+```typescript
+// src/constants/resourceLimits.ts
+
+export const RESOURCE_LIMITS = {
+  MAX_FILE_SIZE_MB: 100,
+  MAX_DOCUMENT_BLOCKS: 50_000,
+  MAX_MEMORY_PER_OPERATION_MB: 500,
+  MAX_RAW_CONTENT_SIZE_MB: 50,
+  
+  // Progress thresholds
+  SHOW_PROGRESS_THRESHOLD_MB: 10,
+  SHOW_WARNING_THRESHOLD_MB: 50,
+  
+  // Performance targets
+  TARGET_IMPORT_TIME_PER_10MB_SECONDS: 5,
+  TARGET_EXPORT_TIME_PER_1000_BLOCKS_SECONDS: 3,
+} as const;
+```
+
+### Error Handling for Large Files
+
+| Tình huống | Hành vi |
+|-----------|---------|
+| File > 100MB | Reject ngay với error dialog, không attempt import |
+| File 50-100MB | Show warning dialog, cho phép user cancel hoặc continue |
+| Memory > 90% during import | Pause operation, show memory warning dialog |
+| User cancels import | Stop immediately, rollback partial data, clean up |
+| Import timeout (>5 minutes) | Cancel automatically, show timeout error |
+| Disk space insufficient | Fail gracefully, show disk space error |
+| DOCX corrupted | Fail with descriptive error, don't create partial intent |
+
+### Testing Strategy for Large Files
+
+#### Unit Tests
+
+- `FileValidator`: validate size limits, estimate import time
+- `StreamingDocxImporter`: read chunks, emit progress events
+- `BatchSaver`: save in batches, handle transaction failures
+- `MemoryMonitor`: detect memory levels, trigger warnings
+
+#### Integration Tests
+
+- Import 10MB file: verify < 5s, < 100MB memory
+- Import 50MB file: verify < 15s, < 500MB memory
+- Import with cancellation: verify clean rollback
+- Import with memory pressure: verify graceful pause
+
+#### Property Tests
+
+```typescript
+// Feature: file-save-management, Property 16: Import Memory Bound
+// Với mọi file DOCX hợp lệ có size <= 50MB, 
+// peak memory usage trong quá trình import phải <= 500MB
+fc.assert(
+  fc.property(
+    fc.integer({ min: 1, max: 50 }), // file size in MB
+    async (sizeMB) => {
+      const testFile = generateTestDocx(sizeMB);
+      const memoryBefore = getMemoryUsage();
+      
+      await importFileStreaming(testFile);
+      
+      const memoryPeak = getMemoryPeak();
+      const memoryUsed = memoryPeak - memoryBefore;
+      
+      expect(memoryUsed).toBeLessThan(500 * 1024 * 1024); // 500MB
+    }
+  ),
+  { numRuns: 20 }
+);
+```
+
+### Additional Correctness Properties
+
+### Property 16: Import Memory Bound
+
+*Với mọi* file DOCX hợp lệ có size <= 50MB, peak memory usage trong quá trình import phải <= 500MB.
+
+**Validates: Requirements 21.14, 23.8**
+
+---
+
+### Property 17: Import Cancellation Cleanup
+
+*Với mọi* import operation bị cancel giữa chừng, AuraBrain không được chứa partial intent data và file system không được chứa temporary files.
+
+**Validates: Requirements 21.9, 21.12**
+
+---
+
+### Property 18: Progress Monotonicity
+
+*Với mọi* import/export operation, progress percentage phải tăng đơn điệu từ 0 đến 100, không được giảm hoặc nhảy cóc.
+
+**Validates: Requirements 21.4, 21.7, 22.3, 22.5**
+
+---
+
+### Property 19: Batch Save Atomicity
+
+*Với mọi* batch save operation thất bại giữa chừng, các batches đã commit trước đó phải được giữ nguyên, và batch đang xử lý phải được rollback hoàn toàn.
+
+**Validates: Requirements 21.8, 23.4**
+
+---
+
+### Property 20: Export Size Estimation Accuracy
+
+*Với mọi* document, estimated export size phải trong khoảng ±20% của actual export size.
+
+**Validates: Requirements 22.1, 22.2**
+
+
+
+---
+
+## Large File Handling (Bổ sung)
+
+### Giới hạn kích thước và chiến lược xử lý
+
+| Kích thước file | Chiến lược |
+|---|---|
+| < 5MB | Import trực tiếp, không cần progress indicator |
+| 5MB – 20MB | Import với progress indicator, không cần cảnh báo |
+| 20MB – 100MB | Hiển thị cảnh báo + ước tính thời gian, progress indicator bắt buộc |
+| > 100MB | Từ chối, hiển thị lỗi rõ ràng |
+
+### ImportProgressEvent (Tauri Event)
+
+```rust
+// src-tauri/src/docx_exporter.rs
+
+#[derive(Debug, Serialize, Clone)]
+pub struct ImportProgressEvent {
+    pub stage: ImportStage,
+    pub blocks_processed: usize,
+    pub blocks_estimated: usize,
+    pub percent: u8,  // 0-100
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ImportStage {
+    ReadingFile,
+    ParsingDocument,
+    ConvertingBlocks,
+    SavingToAuraBrain,
+}
+```
+
+Frontend lắng nghe event:
+```typescript
+// src/services/exportService.ts
+import { listen } from '@tauri-apps/api/event';
+
+const unlisten = await listen<ImportProgressEvent>('import-progress', (event) => {
+  setImportProgress(event.payload);
+});
+```
+
+### Cancellation Token (Rust)
+
+```rust
+// src-tauri/src/docx_exporter.rs
+
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+pub type CancellationToken = Arc<AtomicBool>;
+
+pub fn new_cancellation_token() -> CancellationToken {
+    Arc::new(AtomicBool::new(false))
+}
+
+pub fn cancel(token: &CancellationToken) {
+    token.store(true, Ordering::SeqCst);
+}
+
+pub fn is_cancelled(token: &CancellationToken) -> bool {
+    token.load(Ordering::SeqCst)
+}
+```
+
+Trong `import()`:
+```rust
+pub async fn import(
+    bytes: &[u8],
+    app_handle: &AppHandle,
+    cancel_token: CancellationToken,
+) -> Result<ImportResult, IPCError> {
+    // Mỗi 50 blocks, check cancel token
+    if is_cancelled(&cancel_token) {
+        return Err(IPCError::ImportCancelled);
+    }
+    // Emit progress event
+    app_handle.emit("import-progress", ImportProgressEvent { ... })?;
+    // ...
+}
+```
+
+### IPC Commands bổ sung
+
+```rust
+// Lưu active cancel token trong Tauri state
+#[tauri::command]
+async fn cancel_import(
+    state: State<'_, ImportCancelState>,
+) -> Result<(), IPCError>;
+
+// Kiểm tra kích thước file trước khi import
+#[tauri::command]
+async fn get_file_size(path: String) -> Result<u64, IPCError>;
+```
+
+### ImportProgressDialog (React Component)
+
+```typescript
+// src/components/ImportProgressDialog.tsx
+
+interface ImportProgressDialogProps {
+  isOpen: boolean;
+  progress: ImportProgressEvent | null;
+  onCancel: () => void;
+}
+
+// Hiển thị:
+// - Stage label: "Reading file...", "Parsing document...", etc.
+// - Progress bar: 0-100%
+// - Block count: "1,234 / ~5,000 blocks"
+// - Cancel button
+```
+
+### FileSizeWarningDialog (React Component)
+
+```typescript
+// src/components/FileSizeWarningDialog.tsx
+
+interface FileSizeWarningDialogProps {
+  isOpen: boolean;
+  fileSizeMB: number;
+  estimatedSeconds: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+// Hiển thị:
+// - "File này có kích thước {fileSizeMB} MB"
+// - "Ước tính thời gian import: ~{estimatedSeconds} giây"
+// - "Tiếp tục" và "Hủy" buttons
+```
+
+### Cập nhật Error Handling
+
+Các tình huống bổ sung cho large file handling:
+
+| Tình huống | Hành vi |
+|---|---|
+| File import > 100MB | Từ chối ngay, hiển thị lỗi "File quá lớn (>100MB). Giới hạn hiện tại là 100MB." |
+| File import 20-100MB | Hiển thị FileSizeWarningDialog với kích thước và ước tính thời gian |
+| Import bị cancel | Dừng xử lý, dọn dẹp memory, không tạo/cập nhật Intent |
+| Memory vượt 3x file size | Log warning, tiếp tục nhưng emit cảnh báo qua IPC |
+| Batch ghi thất bại | Rollback batch, trả về partial import error với số block đã lưu |
+
+### Correctness Properties bổ sung (Large File Handling)
+
+---
+
+### Property 21: File Size Rejection
+
+*Với mọi* file có kích thước > 100MB, `Import_Module` phải từ chối và trả về lỗi mà không đọc nội dung file.
+
+**Validates: Requirements 25.3, 25.7**
+
+---
+
+### Property 22: Cancellation Completeness
+
+*Với mọi* import đang diễn ra, khi cancel token được kích hoạt, `DOCX_Exporter` phải dừng xử lý trong vòng 50 blocks tiếp theo và không để lại dữ liệu tạm thời.
+
+**Validates: Requirements 26.5, 27.4, 27.5**
+
+---
+
+### Property 23: Progress Monotonicity (Large File)
+
+*Với mọi* chuỗi `ImportProgressEvent` được emit trong một lần import, `blocks_processed` phải tăng đơn điệu và `percent` phải không giảm.
+
+**Validates: Requirements 26.2, 27.3**

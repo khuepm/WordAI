@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+// Initialize i18n so components using useTranslation() render real strings in tests
+import './i18n/index';
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

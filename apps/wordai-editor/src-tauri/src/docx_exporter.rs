@@ -4,13 +4,17 @@
 /// import: DOCX bytes → Document, extracts AuraIntentId from Custom Document Properties
 ///
 /// Requirements: 7.2, 7.3, 7.4, 7.8, 7.9, 8.3, 8.10, 11.2, 11.5
+/// Export progress: Requirements 28.1, 28.2, 28.3, 28.4
 use chrono::Utc;
 use docx_rs::{
     AbstractNumbering, Docx, IndentLevel, Level, LevelJc, LevelText, NumberFormat,
     Numbering, NumberingId, Paragraph, Run, RunFonts, Start,
 };
 
-use crate::models::{AuraDocument, DocumentBlock, DocxPlaceholder, ImportResult, InlineSpan, IPCError};
+use crate::models::{
+    AuraDocument, CancellationToken, DocumentBlock, DocxPlaceholder, ExportProgressEvent,
+    ExportStage, ImportResult, InlineSpan, IPCError,
+};
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
@@ -20,8 +24,10 @@ use crate::models::{AuraDocument, DocumentBlock, DocxPlaceholder, ImportResult, 
 /// - Embeds Aura_Tag into Custom Document Properties via `doc_props.custom_property()`:
 ///   `AuraIntentId` = intent UUID, `AuraExportedAt` = ISO 8601 timestamp.
 /// - Runs in `tokio::task::spawn_blocking` to avoid blocking the async runtime.
+/// - Emits `export-progress` events via `app_handle` if provided.
+/// - Checks `cancel_token` after every 50 blocks; returns Err if cancelled.
 ///
-/// Requirements: 7.2, 7.3, 7.4, 7.8, 7.9
+/// Requirements: 7.2, 7.3, 7.4, 7.8, 7.9, 28.1, 28.2, 28.3, 28.4
 pub async fn export(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
     let doc_clone = doc.clone();
     tokio::task::spawn_blocking(move || export_sync(&doc_clone))
@@ -32,9 +38,65 @@ pub async fn export(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
         })?
 }
 
+/// Export with progress tracking and cancellation support.
+/// Emits `export-progress` Tauri events and checks the cancel token every 50 blocks.
+///
+/// Requirements: 28.1, 28.2, 28.3, 28.4
+pub async fn export_with_progress(
+    doc: &AuraDocument,
+    app_handle: tauri::AppHandle,
+    cancel_token: CancellationToken,
+) -> Result<Vec<u8>, IPCError> {
+    let doc_clone = doc.clone();
+    let cancel_clone = cancel_token.clone();
+    let app_clone = app_handle.clone();
+
+    tokio::task::spawn_blocking(move || {
+        export_sync_with_progress(&doc_clone, &app_clone, &cancel_clone)
+    })
+    .await
+    .map_err(|e| IPCError {
+        code: "SPAWN_ERROR".to_string(),
+        message: format!("DOCX export task panicked: {e}"),
+    })?
+}
+
 /// Synchronous core of the export — called inside spawn_blocking.
 pub(crate) fn export_sync(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
+    export_sync_with_progress(doc, &NoopEmitter, &CancellationToken::new())
+}
+
+/// Trait for emitting progress events — allows testable no-op in unit tests.
+pub(crate) trait ProgressEmitter: Send + Sync {
+    fn emit_export_progress(&self, event: &ExportProgressEvent);
+}
+
+/// No-op emitter used when no app handle is available (unit tests, simple export).
+pub(crate) struct NoopEmitter;
+impl ProgressEmitter for NoopEmitter {
+    fn emit_export_progress(&self, _event: &ExportProgressEvent) {}
+}
+
+/// Tauri app handle emitter — emits real Tauri events.
+impl ProgressEmitter for tauri::AppHandle {
+    fn emit_export_progress(&self, event: &ExportProgressEvent) {
+        use tauri::Emitter;
+        let _ = self.emit("export-progress", event);
+    }
+}
+
+/// Synchronous core of the export with progress tracking and cancellation.
+/// Emits `export-progress` events every 50 blocks.
+/// Returns `Err` with code `EXPORT_CANCELLED` if the cancel token is set.
+///
+/// Requirements: 28.1, 28.2, 28.3, 28.4
+pub(crate) fn export_sync_with_progress(
+    doc: &AuraDocument,
+    emitter: &impl ProgressEmitter,
+    cancel_token: &CancellationToken,
+) -> Result<Vec<u8>, IPCError> {
     let exported_at = Utc::now().to_rfc3339();
+    let total_blocks = doc.content.len();
 
     // Add a bullet list numbering definition (abstract + concrete)
     let abstract_num = AbstractNumbering::new(1).add_level(
@@ -56,7 +118,33 @@ pub(crate) fn export_sync(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
         .add_abstract_numbering(abstract_num)
         .add_numbering(numbering);
 
-    for block in &doc.content {
+    // Emit initial progress — BuildingStructure stage
+    emitter.emit_export_progress(&ExportProgressEvent {
+        stage: ExportStage::BuildingStructure,
+        blocks_processed: 0,
+        blocks_total: total_blocks,
+        percent: 0,
+    });
+
+    for (idx, block) in doc.content.iter().enumerate() {
+        // Check cancellation every 50 blocks — Requirements 28.3, 28.4
+        if idx > 0 && idx % 50 == 0 {
+            if cancel_token.is_cancelled() {
+                return Err(IPCError {
+                    code: "EXPORT_CANCELLED".to_string(),
+                    message: "Export was cancelled by the user".to_string(),
+                });
+            }
+            // Emit progress event — Requirements 28.1, 28.2
+            let percent = ((idx as f64 / total_blocks.max(1) as f64) * 90.0) as u8;
+            emitter.emit_export_progress(&ExportProgressEvent {
+                stage: ExportStage::BuildingStructure,
+                blocks_processed: idx,
+                blocks_total: total_blocks,
+                percent,
+            });
+        }
+
         match block {
             DocumentBlock::Heading { level, text } => {
                 let style = heading_style(*level);
@@ -104,6 +192,22 @@ pub(crate) fn export_sync(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
         }
     }
 
+    // Final cancellation check before writing
+    if cancel_token.is_cancelled() {
+        return Err(IPCError {
+            code: "EXPORT_CANCELLED".to_string(),
+            message: "Export was cancelled by the user".to_string(),
+        });
+    }
+
+    // Emit WritingFile stage — Requirements 28.2
+    emitter.emit_export_progress(&ExportProgressEvent {
+        stage: ExportStage::WritingFile,
+        blocks_processed: total_blocks,
+        blocks_total: total_blocks,
+        percent: 95,
+    });
+
     let mut buf = std::io::Cursor::new(Vec::new());
     docx.build()
         .pack(&mut buf)
@@ -111,6 +215,14 @@ pub(crate) fn export_sync(doc: &AuraDocument) -> Result<Vec<u8>, IPCError> {
             code: "DOCX_BUILD_ERROR".to_string(),
             message: format!("Cannot build DOCX: {e}"),
         })?;
+
+    // Emit completion
+    emitter.emit_export_progress(&ExportProgressEvent {
+        stage: ExportStage::WritingFile,
+        blocks_processed: total_blocks,
+        blocks_total: total_blocks,
+        percent: 100,
+    });
 
     Ok(buf.into_inner())
 }
@@ -382,6 +494,124 @@ mod tests {
         ]);
         let bytes = export_sync(&doc).unwrap();
         assert!(!bytes.is_empty());
+    }
+
+    // ── Export Progress Tests (Task 32.1, 32.2) ───────────────────────────────
+
+    /// Collect emitted events for testing
+    struct CollectingEmitter {
+        events: std::sync::Mutex<Vec<ExportProgressEvent>>,
+    }
+
+    impl CollectingEmitter {
+        fn new() -> Self {
+            Self { events: std::sync::Mutex::new(Vec::new()) }
+        }
+        fn events(&self) -> Vec<ExportProgressEvent> {
+            self.events.lock().unwrap().clone()
+        }
+    }
+
+    impl ProgressEmitter for CollectingEmitter {
+        fn emit_export_progress(&self, event: &ExportProgressEvent) {
+            self.events.lock().unwrap().push(event.clone());
+        }
+    }
+
+    fn make_large_doc(block_count: usize) -> AuraDocument {
+        let content = (0..block_count)
+            .map(|i| DocumentBlock::Paragraph {
+                text: format!("Paragraph {i}"),
+                inline: vec![],
+            })
+            .collect();
+        make_doc("large-doc-uuid", content)
+    }
+
+    #[test]
+    fn test_export_emits_progress_events_for_large_doc() {
+        // 150 blocks → should emit at least one progress event at block 50 and 100
+        let doc = make_large_doc(150);
+        let emitter = CollectingEmitter::new();
+        let token = CancellationToken::new();
+        let bytes = export_sync_with_progress(&doc, &emitter, &token).unwrap();
+        assert!(!bytes.is_empty());
+
+        let events = emitter.events();
+        // Should have initial event + events at 50, 100 + WritingFile events
+        assert!(events.len() >= 3, "Expected at least 3 progress events, got {}", events.len());
+
+        // First event should be BuildingStructure at 0%
+        assert!(matches!(events[0].stage, ExportStage::BuildingStructure));
+        assert_eq!(events[0].blocks_processed, 0);
+
+        // Last event should be WritingFile at 100%
+        let last = events.last().unwrap();
+        assert!(matches!(last.stage, ExportStage::WritingFile));
+        assert_eq!(last.percent, 100);
+    }
+
+    #[test]
+    fn test_export_no_progress_events_for_small_doc() {
+        // 10 blocks → only initial + WritingFile events (no mid-progress at 50)
+        let doc = make_large_doc(10);
+        let emitter = CollectingEmitter::new();
+        let token = CancellationToken::new();
+        let bytes = export_sync_with_progress(&doc, &emitter, &token).unwrap();
+        assert!(!bytes.is_empty());
+
+        let events = emitter.events();
+        // Should have initial BuildingStructure + WritingFile(95%) + WritingFile(100%)
+        assert!(events.len() >= 2, "Expected at least 2 events for small doc");
+    }
+
+    #[test]
+    fn test_export_cancellation_stops_processing() {
+        // 200 blocks, cancel after 50
+        let doc = make_large_doc(200);
+        let emitter = CollectingEmitter::new();
+        let token = CancellationToken::new();
+
+        // Cancel immediately — the check happens at idx=50
+        token.cancel();
+
+        let result = export_sync_with_progress(&doc, &emitter, &token);
+        assert!(result.is_err(), "Cancelled export should return Err");
+        let err = result.unwrap_err();
+        assert_eq!(err.code, "EXPORT_CANCELLED");
+    }
+
+    #[test]
+    fn test_export_cancellation_returns_error_code() {
+        let doc = make_large_doc(100);
+        let emitter = CollectingEmitter::new();
+        let token = CancellationToken::new();
+        token.cancel();
+
+        let result = export_sync_with_progress(&doc, &emitter, &token);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().code, "EXPORT_CANCELLED");
+    }
+
+    #[test]
+    fn test_cancellation_token_default_not_cancelled() {
+        let token = CancellationToken::new();
+        assert!(!token.is_cancelled());
+    }
+
+    #[test]
+    fn test_cancellation_token_cancel_sets_flag() {
+        let token = CancellationToken::new();
+        token.cancel();
+        assert!(token.is_cancelled());
+    }
+
+    #[test]
+    fn test_cancellation_token_clone_shares_state() {
+        let token = CancellationToken::new();
+        let clone = token.clone();
+        token.cancel();
+        assert!(clone.is_cancelled(), "Cloned token should reflect cancellation");
     }
 }
 

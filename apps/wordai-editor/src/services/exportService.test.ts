@@ -92,7 +92,7 @@ describe("exportService", () => {
 
     expect(result).toEqual({ status: "success", path: "/tmp/exported.md" });
     expect(mockSave).toHaveBeenCalledWith({
-      defaultPath: "/exports",
+      defaultPath: "/exports/Export Test.md",
       filters: [{ name: "Markdown", extensions: ["md"] }],
     });
     expect(mockInvoke).toHaveBeenCalledWith("export_markdown", {
@@ -140,7 +140,7 @@ describe("exportService", () => {
 
     expect(result).toEqual({ status: "success", path: "/tmp/exported.pdf" });
     expect(mockSave).toHaveBeenCalledWith({
-      defaultPath: "/exports",
+      defaultPath: "/exports/Export Test.pdf",
       filters: [{ name: "PDF Document", extensions: ["pdf"] }],
     });
     expect(mockInvoke).toHaveBeenCalledWith("export_to_pdf", {

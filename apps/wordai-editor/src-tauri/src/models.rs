@@ -115,3 +115,84 @@ pub struct IntentSummary {
     pub updated_at: i64,
     pub version: i64,
 }
+
+// ── Import Progress Models ────────────────────────────────────────────────────
+// Requirements: 26.6, 27.3
+
+/// Stage of an import operation, emitted as part of ImportProgressEvent.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub enum ImportStage {
+    ReadingFile,
+    ParsingDocument,
+    ConvertingBlocks,
+    SavingToAuraBrain,
+}
+
+/// Progress event emitted during a large file import.
+/// Emitted via Tauri event `import-progress`.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImportProgressEvent {
+    pub stage: ImportStage,
+    pub blocks_processed: usize,
+    pub blocks_estimated: usize,
+    pub percent: u8,
+}
+
+// ── Export Progress Models ────────────────────────────────────────────────────
+// Requirements: 28.1, 28.2
+
+/// Stage of a DOCX export operation, emitted as part of ExportProgressEvent.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "PascalCase")]
+pub enum ExportStage {
+    BuildingStructure,
+    WritingFile,
+}
+
+/// Progress event emitted during a large document export.
+/// Emitted via Tauri event `export-progress`.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ExportProgressEvent {
+    pub stage: ExportStage,
+    pub blocks_processed: usize,
+    pub blocks_total: usize,
+    pub percent: u8,
+}
+
+// ── Cancellation Token ────────────────────────────────────────────────────────
+// Requirements: 26.4, 27.4, 28.3, 28.4
+
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+
+/// A lightweight cancellation token backed by an atomic boolean.
+/// Can be cloned and shared across threads.
+#[derive(Debug, Clone)]
+pub struct CancellationToken {
+    cancelled: Arc<AtomicBool>,
+}
+
+impl CancellationToken {
+    /// Create a new, non-cancelled token.
+    pub fn new() -> Self {
+        Self {
+            cancelled: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    /// Signal cancellation.
+    pub fn cancel(&self) {
+        self.cancelled.store(true, Ordering::SeqCst);
+    }
+
+    /// Returns true if cancellation has been requested.
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::SeqCst)
+    }
+}
+
+impl Default for CancellationToken {
+    fn default() -> Self {
+        Self::new()
+    }
+}
