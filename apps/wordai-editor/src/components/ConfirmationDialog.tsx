@@ -14,7 +14,7 @@ export interface ConfirmationDialogProps {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
-  /** When true, renders the confirm button in error color */
+  /** When true, renders the confirm button in error color (var(--md-sys-color-error)) */
   isDangerous?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -33,7 +33,7 @@ const overlay: CSSProperties = {
 };
 
 const card: CSSProperties = {
-  background: '#ffffff',
+  background: 'var(--md-sys-color-surface-container-lowest, #ffffff)',
   borderRadius: 'var(--radius-xl, 1rem)',
   boxShadow: '0 24px 48px rgba(0,0,0,0.18)',
   padding: '2rem',
@@ -42,7 +42,7 @@ const card: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: '1.5rem',
-  fontFamily: 'var(--font-family-ui, Inter, sans-serif)',
+  fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
 };
 
 const btnBase: CSSProperties = {
@@ -74,21 +74,17 @@ export function ConfirmationDialog({
 
   if (!isOpen) return null;
 
-  const confirmBtnStyle: CSSProperties = {
-    ...btnBase,
-    background: isDangerous
-      ? 'var(--md-sys-color-error, #b00020)'
-      : 'var(--md-sys-color-primary, #4343d5)',
-    color: isDangerous
-      ? 'var(--md-sys-color-on-error, #ffffff)'
-      : 'var(--md-sys-color-on-primary, #ffffff)',
-  };
-
-  const cancelBtnStyle: CSSProperties = {
-    ...btnBase,
-    background: 'transparent',
-    color: 'var(--md-sys-color-on-surface-variant, #71717a)',
-  };
+  const confirmBtnStyle: CSSProperties = isDangerous
+    ? {
+      ...btnBase,
+      background: 'var(--md-sys-color-error, #ba1a1a)',
+      color: 'var(--md-sys-color-on-error, #ffffff)',
+    }
+    : {
+      ...btnBase,
+      background: 'var(--md-sys-color-primary, #4343d5)',
+      color: 'var(--md-sys-color-on-primary, #ffffff)',
+    };
 
   return (
     <div
@@ -103,15 +99,15 @@ export function ConfirmationDialog({
       }}
     >
       <div style={card}>
-        {/* Title + message */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {/* Title */}
+        <div>
           <h2
             id="cd-title"
             style={{
               margin: 0,
               fontSize: '1.0625rem',
               fontWeight: 700,
-              color: 'var(--md-sys-color-on-surface, #18181b)',
+              color: 'var(--md-sys-color-on-surface, #191c1d)',
               lineHeight: 1.3,
             }}
           >
@@ -119,9 +115,9 @@ export function ConfirmationDialog({
           </h2>
           <p
             style={{
-              margin: 0,
-              fontSize: '0.8125rem',
-              color: 'var(--md-sys-color-on-surface-variant, #71717a)',
+              margin: '0.5rem 0 0',
+              fontSize: '0.875rem',
+              color: 'var(--md-sys-color-on-surface-variant, #464555)',
               lineHeight: 1.5,
             }}
           >
@@ -131,18 +127,25 @@ export function ConfirmationDialog({
 
         {/* Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+          {/* Confirm */}
           <button
-            data-testid="btn-confirm"
+            data-testid="confirmation-dialog-confirm"
             onClick={onConfirm}
             style={confirmBtnStyle}
           >
             {confirmLabel}
           </button>
 
+          {/* Cancel */}
           <button
-            data-testid="btn-cancel"
+            data-testid="confirmation-dialog-cancel"
             onClick={onCancel}
-            style={cancelBtnStyle}
+            style={{
+              ...btnBase,
+              background: 'transparent',
+              color: 'var(--md-sys-color-on-surface-variant, #464555)',
+              border: '1px solid var(--md-sys-color-outline-variant, #c7c4d7)',
+            }}
           >
             {cancelLabel}
           </button>
