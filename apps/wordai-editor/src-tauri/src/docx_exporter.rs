@@ -1033,4 +1033,140 @@ mod pbt {
             DocumentBlock::Placeholder(p) => p.display_hint.clone(),
         }
     }
+
+    // ── Import Progress Emitter for PBT ───────────────────────────────────────
+
+    struct PbtImportEmitter {
+        events: std::sync::Mutex<Vec<ImportProgressEvent>>,
+    }
+
+    impl PbtImportEmitter {
+        fn new() -> Self {
+            Self { events: std::sync::Mutex::new(Vec::new()) }
+        }
+        fn events(&self) -> Vec<ImportProgressEvent> {
+            self.events.lock().unwrap().clone()
+        }
+    }
+
+    impl ImportProgressEmitter for PbtImportEmitter {
+        fn emit_import_progress(&self, event: &ImportProgressEvent) {
+            self.events.lock().unwrap().push(event.clone());
+        }
+    }
+
+    // Feature: file-save-management, Property: Progress Monotonicity — blocks_processed tăng đơn điệu, percent không giảm
+    // Validates: Requirements 26.2, 27.3
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(100))]
+        #[test]
+        fn prop_import_progress_monotonicity(
+            blocks in prop::collection::vec(arb_document_block(), 1..=200)
+        ) {
+            let doc = AuraDocument {
+                id: "pbt-progress-test".to_string(),
+                intent_name: "Progress Test".to_string(),
+                content: blocks,
+                version: Some(1),
+                created_at: Some(0),
+                updated_at: Some(0),
+            };
+
+            // Export to DOCX bytes
+            let bytes = export_sync(&doc).expect("export_sync should not fail");
+
+            // Import with progress tracking
+            let emitter = PbtImportEmitter::new();
+            let token = CancellationToken::new();
+            let _result = import_sync_with_progress(&bytes, &emitter, &token)
+                .expect("import_sync_with_progress should not fail");
+
+            let events = emitter.events();
+            prop_assert!(!events.is_empty(), "Should emit at least one progress event");
+
+            // Assert blocks_processed is monotonically non-decreasing
+            for window in events.windows(2) {
+                prop_assert!(
+                    window[1].blocks_processed >= window[0].blocks_processed,
+                    "blocks_processed must be monotonically non-decreasing: {} -> {}",
+                    window[0].blocks_processed,
+                    window[1].blocks_processed
+                );
+            }
+
+            // Assert percent is monotonically non-decreasing
+            for window in events.windows(2) {
+                prop_assert!(
+                    window[1].percent >= window[0].percent,
+                    "percent must be monotonically non-decreasing: {} -> {}",
+                    window[0].percent,
+                    window[1].percent
+                );
+            }
+
+            // Assert final event has percent >= 95 (SavingToAuraBrain stage)
+            let last = events.last().unwrap();
+            prop_assert!(
+                last.percent >= 95,
+                "Final event percent must be >= 95, got {}",
+                last.percent
+            );
+        }
+    }
+
+    // Feature: file-save-management, Property: Cancellation Completeness — khi cancel token được set, import dừng trong vòng 50 blocks tiếp theo
+    // Validates: Requirements 26.5, 27.4, 27.5
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(100))]
+        #[test]
+        fn prop_import_cancellation_completeness(
+            blocks in prop::collection::vec(arb_document_block(), 100..=500)
+        ) {
+            // 1. Create a large document with many blocks
+            let doc = AuraDocument {
+                id: "cancel-completeness-test".to_string(),
+                intent_name: "Cancellation Completeness Test".to_string(),
+                content: blocks,
+                version: Some(1),
+                created_at: Some(0),
+                updated_at: Some(0),
+            };
+
+            // 2. Export to DOCX bytes
+            let bytes = export_sync(&doc).expect("export_sync should not fail for valid document");
+
+            // 3. Create a CancellationToken and cancel it immediately (before calling import)
+            let token = CancellationToken::new();
+            token.cancel();
+
+            // 4. Call import_sync_with_progress with the cancelled token
+            let emitter = PbtImportEmitter::new();
+            let result = import_sync_with_progress(&bytes, &emitter, &token);
+
+            // 5. Assert that the result is Err with code "IMPORT_CANCELLED"
+            prop_assert!(result.is_err(), "Import with pre-cancelled token must return Err");
+            let err = result.unwrap_err();
+            prop_assert_eq!(
+                err.code.as_str(),
+                "IMPORT_CANCELLED",
+                "Error code must be IMPORT_CANCELLED, got: {}",
+                err.code
+            );
+
+            // 6. Assert that the emitter collected limited progress events (stopped early)
+            let events = emitter.events();
+
+            // 7. The number of ConvertingBlocks events with blocks_processed > 0 should be ≤ 1
+            // (it stops at or before the first 50-block check)
+            let converting_with_progress: Vec<&ImportProgressEvent> = events.iter()
+                .filter(|e| matches!(e.stage, ImportStage::ConvertingBlocks) && e.blocks_processed > 0)
+                .collect();
+            prop_assert!(
+                converting_with_progress.len() <= 1,
+                "With pre-cancelled token, at most 1 ConvertingBlocks event with blocks_processed > 0 \
+                 should be emitted (proving it stopped within 50 blocks), got {}",
+                converting_with_progress.len()
+            );
+        }
+    }
 }

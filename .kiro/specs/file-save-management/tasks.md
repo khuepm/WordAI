@@ -707,7 +707,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Test: file < 20MB không hiển thị warning
     - _Requirements: 25.1-25.7_
 
-- [-] 29. Implement ImportProgressEvent và cancellation (Rust)
+- [x] 29. Implement ImportProgressEvent và cancellation (Rust)
   - [x] 29.1 Định nghĩa `ImportProgressEvent` và `ImportStage` trong `src-tauri/src/models.rs`
     - `ImportProgressEvent { stage: ImportStage, blocks_processed: usize, blocks_estimated: usize, percent: u8 }`
     - `ImportStage`: `ReadingFile`, `ParsingDocument`, `ConvertingBlocks`, `SavingToAuraBrain`
@@ -737,11 +737,11 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Xóa token khỏi state sau khi import hoàn tất (thành công hoặc thất bại)
     - _Requirements: 26.4, 27.4_
 
-  - [ ] 29.6 Viết property test cho cancellation
+  - [x] 29.6 Viết property test cho cancellation
     - **Property: Cancellation Completeness — khi cancel token được set, import dừng trong vòng 50 blocks tiếp theo**
     - **Validates: Requirements 26.5, 27.4, 27.5**
 
-  - [ ] 29.7 Viết property test cho progress monotonicity
+  - [x] 29.7 Viết property test cho progress monotonicity
     - **Property: Progress Monotonicity — `blocks_processed` tăng đơn điệu, `percent` không giảm**
     - **Validates: Requirements 26.2, 27.3**
 
