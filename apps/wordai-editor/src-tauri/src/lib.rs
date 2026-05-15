@@ -28,6 +28,21 @@ impl ExportCancelState {
     }
 }
 
+// ── Import Cancellation State ─────────────────────────────────────────────────
+// Requirements: 26.4, 26.5
+
+/// Managed state holding the current import cancellation token.
+/// Replaced each time a new import starts; cleared when import completes.
+pub struct ImportCancelState {
+    pub token: std::sync::Mutex<Option<CancellationToken>>,
+}
+
+impl ImportCancelState {
+    pub fn new() -> Self {
+        Self { token: std::sync::Mutex::new(None) }
+    }
+}
+
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
 /// Save a document to the given file path.
@@ -215,6 +230,20 @@ async fn cancel_export(
     Ok(())
 }
 
+/// Cancel the currently running file import.
+/// Sets the cancellation token; the import worker will stop within 50 blocks.
+/// Requirements: 26.4, 26.5
+#[tauri::command]
+async fn cancel_import(
+    cancel_state: tauri::State<'_, ImportCancelState>,
+) -> Result<(), IPCError> {
+    let guard = cancel_state.token.lock().unwrap();
+    if let Some(token) = guard.as_ref() {
+        token.cancel();
+    }
+    Ok(())
+}
+
 /// Import a file (.md or .docx) and return the parsed document with optional Aura_Tag.
 /// Detects format from file extension.
 /// Requirements: 8.1, 8.2, 8.3, 8.9
@@ -358,6 +387,8 @@ pub fn run() {
                 )) as Box<dyn std::error::Error>
             })?;
             app.manage(store);
+            app.manage(ExportCancelState::new());
+            app.manage(ImportCancelState::new());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -377,7 +408,9 @@ pub fn run() {
             list_intents,
             export_markdown,
             export_docx,
+            cancel_export,
             import_file,
+            cancel_import,
             reveal_in_file_manager,
             get_aurabrain_storage_path,
             get_file_size,

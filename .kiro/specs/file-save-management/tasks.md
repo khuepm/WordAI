@@ -719,7 +719,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Implement `new_cancellation_token()`, `cancel()`, `is_cancelled()`
     - _Requirements: 26.4, 27.4_
 
-  - [~] 29.3 Thêm `ImportCancelState` vào Tauri managed state
+  - [x] 29.3 Thêm `ImportCancelState` vào Tauri managed state
     - `ImportCancelState { token: Mutex<Option<CancellationToken>> }`
     - Implement `#[tauri::command] cancel_import` — set token thành cancelled
     - Đăng ký state và command vào `tauri::Builder`
