@@ -419,5 +419,58 @@
     "settings": "Cài đặt",
     "syncFailed": "Đồng bộ thất bại: {{error}}",
     "dismissAriaLabel": "Đóng"
+  },
+  "library": {
+    "title": "Thư viện",
+    "subtitle": "Tác phẩm hoàn chỉnh, mẫu và kiến thức tái sử dụng của bạn.",
+    "newDocument": "Tài liệu mới",
+    "openFile": "Mở file",
+    "openFileAriaLabel": "Mở file từ hệ thống",
+    "searchPlaceholder": "Tìm kiếm thư viện...",
+    "searchClearAriaLabel": "Xóa tìm kiếm",
+    "filters": {
+      "all": "Tất cả",
+      "documents": "Tài liệu",
+      "aiReady": "AI-ready"
+    },
+    "card": {
+      "updatedAt": "Cập nhật {{time}}",
+      "version": "v{{version}}",
+      "openAriaLabel": "Mở {{name}}",
+      "deleteAriaLabel": "Xóa {{name}}",
+      "loadingAriaLabel": "Đang tải {{name}}...",
+      "errorMessage": "Không thể mở tài liệu"
+    },
+    "loading": "Đang tải thư viện...",
+    "loadError": "Không thể tải thư viện: {{message}}",
+    "retry": "Thử lại",
+    "emptyState": {
+      "noDocuments": {
+        "title": "Thư viện trống",
+        "message": "Tạo tài liệu mới hoặc nhập file để bắt đầu.",
+        "createButton": "Tạo tài liệu"
+      },
+      "noResults": {
+        "title": "Không tìm thấy kết quả",
+        "message": "Không có tài liệu nào khớp với \"{{query}}\".",
+        "clearButton": "Xóa tìm kiếm"
+      }
+    },
+    "delete": {
+      "confirmTitle": "Xóa tài liệu",
+      "confirmMessage": "Bạn có chắc muốn xóa \"{{name}}\" không? Hành động này không thể hoàn tác.",
+      "confirmButton": "Xóa",
+      "cancelButton": "Hủy",
+      "errorMessage": "Không thể xóa tài liệu: {{message}}"
+    },
+    "import": {
+      "importing": "Đang nhập...",
+      "errorMessage": "Nhập thất bại: {{message}}",
+      "warningsTitle": "Cảnh báo nhập",
+      "warningsMessage": "File đã được nhập với {{count}} cảnh báo."
+    }
+  },
+  "confirmationDialog": {
+    "ariaLabel": "Hộp thoại xác nhận"
   }
 }

@@ -30,7 +30,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Use `fc.assert(fc.property(...), { numRuns: 100 })`
     - _Requirements: 2.6_
 
-- [-] 3. Create `ConfirmationDialog` component
+- [x] 3. Create `ConfirmationDialog` component
   - [x] 3.1 Implement `ConfirmationDialog` in `src/components/ConfirmationDialog.tsx`
     - Accept props: `isOpen`, `title`, `message`, `confirmLabel`, `cancelLabel`, `isDangerous?`, `onConfirm`, `onCancel`
     - Render a modal overlay with `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, and `data-testid="confirmation-dialog"`
@@ -39,7 +39,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Use inline styles with CSS variables (`--md-sys-color-*`, `--font-family-ui`, `--radius-*`)
     - Close on backdrop click (same pattern as `ReplaceConfirmationDialog`)
     - _Requirements: 9.2, 9.5_
-  - [-] 3.2 Write unit tests for `ConfirmationDialog` in `src/components/ConfirmationDialog.test.tsx`
+  - [x] 3.2 Write unit tests for `ConfirmationDialog` in `src/components/ConfirmationDialog.test.tsx`
     - Test that `isOpen=false` renders nothing
     - Test that `isOpen=true` renders the title, message, confirmLabel, and cancelLabel
     - Test that clicking confirm calls `onConfirm`
@@ -47,7 +47,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Test that `isDangerous=true` applies error color to the confirm button
     - _Requirements: 9.2, 9.5_
 
-- [~] 4. Create `LibrarySearchBar` component
+- [x] 4. Create `LibrarySearchBar` component
   - [~] 4.1 Implement `LibrarySearchBar` in `src/components/LibrarySearchBar.tsx`
     - Accept props: `value`, `onChange`, `onClear`, `autoFocus?`
     - Render a controlled `<input>` with `role="searchbox"`, `aria-label={t('library.searchPlaceholder')}`, and `placeholder={t('library.searchPlaceholder')}`

@@ -419,5 +419,58 @@
     "settings": "Settings",
     "syncFailed": "Sync failed: {{error}}",
     "dismissAriaLabel": "Close"
+  },
+  "library": {
+    "title": "Library",
+    "subtitle": "Your complete works, templates, and reusable knowledge.",
+    "newDocument": "New Document",
+    "openFile": "Open File",
+    "openFileAriaLabel": "Open file from file system",
+    "searchPlaceholder": "Search library...",
+    "searchClearAriaLabel": "Clear search",
+    "filters": {
+      "all": "All",
+      "documents": "Documents",
+      "aiReady": "AI-ready"
+    },
+    "card": {
+      "updatedAt": "Updated {{time}}",
+      "version": "v{{version}}",
+      "openAriaLabel": "Open {{name}}",
+      "deleteAriaLabel": "Delete {{name}}",
+      "loadingAriaLabel": "Loading {{name}}...",
+      "errorMessage": "Failed to open document"
+    },
+    "loading": "Loading library...",
+    "loadError": "Failed to load library: {{message}}",
+    "retry": "Retry",
+    "emptyState": {
+      "noDocuments": {
+        "title": "Library is empty",
+        "message": "Create a new document or import a file to get started.",
+        "createButton": "Create Document"
+      },
+      "noResults": {
+        "title": "No results found",
+        "message": "No documents match \"{{query}}\".",
+        "clearButton": "Clear search"
+      }
+    },
+    "delete": {
+      "confirmTitle": "Delete Document",
+      "confirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "confirmButton": "Delete",
+      "cancelButton": "Cancel",
+      "errorMessage": "Failed to delete document: {{message}}"
+    },
+    "import": {
+      "importing": "Importing...",
+      "errorMessage": "Import failed: {{message}}",
+      "warningsTitle": "Import Warnings",
+      "warningsMessage": "File was imported with {{count}} warnings."
+    }
+  },
+  "confirmationDialog": {
+    "ariaLabel": "Confirmation dialog"
   }
 }
