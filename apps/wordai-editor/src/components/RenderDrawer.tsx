@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import type { Document } from '../types/document';
 import type { ExportFormat, PDFExportOptions, PageSize } from '../types/export';
 import { defaultPreferences } from '../types/preferences';
-import { exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback } from '../services/exportService';
+import { exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback, type FileSizeWarningCallback } from '../services/exportService';
 import { loadPreferences } from '../services/preferencesService';
 import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
+import { FileSizeWarningDialog } from './FileSizeWarningDialog';
 
 export interface RenderDrawerProps {
   isOpen: boolean;
@@ -54,6 +55,11 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     auraIntentId: string;
     resolve: (choice: 'update' | 'create_new' | 'cancel') => void;
   } | null>(null);
+  const [fileSizeWarning, setFileSizeWarning] = useState<{
+    fileSizeMB: number;
+    estimatedSeconds: number;
+    resolve: (confirmed: boolean) => void;
+  } | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -62,6 +68,7 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
       setStatusText(null);
       setImportWarnings([]);
       setConflict(null);
+      setFileSizeWarning(null);
     }
   }, [isOpen]);
 
@@ -161,8 +168,11 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     const onConflict: ConflictResolutionCallback = (intentName, auraIntentId) =>
       new Promise((resolve) => setConflict({ intentName, auraIntentId, resolve }));
 
+    const onFileSizeWarning: FileSizeWarningCallback = (fileSizeMB, estimatedSeconds) =>
+      new Promise((resolve) => setFileSizeWarning({ fileSizeMB, estimatedSeconds, resolve }));
+
     try {
-      const result = await importFile({ onConflict, onOpenIntent: onImportDocument });
+      const result = await importFile({ onConflict, onFileSizeWarning, onOpenIntent: onImportDocument });
       if (result.status === 'cancelled') return;
       if (result.status === 'error') {
         setExportStatus('error');
@@ -275,6 +285,20 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
         onCancel={() => {
           conflict?.resolve('cancel');
           setConflict(null);
+        }}
+      />
+
+      <FileSizeWarningDialog
+        isOpen={fileSizeWarning !== null}
+        fileSizeMB={fileSizeWarning?.fileSizeMB ?? 0}
+        estimatedSeconds={fileSizeWarning?.estimatedSeconds ?? 0}
+        onConfirm={() => {
+          fileSizeWarning?.resolve(true);
+          setFileSizeWarning(null);
+        }}
+        onCancel={() => {
+          fileSizeWarning?.resolve(false);
+          setFileSizeWarning(null);
         }}
       />
     </div>

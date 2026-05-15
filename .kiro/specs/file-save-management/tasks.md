@@ -692,7 +692,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Hai nút: "Tiếp tục" và "Hủy"
     - _Requirements: 25.2, 25.5, 25.6_
 
-  - [ ] 28.3 Tích hợp size check vào `exportService.importFile()`
+  - [x] 28.3 Tích hợp size check vào `exportService.importFile()`
     - Sau khi user chọn file, gọi `get_file_size` trước khi gọi `import_file`
     - Nếu > 100MB: hiển thị lỗi, return sớm
     - Nếu 20-100MB: hiển thị `FileSizeWarningDialog`, chờ xác nhận

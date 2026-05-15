@@ -200,9 +200,10 @@ describe("exportService", () => {
       warnings: ["table"],
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
-    mockInvoke.mockImplementationOnce(async (cmd) => {
-      expect(cmd).toBe("import_file");
-      return importResult;
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB — small file, no warning
+      if (cmd === "import_file") return importResult;
+      return null;
     });
 
     const onOpenIntent = vi.fn();
@@ -226,6 +227,7 @@ describe("exportService", () => {
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
     mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB
       if (cmd === "import_file") return importResult;
       if (cmd === "get_intent")
         return makeAuraDocument({
@@ -258,6 +260,7 @@ describe("exportService", () => {
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
     mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB
       if (cmd === "import_file") return importResult;
       if (cmd === "get_intent")
         return makeAuraDocument({
