@@ -754,7 +754,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Nút "Cancel" gọi `onCancel`
     - _Requirements: 26.1, 26.2, 26.4_
 
-  - [~] 30.2 Tích hợp progress listener vào `exportService.importFile()`
+  - [x] 30.2 Tích hợp progress listener vào `exportService.importFile()`
     - Dùng `listen('import-progress', handler)` từ `@tauri-apps/api/event`
     - Cập nhật `importProgress` state khi nhận event
     - Unlisten khi import hoàn tất hoặc bị cancel

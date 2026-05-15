@@ -11,6 +11,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   open as openDialog,
   save as saveDialog,
@@ -19,7 +20,7 @@ import type {
   AuraImportResult,
   AuraIntentDocument,
 } from "../types/auraDocument";
-import type { PDFExportOptions } from "../types/export";
+import type { ImportProgressEvent, PDFExportOptions } from "../types/export";
 import type { Document } from "../types/document";
 import {
   auraIntentToDocument,
@@ -70,7 +71,7 @@ export type FileSizeWarningCallback = (
  * file size warning UI, and an optional callback to open the imported intent
  * in the editor.
  *
- * Requirements: 8.4, 8.8, 25.1, 25.2
+ * Requirements: 8.4, 8.8, 25.1, 25.2, 26.6
  */
 export interface ImportOptions {
   /**
@@ -90,6 +91,12 @@ export interface ImportOptions {
    * Requirements: 8.8
    */
   onOpenIntent?: (document: Document) => void;
+  /**
+   * Called when import progress events are received from the Rust backend.
+   * The backend emits `import-progress` events during large file imports.
+   * Requirements: 26.6
+   */
+  onProgress?: (progress: ImportProgressEvent) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -351,7 +358,7 @@ export async function exportPdf(
 export async function importFile(
   options: ImportOptions = {},
 ): Promise<ImportFlowResult> {
-  const { onConflict, onFileSizeWarning, onOpenIntent } = options;
+  const { onConflict, onFileSizeWarning, onOpenIntent, onProgress } = options;
 
   const path = await openOpenDialog({
     filters: [{ name: "Supported Files", extensions: ["md", "docx"] }],
@@ -391,11 +398,31 @@ export async function importFile(
     }
   }
 
+  // ── Set up progress listener (Requirement 26.6) ────────────────────────────
+  // Listen to `import-progress` events emitted by the Rust backend during import.
+  // The listener is cleaned up (unlisten) when import completes, errors, or is cancelled.
+  let unlisten: UnlistenFn | null = null;
+  if (onProgress) {
+    try {
+      unlisten = await listen<ImportProgressEvent>(
+        "import-progress",
+        (event) => {
+          onProgress(event.payload);
+        },
+      );
+    } catch {
+      // If listen fails (e.g. in test environment), proceed without progress tracking
+      unlisten = null;
+    }
+  }
+
   // ── Proceed with import ────────────────────────────────────────────────────
   let result: AuraImportResult;
   try {
     result = await invoke<AuraImportResult>("import_file", { path });
   } catch (err) {
+    // Unlisten on error
+    unlisten?.();
     return {
       status: "error",
       message: err instanceof Error ? err.message : String(err),
@@ -435,7 +462,10 @@ export async function importFile(
           )
         : "create_new"; // safe default when no UI callback is provided
 
-      if (choice === "cancel") return { status: "cancelled" };
+      if (choice === "cancel") {
+        unlisten?.();
+        return { status: "cancelled" };
+      }
 
       if (choice === "update") {
         // Requirement 8.5: keep original id and created_at, bump version
@@ -448,6 +478,8 @@ export async function importFile(
         await syncDocument(updatedDoc, "import");
         // Requirement 8.8: open the intent in the editor, clear Unsaved_Indicator
         onOpenIntent?.(updatedDoc);
+        // Unlisten after successful import
+        unlisten?.();
         return {
           status: "opened",
           document: updatedDoc,
@@ -467,5 +499,7 @@ export async function importFile(
   };
   await syncDocument(newDoc, "import");
   onOpenIntent?.(newDoc);
+  // Unlisten after successful import
+  unlisten?.();
   return { status: "opened", document: newDoc, warnings: result.warnings };
 }
