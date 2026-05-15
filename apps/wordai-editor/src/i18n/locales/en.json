@@ -312,7 +312,15 @@
     "success": "Export complete: {{path}}",
     "error": "Export failed: {{message}}",
     "formatNotSupported": "Export format \"{{format}}\" is not supported.",
-    "failed": "Export failed."
+    "failed": "Export failed.",
+    "progress": {
+      "title": "Exporting document...",
+      "cancel": "Cancel",
+      "stage": {
+        "buildingStructure": "Building document structure...",
+        "writingFile": "Writing DOCX file..."
+      }
+    }
   },
   "import": {
     "title": "Import Document",

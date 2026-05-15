@@ -803,7 +803,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Nếu bị cancel: xóa file tạm thời nếu đã tạo
     - _Requirements: 28.3, 28.4_
 
-  - [~] 32.3 Tích hợp export progress vào `exportService.exportDocx()`
+  - [x] 32.3 Tích hợp export progress vào `exportService.exportDocx()`
     - Hiển thị `ImportProgressDialog` (tái sử dụng component) khi document > 500 blocks
     - Lắng nghe `export-progress` event
     - Khi cancel: gọi `cancel_export`

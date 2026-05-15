@@ -15,6 +15,10 @@ export interface ImportProgressDialogProps {
   progress: ImportProgressEvent | null;
   /** Called when user clicks Cancel to abort the import */
   onCancel: () => void;
+  /** Optional title override (defaults to import.progress.title) */
+  title?: string;
+  /** Optional stage label override (bypasses stage-based lookup) */
+  stageLabel?: string;
 }
 
 const overlay: CSSProperties = {
@@ -84,6 +88,8 @@ export function ImportProgressDialog({
   isOpen,
   progress,
   onCancel,
+  title: titleOverride,
+  stageLabel: stageLabelOverride,
 }: ImportProgressDialogProps) {
   const { t } = useTranslation();
   if (!isOpen) return null;
@@ -91,10 +97,13 @@ export function ImportProgressDialog({
   const percent = progress?.percent ?? 0;
   const blocksProcessed = progress?.blocks_processed ?? 0;
   const blocksEstimated = progress?.blocks_estimated ?? 0;
-  const stageLabel = progress
-    ? t(getStageTranslationKey(progress.stage))
-    : t('import.progress.stage.readingFile');
+  const stageLabel = stageLabelOverride
+    ? stageLabelOverride
+    : progress
+      ? t(getStageTranslationKey(progress.stage))
+      : t('import.progress.stage.readingFile');
 
+  const dialogTitle = titleOverride ?? t('import.progress.title');
   const blockCountText = `${blocksProcessed} / ~${blocksEstimated} blocks`;
 
   return (
@@ -125,7 +134,7 @@ export function ImportProgressDialog({
               id="ipd-title"
               style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 700, color: '#18181b', lineHeight: 1.3 }}
             >
-              {t('import.progress.title')}
+              {dialogTitle}
             </h2>
             <p
               data-testid="import-stage-label"
