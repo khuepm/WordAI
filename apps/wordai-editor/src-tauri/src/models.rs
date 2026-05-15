@@ -116,6 +116,15 @@ pub struct IntentSummary {
     pub version: i64,
 }
 
+/// Result returned from a batched import that partially succeeded.
+/// When a batch write fails, previously committed batches are preserved.
+/// Requirements: 27.7
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PartialImportResult {
+    pub blocks_saved: usize,
+    pub error: IPCError,
+}
+
 // ── Import Progress Models ────────────────────────────────────────────────────
 // Requirements: 26.6, 27.3
 

@@ -773,21 +773,21 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Test: nút Cancel gọi `onCancel`
     - _Requirements: 26.1, 26.2, 26.4_
 
-- [ ] 31. Implement batch SQLite write cho large documents (Rust)
-  - [~] 31.1 Refactor `sqlite_store::upsert_intent` để hỗ trợ batch write
+- [x] 31. Implement batch SQLite write cho large documents (Rust)
+  - [x] 31.1 Refactor `sqlite_store::upsert_intent` để hỗ trợ batch write
     - Thêm method `upsert_intent_batched(doc: &Document, batch_size: usize)`
     - Ghi `intent` metadata trong transaction đầu tiên
     - Ghi chunks theo batch `batch_size` blocks mỗi transaction
     - Emit progress event sau mỗi batch
     - _Requirements: 27.6_
 
-  - [~] 31.2 Xử lý partial import failure
+  - [x] 31.2 Xử lý partial import failure
     - Nếu một batch ghi thất bại, rollback batch đó
     - Trả về `PartialImportResult { blocks_saved: usize, error: IPCError }` thay vì fail toàn bộ
     - Frontend hiển thị thông báo: "Import một phần: đã lưu {N} blocks. Lỗi: {error}"
     - _Requirements: 27.7_
 
-  - [~] 31.3 Viết property test cho batch write
+  - [x] 31.3 Viết property test cho batch write
     - **Property: Batch Atomicity — nếu batch N thất bại, chỉ batch N bị rollback, các batch 1..N-1 vẫn còn**
     - **Validates: Requirements 27.6, 27.7**
 
