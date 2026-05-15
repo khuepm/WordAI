@@ -745,7 +745,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - **Property: Progress Monotonicity — `blocks_processed` tăng đơn điệu, `percent` không giảm**
     - **Validates: Requirements 26.2, 27.3**
 
-- [-] 30. Implement ImportProgressDialog (TypeScript frontend)
+- [x] 30. Implement ImportProgressDialog (TypeScript frontend)
   - [x] 30.1 Tạo `src/components/ImportProgressDialog.tsx`
     - Props: `isOpen: boolean`, `progress: ImportProgressEvent | null`, `onCancel: () => void`
     - Hiển thị stage label theo `ImportStage`
@@ -766,7 +766,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Khi import hoàn tất: đóng dialog, hiển thị kết quả
     - _Requirements: 26.1, 26.3, 26.4, 26.5, 26.7_
 
-  - [~] 30.4 Viết unit tests cho ImportProgressDialog
+  - [x] 30.4 Viết unit tests cho ImportProgressDialog
     - Test: hiển thị đúng stage label cho từng `ImportStage`
     - Test: progress bar cập nhật theo `percent`
     - Test: block count hiển thị đúng format
