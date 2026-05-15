@@ -181,6 +181,8 @@ async fn export_markdown(path: String, document: AuraDocument) -> Result<(), IPC
 /// Export an AuraDocument to a DOCX file at the given path.
 /// Calls docx_exporter::export (runs in spawn_blocking) and writes bytes to disk.
 /// For large documents, emits `export-progress` events and supports cancellation.
+/// Uses a temp file strategy: writes to `path.tmp` first, then renames atomically.
+/// If cancelled during write, the temp file is deleted — no invalid file is left behind.
 /// Requirements: 6.3, 7.2, 7.3, 28.1, 28.2, 28.3, 28.4
 #[tauri::command]
 async fn export_docx(
@@ -196,6 +198,7 @@ async fn export_docx(
         *guard = Some(token.clone());
     }
 
+    let token_for_write = token.clone();
     let result = docx_exporter::export_with_progress(&document, app, token).await;
 
     // Clear the token after export completes (success or failure)
@@ -206,13 +209,52 @@ async fn export_docx(
 
     let bytes = result?;
 
-    // If cancelled before write, the error was already returned above.
-    // Write the bytes to disk.
-    tokio::fs::write(&path, &bytes)
-        .await
-        .map_err(|e| IPCError {
+    // Write to a temp file first, then rename atomically.
+    // This ensures no invalid/partial DOCX is left at the target path.
+    // Requirements: 28.4
+    let temp_path = format!("{}.tmp", &path);
+
+    // Check cancellation before writing — user may have cancelled after build completed
+    if token_for_write.is_cancelled() {
+        return Err(IPCError {
+            code: "EXPORT_CANCELLED".to_string(),
+            message: "Export was cancelled by the user".to_string(),
+        });
+    }
+
+    // Write bytes to temp file
+    if let Err(e) = tokio::fs::write(&temp_path, &bytes).await {
+        // Clean up temp file on write error
+        let _ = tokio::fs::remove_file(&temp_path).await;
+        return Err(IPCError {
             code: "FILE_WRITE_ERROR".to_string(),
             message: format!("Cannot write DOCX file '{}': {}", path, e),
+        });
+    }
+
+    // Check cancellation again after write — delete temp file if cancelled
+    // Requirements: 28.4
+    if token_for_write.is_cancelled() {
+        let _ = tokio::fs::remove_file(&temp_path).await;
+        return Err(IPCError {
+            code: "EXPORT_CANCELLED".to_string(),
+            message: "Export was cancelled by the user".to_string(),
+        });
+    }
+
+    // Rename temp file to final path (atomic on most filesystems)
+    tokio::fs::rename(&temp_path, &path)
+        .await
+        .map_err(|e| {
+            // Clean up temp file if rename fails
+            let temp_path_clone = temp_path.clone();
+            tokio::spawn(async move {
+                let _ = tokio::fs::remove_file(&temp_path_clone).await;
+            });
+            IPCError {
+                code: "FILE_WRITE_ERROR".to_string(),
+                message: format!("Cannot finalize DOCX file '{}': {}", path, e),
+            }
         })
 }
 

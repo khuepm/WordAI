@@ -797,7 +797,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Emit stage: `BuildingStructure` → `WritingFile`
     - _Requirements: 28.1, 28.2_
 
-  - [~] 32.2 Thêm cancellation support cho export
+  - [x] 32.2 Thêm cancellation support cho export
     - Tương tự import: `ExportCancelState`, `cancel_export` command
     - Check cancel token sau mỗi 50 blocks
     - Nếu bị cancel: xóa file tạm thời nếu đã tạo
