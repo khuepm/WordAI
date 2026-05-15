@@ -317,6 +317,17 @@ async fn reveal_in_file_manager(
         })
 }
 
+/// Return the file size in bytes using metadata (does not read file content).
+/// Requirements: 25.1, 25.7
+#[tauri::command]
+async fn get_file_size(path: String) -> Result<u64, IPCError> {
+    let metadata = std::fs::metadata(&path).map_err(|e| IPCError {
+        code: "FILE_METADATA_ERROR".to_string(),
+        message: format!("Cannot read file metadata for '{}': {}", path, e),
+    })?;
+    Ok(metadata.len())
+}
+
 /// Return the AuraBrain storage directory path used by SqliteStore.
 /// Requirements: file-save-management 12.1, 12.2, 19.4
 #[tauri::command]
@@ -369,6 +380,7 @@ pub fn run() {
             import_file,
             reveal_in_file_manager,
             get_aurabrain_storage_path,
+            get_file_size,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
