@@ -745,8 +745,8 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - **Property: Progress Monotonicity — `blocks_processed` tăng đơn điệu, `percent` không giảm**
     - **Validates: Requirements 26.2, 27.3**
 
-- [ ] 30. Implement ImportProgressDialog (TypeScript frontend)
-  - [ ] 30.1 Tạo `src/components/ImportProgressDialog.tsx`
+- [-] 30. Implement ImportProgressDialog (TypeScript frontend)
+  - [x] 30.1 Tạo `src/components/ImportProgressDialog.tsx`
     - Props: `isOpen: boolean`, `progress: ImportProgressEvent | null`, `onCancel: () => void`
     - Hiển thị stage label theo `ImportStage`
     - Hiển thị progress bar (0-100%)
@@ -754,19 +754,19 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Nút "Cancel" gọi `onCancel`
     - _Requirements: 26.1, 26.2, 26.4_
 
-  - [ ] 30.2 Tích hợp progress listener vào `exportService.importFile()`
+  - [~] 30.2 Tích hợp progress listener vào `exportService.importFile()`
     - Dùng `listen('import-progress', handler)` từ `@tauri-apps/api/event`
     - Cập nhật `importProgress` state khi nhận event
     - Unlisten khi import hoàn tất hoặc bị cancel
     - _Requirements: 26.6_
 
-  - [ ] 30.3 Tích hợp `ImportProgressDialog` vào import flow
+  - [~] 30.3 Tích hợp `ImportProgressDialog` vào import flow
     - Hiển thị dialog khi file > 5MB
     - Khi user nhấn Cancel: gọi `invoke('cancel_import')`, đóng dialog
     - Khi import hoàn tất: đóng dialog, hiển thị kết quả
     - _Requirements: 26.1, 26.3, 26.4, 26.5, 26.7_
 
-  - [ ] 30.4 Viết unit tests cho ImportProgressDialog
+  - [~] 30.4 Viết unit tests cho ImportProgressDialog
     - Test: hiển thị đúng stage label cho từng `ImportStage`
     - Test: progress bar cập nhật theo `percent`
     - Test: block count hiển thị đúng format
@@ -774,48 +774,48 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - _Requirements: 26.1, 26.2, 26.4_
 
 - [ ] 31. Implement batch SQLite write cho large documents (Rust)
-  - [ ] 31.1 Refactor `sqlite_store::upsert_intent` để hỗ trợ batch write
+  - [~] 31.1 Refactor `sqlite_store::upsert_intent` để hỗ trợ batch write
     - Thêm method `upsert_intent_batched(doc: &Document, batch_size: usize)`
     - Ghi `intent` metadata trong transaction đầu tiên
     - Ghi chunks theo batch `batch_size` blocks mỗi transaction
     - Emit progress event sau mỗi batch
     - _Requirements: 27.6_
 
-  - [ ] 31.2 Xử lý partial import failure
+  - [~] 31.2 Xử lý partial import failure
     - Nếu một batch ghi thất bại, rollback batch đó
     - Trả về `PartialImportResult { blocks_saved: usize, error: IPCError }` thay vì fail toàn bộ
     - Frontend hiển thị thông báo: "Import một phần: đã lưu {N} blocks. Lỗi: {error}"
     - _Requirements: 27.7_
 
-  - [ ] 31.3 Viết property test cho batch write
+  - [~] 31.3 Viết property test cho batch write
     - **Property: Batch Atomicity — nếu batch N thất bại, chỉ batch N bị rollback, các batch 1..N-1 vẫn còn**
     - **Validates: Requirements 27.6, 27.7**
 
 - [ ] 32. Implement export progress cho large documents (TypeScript + Rust)
-  - [ ] 32.1 Thêm progress tracking vào `docx_exporter::export`
+  - [~] 32.1 Thêm progress tracking vào `docx_exporter::export`
     - Emit `export-progress` event sau mỗi 50 blocks được xử lý
     - Emit stage: `BuildingStructure` → `WritingFile`
     - _Requirements: 28.1, 28.2_
 
-  - [ ] 32.2 Thêm cancellation support cho export
+  - [~] 32.2 Thêm cancellation support cho export
     - Tương tự import: `ExportCancelState`, `cancel_export` command
     - Check cancel token sau mỗi 50 blocks
     - Nếu bị cancel: xóa file tạm thời nếu đã tạo
     - _Requirements: 28.3, 28.4_
 
-  - [ ] 32.3 Tích hợp export progress vào `exportService.exportDocx()`
+  - [~] 32.3 Tích hợp export progress vào `exportService.exportDocx()`
     - Hiển thị `ImportProgressDialog` (tái sử dụng component) khi document > 500 blocks
     - Lắng nghe `export-progress` event
     - Khi cancel: gọi `cancel_export`
     - _Requirements: 28.1, 28.3_
 
-  - [ ] 32.4 Viết unit tests cho export progress
+  - [~] 32.4 Viết unit tests cho export progress
     - Test: document > 500 blocks hiển thị progress dialog
     - Test: document ≤ 500 blocks không hiển thị progress dialog
     - Test: cancel export xóa file tạm thời
     - _Requirements: 28.1, 28.3, 28.4_
 
-- [ ] 33. Checkpoint — Large File Handling hoàn chỉnh
+- [~] 33. Checkpoint — Large File Handling hoàn chỉnh
   - Đảm bảo tất cả tests pass cho tasks 28-32
   - Kiểm tra thủ công với file DOCX 5MB, 25MB, và 50MB (nếu có)
   - Đảm bảo cancel hoạt động đúng ở mọi giai đoạn import/export

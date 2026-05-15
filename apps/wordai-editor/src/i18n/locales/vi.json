@@ -329,6 +329,16 @@
       "confirm": "Tiếp tục",
       "cancel": "Hủy"
     },
+    "progress": {
+      "title": "Đang nhập tài liệu...",
+      "cancel": "Hủy",
+      "stage": {
+        "readingFile": "Đang đọc file...",
+        "parsingDocument": "Đang phân tích tài liệu...",
+        "convertingBlocks": "Đang chuyển đổi blocks...",
+        "savingToAuraBrain": "Đang lưu vào AuraBrain..."
+      }
+    },
     "unsupportedElements": "Phát hiện thành phần không hỗ trợ: {{elements}}"
   },
   "ai": {

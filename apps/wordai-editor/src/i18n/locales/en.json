@@ -329,6 +329,16 @@
       "confirm": "Continue",
       "cancel": "Cancel"
     },
+    "progress": {
+      "title": "Importing document...",
+      "cancel": "Cancel",
+      "stage": {
+        "readingFile": "Reading file...",
+        "parsingDocument": "Parsing document...",
+        "convertingBlocks": "Converting blocks...",
+        "savingToAuraBrain": "Saving to AuraBrain..."
+      }
+    },
     "unsupportedElements": "Unsupported elements found: {{elements}}"
   },
   "ai": {

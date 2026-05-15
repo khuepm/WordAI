@@ -23,3 +23,24 @@ export interface ExportOptions {
   outputPath?: string;
   pdfOptions?: PDFExportOptions;
 }
+
+/**
+ * Import progress types — mirrors Rust ImportStage and ImportProgressEvent.
+ * Requirements: 26.1, 26.2, 26.4, 26.6
+ */
+
+/** Stage of an import operation, emitted as part of ImportProgressEvent. */
+export type ImportStage =
+  | 'ReadingFile'
+  | 'ParsingDocument'
+  | 'ConvertingBlocks'
+  | 'SavingToAuraBrain';
+
+/** Progress event emitted during a large file import via Tauri event `import-progress`. */
+export interface ImportProgressEvent {
+  stage: ImportStage;
+  blocks_processed: number;
+  blocks_estimated: number;
+  /** Percentage complete (0–100) */
+  percent: number;
+}
