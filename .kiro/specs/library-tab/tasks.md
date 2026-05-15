@@ -62,7 +62,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Test that typing calls `onChange` with the new value
     - _Requirements: 7.1, 7.5_
 
-- [~] 5. Create `LibraryFilterChips` component
+- [x] 5. Create `LibraryFilterChips` component
   - [~] 5.1 Implement `LibraryFilterChips` in `src/components/LibraryFilterChips.tsx`
     - Accept props: `activeFilter: 'all' | 'documents' | 'ai-ready'`, `onChange`
     - Render three `<button>` chips: "All" (`t('library.filters.all')`), "Documents" (`t('library.filters.documents')`), "AI-ready" (`t('library.filters.aiReady')`)
