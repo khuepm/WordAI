@@ -792,7 +792,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - **Validates: Requirements 27.6, 27.7**
 
 - [x] 32. Implement export progress cho large documents (TypeScript + Rust)
-  - [~] 32.1 Thêm progress tracking vào `docx_exporter::export`
+  - [x] 32.1 Thêm progress tracking vào `docx_exporter::export`
     - Emit `export-progress` event sau mỗi 50 blocks được xử lý
     - Emit stage: `BuildingStructure` → `WritingFile`
     - _Requirements: 28.1, 28.2_
