@@ -760,7 +760,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Unlisten khi import hoàn tất hoặc bị cancel
     - _Requirements: 26.6_
 
-  - [~] 30.3 Tích hợp `ImportProgressDialog` vào import flow
+  - [x] 30.3 Tích hợp `ImportProgressDialog` vào import flow
     - Hiển thị dialog khi file > 5MB
     - Khi user nhấn Cancel: gọi `invoke('cancel_import')`, đóng dialog
     - Khi import hoàn tất: đóng dialog, hiển thị kết quả
