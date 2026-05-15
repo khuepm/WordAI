@@ -731,7 +731,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Emit progress với stage `ReadingFile` → `ParsingDocument` → `ConvertingBlocks` → `SavingToAuraBrain`
     - _Requirements: 26.6, 27.3, 27.4_
 
-  - [ ] 29.5 Cập nhật `#[tauri::command] import_file` để tạo và lưu cancel token
+  - [x] 29.5 Cập nhật `#[tauri::command] import_file` để tạo và lưu cancel token
     - Tạo `CancellationToken` mới trước khi gọi `docx_exporter::import`
     - Lưu token vào `ImportCancelState`
     - Xóa token khỏi state sau khi import hoàn tất (thành công hoặc thất bại)

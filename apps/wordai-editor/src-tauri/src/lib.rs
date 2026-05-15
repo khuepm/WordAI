@@ -246,9 +246,14 @@ async fn cancel_import(
 
 /// Import a file (.md or .docx) and return the parsed document with optional Aura_Tag.
 /// Detects format from file extension.
-/// Requirements: 8.1, 8.2, 8.3, 8.9
+/// For .docx files, creates a cancellation token and emits import-progress events.
+/// Requirements: 8.1, 8.2, 8.3, 8.9, 26.4, 27.4
 #[tauri::command]
-async fn import_file(path: String) -> Result<models::ImportResult, IPCError> {
+async fn import_file(
+    app: tauri::AppHandle,
+    path: String,
+    cancel_state: tauri::State<'_, ImportCancelState>,
+) -> Result<models::ImportResult, IPCError> {
     use std::path::Path;
 
     let ext = Path::new(&path)
@@ -278,7 +283,23 @@ async fn import_file(path: String) -> Result<models::ImportResult, IPCError> {
                     code: "FILE_READ_ERROR".to_string(),
                     message: format!("Cannot read DOCX file '{}': {}", path, e),
                 })?;
-            docx_exporter::import(&bytes).await
+
+            // Create a new cancellation token for this import
+            let token = CancellationToken::new();
+            {
+                let mut guard = cancel_state.token.lock().unwrap();
+                *guard = Some(token.clone());
+            }
+
+            let result = docx_exporter::import_with_progress(&bytes, app, token).await;
+
+            // Clear the token after import completes (success or failure)
+            {
+                let mut guard = cancel_state.token.lock().unwrap();
+                *guard = None;
+            }
+
+            result
         }
         _ => Err(IPCError {
             code: "UNSUPPORTED_FORMAT".to_string(),
