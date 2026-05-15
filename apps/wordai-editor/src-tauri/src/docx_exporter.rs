@@ -16,6 +16,29 @@ use crate::models::{
     ExportStage, ImportResult, InlineSpan, IPCError,
 };
 
+// ── Cancellation Token API ─────────────────────────────────────────────────────
+// Requirements: 26.4, 27.4
+//
+// Convenience functions for creating and managing cancellation tokens
+// shared between the main thread and background import/export workers.
+
+/// Create a new cancellation token (not yet cancelled).
+/// The returned token can be cloned and shared across threads via `Arc<AtomicBool>`.
+pub fn new_cancellation_token() -> CancellationToken {
+    CancellationToken::new()
+}
+
+/// Signal cancellation on the given token.
+/// Any background worker holding a clone of this token will observe the cancellation.
+pub fn cancel(token: &CancellationToken) {
+    token.cancel();
+}
+
+/// Check whether the given token has been cancelled.
+pub fn is_cancelled(token: &CancellationToken) -> bool {
+    token.is_cancelled()
+}
+
 // ── Export ────────────────────────────────────────────────────────────────────
 
 /// Convert an AuraDocument to DOCX bytes.
@@ -612,6 +635,29 @@ mod tests {
         let clone = token.clone();
         token.cancel();
         assert!(clone.is_cancelled(), "Cloned token should reflect cancellation");
+    }
+
+    // ── Module-level convenience function tests (Task 29.2) ───────────────────
+
+    #[test]
+    fn test_new_cancellation_token_creates_uncancelled() {
+        let token = super::new_cancellation_token();
+        assert!(!super::is_cancelled(&token));
+    }
+
+    #[test]
+    fn test_cancel_function_sets_flag() {
+        let token = super::new_cancellation_token();
+        super::cancel(&token);
+        assert!(super::is_cancelled(&token));
+    }
+
+    #[test]
+    fn test_cancel_shared_across_clones() {
+        let token = super::new_cancellation_token();
+        let clone = token.clone();
+        super::cancel(&token);
+        assert!(super::is_cancelled(&clone), "Clone should see cancellation from module-level cancel()");
     }
 }
 
