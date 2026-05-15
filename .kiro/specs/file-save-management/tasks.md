@@ -685,7 +685,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Đăng ký command vào `tauri::Builder`
     - _Requirements: 25.1, 25.7_
 
-  - [ ] 28.2 Tạo `src/components/FileSizeWarningDialog.tsx`
+  - [x] 28.2 Tạo `src/components/FileSizeWarningDialog.tsx`
     - Props: `isOpen`, `fileSizeMB: number`, `estimatedSeconds: number`, `onConfirm`, `onCancel`
     - Hiển thị kích thước file theo định dạng "X.X MB"
     - Hiển thị ước tính thời gian: `ceil(fileSizeMB / 5)` giây

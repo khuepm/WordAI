@@ -323,6 +323,12 @@
       "createNew": "Tạo Ý niệm mới",
       "cancel": "Hủy"
     },
+    "sizeWarning": {
+      "title": "Phát hiện file lớn",
+      "message": "File này có kích thước {{size}} và có thể mất khoảng {{seconds}} giây để nhập.",
+      "confirm": "Tiếp tục",
+      "cancel": "Hủy"
+    },
     "unsupportedElements": "Phát hiện thành phần không hỗ trợ: {{elements}}"
   },
   "ai": {

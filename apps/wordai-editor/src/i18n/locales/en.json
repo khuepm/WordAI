@@ -323,6 +323,12 @@
       "createNew": "Create New Intent",
       "cancel": "Cancel"
     },
+    "sizeWarning": {
+      "title": "Large file detected",
+      "message": "This file is {{size}} and may take approximately {{seconds}} seconds to import.",
+      "confirm": "Continue",
+      "cancel": "Cancel"
+    },
     "unsupportedElements": "Unsupported elements found: {{elements}}"
   },
   "ai": {
