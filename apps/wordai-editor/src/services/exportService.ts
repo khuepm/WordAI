@@ -20,7 +20,7 @@ import type {
   AuraImportResult,
   AuraIntentDocument,
 } from "../types/auraDocument";
-import type { ImportProgressEvent, PDFExportOptions } from "../types/export";
+import type { ExportDocxOptions, ExportProgressEvent, ImportProgressEvent, PDFExportOptions } from "../types/export";
 import type { Document } from "../types/document";
 import {
   auraIntentToDocument,
@@ -238,16 +238,27 @@ export async function exportMarkdown(
 
 // ---------------------------------------------------------------------------
 // Export to DOCX
-// Requirements: 7.1, 7.5
+// Requirements: 7.1, 7.5, 28.1, 28.2, 28.3
 // ---------------------------------------------------------------------------
+
+/** Threshold (in blocks) above which export progress tracking is enabled. */
+const EXPORT_PROGRESS_THRESHOLD = 500;
 
 /**
  * Opens a Native_File_Dialog for the user to choose a save path, then calls
  * the IPC command `export_docx` (runs in a Background_Worker on the Rust side).
  *
+ * For documents with > 500 blocks, sets up a listener for `export-progress`
+ * events and forwards them to the optional `onProgress` callback. Supports
+ * cancellation via `invoke('cancel_export')`.
+ *
  * Does NOT modify AuraBrain state or the Dirty_Bit after export.
  */
-export async function exportDocx(document: Document): Promise<ExportResult> {
+export async function exportDocx(
+  document: Document,
+  options: ExportDocxOptions = {},
+): Promise<ExportResult> {
+  const { onProgress, onCancel } = options;
   const defaultPath = await getDefaultExportPath();
   const filename = titleToFilename(document.title) + '.docx';
   const suggestedPath = defaultPath ? `${defaultPath}/${filename}` : filename;
@@ -263,8 +274,40 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
   try {
     const path = ensureExtension(selectedPath, "docx");
     const { value: auraDocument } = documentToAuraIntent(document);
-    await invoke("export_docx", { path, document: auraDocument });
-    return { status: "success", path };
+
+    // ── Set up progress listener for large documents (Requirements 28.1, 28.2, 28.3) ──
+    let unlisten: UnlistenFn | null = null;
+    const isLargeDocument = auraDocument.content.length > EXPORT_PROGRESS_THRESHOLD;
+
+    if (isLargeDocument && onProgress) {
+      try {
+        unlisten = await listen<ExportProgressEvent>(
+          "export-progress",
+          (event) => {
+            onProgress(event.payload);
+          },
+        );
+      } catch {
+        // If listen fails (e.g. in test environment), proceed without progress tracking
+        unlisten = null;
+      }
+    }
+
+    // Expose cancel capability to caller
+    if (isLargeDocument && onCancel) {
+      onCancel();
+    }
+
+    try {
+      await invoke("export_docx", { path, document: auraDocument });
+      return { status: "success", path };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { status: "error", message };
+    } finally {
+      // Always clean up the listener
+      unlisten?.();
+    }
   } catch (err) {
     return {
       status: "error",
@@ -273,6 +316,19 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
   }
 
   // Requirement 7.5: AuraBrain state is NOT changed here.
+}
+
+// ---------------------------------------------------------------------------
+// Cancel Export
+// Requirements: 28.3, 28.4
+// ---------------------------------------------------------------------------
+
+/**
+ * Cancels the currently running DOCX export by invoking the Rust `cancel_export`
+ * command. The export worker will stop within 50 blocks and delete any temp file.
+ */
+export async function cancelExport(): Promise<void> {
+  await invoke("cancel_export");
 }
 
 // ---------------------------------------------------------------------------

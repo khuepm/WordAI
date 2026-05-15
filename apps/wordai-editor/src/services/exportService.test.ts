@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
+  cancelExport,
   exportDocx,
   exportMarkdown,
   exportPdf,
@@ -14,7 +15,7 @@ import type {
   AuraImportResult,
 } from "../types/auraDocument";
 import type { Document } from "../types/document";
-import type { ImportProgressEvent } from "../types/export";
+import type { ExportProgressEvent, ImportProgressEvent } from "../types/export";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
@@ -564,6 +565,127 @@ describe("exportService", () => {
 
       // Import should still succeed even if listen fails
       expect(result.status).toBe("opened");
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Export Progress Listener (Requirements 28.1, 28.2, 28.3)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe("export progress listener", () => {
+    /**
+     * Creates a document whose content produces > 500 AuraDocumentBlocks
+     * when converted via documentToAuraIntent (each line separated by blank
+     * line becomes a paragraph block).
+     */
+    function makeLargeDocument(): Document {
+      // 501 paragraphs separated by blank lines → 501 blocks
+      const lines = Array.from({ length: 501 }, (_, i) => `Paragraph ${i + 1}`).join("\n\n");
+      return makeDocument({ content: lines });
+    }
+
+    /** Creates a small document (< 500 blocks). */
+    function makeSmallDocument(): Document {
+      return makeDocument({ content: "# Title\n\nBody paragraph" });
+    }
+
+    it("sets up listen('export-progress') for document > 500 blocks (Req 28.1)", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(mockListen).toHaveBeenCalledWith(
+        "export-progress",
+        expect.any(Function),
+      );
+    });
+
+    it("does NOT set up progress listener for document ≤ 500 blocks", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/small.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeSmallDocument(), { onProgress });
+
+      expect(mockListen).not.toHaveBeenCalledWith(
+        "export-progress",
+        expect.any(Function),
+      );
+    });
+
+    it("cancel export calls invoke('cancel_export') (Req 28.3)", async () => {
+      mockInvoke.mockResolvedValue(undefined);
+
+      await cancelExport();
+
+      expect(mockInvoke).toHaveBeenCalledWith("cancel_export");
+    });
+
+    it("calls unlisten after export completes successfully (Req 28.1)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("calls unlisten when export errors (Req 28.1)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockRejectedValueOnce(new Error("export failed"));
+
+      const onProgress = vi.fn();
+      const result = await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(result.status).toBe("error");
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("forwards progress event payload to onProgress callback (Req 28.2)", async () => {
+      const progressEvent: ExportProgressEvent = {
+        stage: "BuildingStructure",
+        blocks_processed: 100,
+        blocks_total: 600,
+        percent: 17,
+      };
+
+      // Capture the handler passed to listen so we can invoke it
+      let capturedHandler: ((event: { payload: ExportProgressEvent }) => void) | null = null;
+      mockListen.mockImplementation(async (_event, handler) => {
+        capturedHandler = handler as (event: { payload: ExportProgressEvent }) => void;
+        return () => {};
+      });
+
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "export_docx") {
+          // Simulate progress event during export
+          capturedHandler?.({ payload: progressEvent });
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(onProgress).toHaveBeenCalledWith(progressEvent);
+    });
+
+    it("does not set up listener when onProgress is not provided (large doc)", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      await exportDocx(makeLargeDocument());
+
+      expect(mockListen).not.toHaveBeenCalled();
     });
   });
 });

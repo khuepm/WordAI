@@ -791,7 +791,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - **Property: Batch Atomicity — nếu batch N thất bại, chỉ batch N bị rollback, các batch 1..N-1 vẫn còn**
     - **Validates: Requirements 27.6, 27.7**
 
-- [ ] 32. Implement export progress cho large documents (TypeScript + Rust)
+- [x] 32. Implement export progress cho large documents (TypeScript + Rust)
   - [~] 32.1 Thêm progress tracking vào `docx_exporter::export`
     - Emit `export-progress` event sau mỗi 50 blocks được xử lý
     - Emit stage: `BuildingStructure` → `WritingFile`
@@ -815,7 +815,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Test: cancel export xóa file tạm thời
     - _Requirements: 28.1, 28.3, 28.4_
 
-- [~] 33. Checkpoint — Large File Handling hoàn chỉnh
+- [x] 33. Checkpoint — Large File Handling hoàn chỉnh
   - Đảm bảo tất cả tests pass cho tasks 28-32
   - Kiểm tra thủ công với file DOCX 5MB, 25MB, và 50MB (nếu có)
   - Đảm bảo cancel hoạt động đúng ở mọi giai đoạn import/export

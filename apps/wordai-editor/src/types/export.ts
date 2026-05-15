@@ -1,6 +1,6 @@
 /**
  * Export-related types for WordAI Text Editor
- * Requirements: 11.2, 11.3, 11.4, 12.1, 12.2, 12.3
+ * Requirements: 11.2, 11.3, 11.4, 12.1, 12.2, 12.3, 28.1, 28.2
  */
 
 export type ExportFormat = 'pdf' | 'markdown' | 'html' | 'docx';
@@ -43,4 +43,32 @@ export interface ImportProgressEvent {
   blocks_estimated: number;
   /** Percentage complete (0–100) */
   percent: number;
+}
+
+/**
+ * Export progress types — mirrors Rust ExportStage and ExportProgressEvent.
+ * Requirements: 28.1, 28.2
+ */
+
+/** Stage of a DOCX export operation, emitted as part of ExportProgressEvent. */
+export type ExportStage = 'BuildingStructure' | 'WritingFile';
+
+/** Progress event emitted during a large document export via Tauri event `export-progress`. */
+export interface ExportProgressEvent {
+  stage: ExportStage;
+  blocks_processed: number;
+  blocks_total: number;
+  /** Percentage complete (0–100) */
+  percent: number;
+}
+
+/**
+ * Options for exportDocx — allows the caller to inject progress and cancel callbacks.
+ * Requirements: 28.1, 28.2, 28.3
+ */
+export interface ExportDocxOptions {
+  /** Called when export progress events are received from the Rust backend. */
+  onProgress?: (progress: ExportProgressEvent) => void;
+  /** Called to register a cancel function that the caller can invoke to abort export. */
+  onCancel?: () => void;
 }
