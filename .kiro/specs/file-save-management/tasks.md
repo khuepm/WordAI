@@ -678,7 +678,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
 
 ## Large File Handling
 
-- [-] 28. Implement file size validation (Rust + TypeScript)
+- [x] 28. Implement file size validation (Rust + TypeScript)
   - [x] 28.1 Thêm Tauri IPC command `get_file_size`
     - Nhận `path: String`, trả về `u64` (bytes) dùng `std::fs::metadata`
     - Không đọc nội dung file, chỉ đọc metadata
@@ -699,7 +699,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Nếu < 20MB: tiếp tục import bình thường
     - _Requirements: 25.1, 25.2, 25.3, 25.4_
 
-  - [ ] 28.4 Viết unit tests cho size validation
+  - [x] 28.4 Viết unit tests cho size validation
     - Test: file > 100MB bị từ chối, không gọi `import_file`
     - Test: file 20-100MB hiển thị warning dialog
     - Test: user hủy warning dialog → không gọi `import_file`

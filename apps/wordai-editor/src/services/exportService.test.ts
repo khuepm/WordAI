@@ -280,4 +280,110 @@ describe("exportService", () => {
       "import",
     );
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // File Size Validation (Requirements 25.1 – 25.7)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe("file size validation", () => {
+    it("rejects file > 100MB and does not call import_file (Req 25.3)", async () => {
+      mockOpen.mockResolvedValueOnce("/tmp/huge.docx");
+      // 150MB in bytes
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 150 * 1024 * 1024;
+        return null;
+      });
+
+      const result = await importFile();
+
+      expect(result.status).toBe("error");
+      if (result.status === "error") {
+        expect(result.message).toContain("100 MB");
+      }
+      // import_file should never be called
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        "import_file",
+        expect.anything(),
+      );
+    });
+
+    it("shows warning dialog for file between 20-100MB (Req 25.2)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/medium.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(true);
+      await importFile({ onFileSizeWarning });
+
+      expect(onFileSizeWarning).toHaveBeenCalledWith(
+        expect.closeTo(50, 0.1), // fileSizeMB ≈ 50
+        Math.ceil(50 / 5), // estimatedSeconds = 10
+      );
+    });
+
+    it("does not call import_file when user cancels warning dialog (Req 25.4)", async () => {
+      mockOpen.mockResolvedValueOnce("/tmp/medium.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(false);
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("cancelled");
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        "import_file",
+        expect.anything(),
+      );
+    });
+
+    it("calls import_file when user confirms warning dialog (Req 25.2)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/medium.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(true);
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("opened");
+      expect(mockInvoke).toHaveBeenCalledWith("import_file", { path: "/tmp/medium.md" });
+    });
+
+    it("does not show warning for file < 20MB (Req 25.1)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/small.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 5 * 1024 * 1024; // 5MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn();
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("opened");
+      expect(onFileSizeWarning).not.toHaveBeenCalled();
+    });
+  });
 });
