@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "policies": [
+    {
+      "id": "sync-status-elapsed",
+      "sourceKey": "sync.success",
+      "channel": "statusBar",
+      "format": "elapsed",
+      "priority": "low",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Synced · {seconds}s ago",
+      "description": "Show elapsed time since last sync on status bar"
+    },
+    {
+      "id": "sync-status-syncing",
+      "sourceKey": "sync.start",
+      "channel": "statusBar",
+      "format": "indicator",
+      "priority": "medium",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Syncing...",
+      "description": "Show syncing indicator on status bar"
+    },
+    {
+      "id": "sync-error-toast",
+      "sourceKey": "sync.error",
+      "channel": "toast",
+      "format": "message",
+      "priority": "high",
+      "duration": 5000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Sync failed: {error}",
+      "description": "Toast notification when sync fails"
+    },
+    {
+      "id": "sync-error-statusbar",
+      "sourceKey": "sync.error",
+      "channel": "statusBar",
+      "format": "indicator",
+      "priority": "high",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "⚠ Sync error",
+      "description": "Persistent error indicator on status bar"
+    },
+    {
+      "id": "dirty-titlebar-indicator",
+      "sourceKey": "document.dirty",
+      "channel": "titleBar",
+      "format": "indicator",
+      "priority": "medium",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "●",
+      "description": "Unsaved indicator on title bar"
+    },
+    {
+      "id": "dirty-statusbar",
+      "sourceKey": "document.dirty",
+      "channel": "statusBar",
+      "format": "message",
+      "priority": "low",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Unsaved changes",
+      "description": "Unsaved changes text on status bar"
+    },
+    {
+      "id": "autosync-interval-countdown",
+      "sourceKey": "general.autoSyncInterval",
+      "channel": "statusBar",
+      "format": "countdown",
+      "priority": "low",
+      "duration": null,
+      "silent": true,
+      "trigger": "periodic",
+      "periodic": { "intervalMs": 1000 },
+      "template": "Next sync in {remainingSeconds}s",
+      "description": "Countdown to next auto-sync (disabled by default)"
+    },
+    {
+      "id": "preference-change-toast",
+      "sourceKey": "preference.*",
+      "channel": "toast",
+      "format": "message",
+      "priority": "low",
+      "duration": 2000,
+      "silent": true,
+      "trigger": "onChange",
+      "template": "{label} changed to {newValue}",
+      "description": "Toast when any preference changes (disabled by default)"
+    },
+    {
+      "id": "export-success-toast",
+      "sourceKey": "export.complete",
+      "channel": "toast",
+      "format": "message",
+      "priority": "medium",
+      "duration": 3000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Exported to {path}",
+      "description": "Toast when export completes successfully"
+    },
+    {
+      "id": "export-error-toast",
+      "sourceKey": "export.error",
+      "channel": "toast",
+      "format": "message",
+      "priority": "high",
+      "duration": 5000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Export failed: {error}",
+      "description": "Toast when export fails"
+    },
+    {
+      "id": "ai-service-unavailable",
+      "sourceKey": "ai.unavailable",
+      "channel": "toast",
+      "format": "message",
+      "priority": "high",
+      "duration": 5000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "AI service unavailable. Check connection.",
+      "description": "Toast when AI service becomes unavailable"
+    }
+  ]
+}

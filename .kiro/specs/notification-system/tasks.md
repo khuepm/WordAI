@@ -15,7 +15,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Định nghĩa `NotificationEvent`, `ActiveNotification` interfaces
     - _Requirements: 1.4, 2.1, 3.1-3.5, 4.1-4.5, 6.2_
 
-  - [~] 1.2 Tạo `src/config/default-notification-policies.json`
+  - [x] 1.2 Tạo `src/config/default-notification-policies.json`
     - Policies mặc định reproduce behavior hiện tại:
       - `sync-status-elapsed`: statusBar, elapsed format, "Synced · {seconds}s ago"
       - `sync-status-syncing`: statusBar, indicator, "Syncing..."
