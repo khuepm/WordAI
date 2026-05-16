@@ -1,7 +1,7 @@
 /**
  * LibraryFilterChips — Row of filter chip buttons for the Library view.
  *
- * Renders three chips: "All", "Documents", "AI-ready".
+ * Three chips: "All", "Documents", "AI-ready".
  * The chip matching `activeFilter` receives the active visual style
  * (primary color background and border).
  *
@@ -22,7 +22,7 @@ const containerStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
-  fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
+  flexWrap: 'wrap',
 };
 
 function chipStyle(isActive: boolean): CSSProperties {
@@ -36,7 +36,7 @@ function chipStyle(isActive: boolean): CSSProperties {
       : '1.5px solid var(--md-sys-color-outline-variant, #c5c4d4)',
     background: isActive
       ? 'var(--md-sys-color-primary, #4343d5)'
-      : 'transparent',
+      : 'var(--md-sys-color-surface-container-low, #f3f3f7)',
     color: isActive
       ? 'var(--md-sys-color-on-primary, #ffffff)'
       : 'var(--md-sys-color-on-surface-variant, #464555)',
@@ -49,32 +49,29 @@ function chipStyle(isActive: boolean): CSSProperties {
   };
 }
 
-const CHIPS: { filter: LibraryFilter; labelKey: string }[] = [
-  { filter: 'all', labelKey: 'library.filters.all' },
-  { filter: 'documents', labelKey: 'library.filters.documents' },
-  { filter: 'ai-ready', labelKey: 'library.filters.aiReady' },
-];
-
 export function LibraryFilterChips({ activeFilter, onChange }: LibraryFilterChipsProps) {
   const { t } = useTranslation();
 
+  const chips: { filter: LibraryFilter; label: string }[] = [
+    { filter: 'all', label: t('library.filters.all') },
+    { filter: 'documents', label: t('library.filters.documents') },
+    { filter: 'ai-ready', label: t('library.filters.aiReady') },
+  ];
+
   return (
     <div style={containerStyle} role="group" aria-label={t('library.filters.all')}>
-      {CHIPS.map(({ filter, labelKey }) => {
-        const isActive = activeFilter === filter;
-        return (
-          <button
-            key={filter}
-            type="button"
-            style={chipStyle(isActive)}
-            aria-pressed={isActive}
-            onClick={() => onChange(filter)}
-            data-filter={filter}
-          >
-            {t(labelKey)}
-          </button>
-        );
-      })}
+      {chips.map(({ filter, label }) => (
+        <button
+          key={filter}
+          type="button"
+          style={chipStyle(activeFilter === filter)}
+          onClick={() => onChange(filter)}
+          aria-pressed={activeFilter === filter}
+          data-testid={`filter-chip-${filter}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
