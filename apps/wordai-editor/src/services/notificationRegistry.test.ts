@@ -342,6 +342,40 @@ describe('NotificationRegistry', () => {
     });
   });
 
+  describe('overridePolicy', () => {
+    it('does not persist to config file (in-memory only)', async () => {
+      mockInvoke.mockResolvedValueOnce(null); // initialize
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      // Clear mock calls from initialize
+      mockInvoke.mockClear();
+
+      notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
+
+      // No IPC call should have been made
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it('applies override immediately to getAllPolicies', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      notificationRegistry.overridePolicy('sync-error-toast', {
+        priority: 'critical',
+        channel: 'none',
+      });
+
+      const policies = notificationRegistry.getAllPolicies();
+      const policy = policies.find((p) => p.id === 'sync-error-toast');
+      expect(policy?.priority).toBe('critical');
+      expect(policy?.channel).toBe('none');
+    });
+  });
+
   describe('resetToDefaults', () => {
     it('clears overrides and restores default policies', async () => {
       mockInvoke.mockResolvedValueOnce(null);
@@ -355,6 +389,57 @@ describe('NotificationRegistry', () => {
       const policies = notificationRegistry.getAllPolicies();
       const policy = policies.find((p) => p.id === 'sync-error-toast');
       expect(policy?.silent).toBe(false);
+    });
+
+    it('notifies subscribers when resetting', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      const listener = vi.fn();
+      notificationRegistry.subscribe(listener);
+      listener.mockClear();
+
+      await notificationRegistry.resetToDefaults();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads from bundled defaults (not from config file)', async () => {
+      // Initialize with user config that overrides a policy
+      const userConfig: PolicyConfigFile = {
+        schemaVersion: 1,
+        policies: [
+          createPolicy({
+            id: 'sync-error-toast',
+            sourceKey: 'sync.error',
+            channel: 'toast',
+            format: 'message',
+            priority: 'critical',
+            duration: 99999,
+            silent: false,
+            trigger: 'onEvent',
+          }),
+        ],
+      };
+      mockInvoke.mockResolvedValueOnce(JSON.stringify(userConfig));
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      // Verify user config was loaded
+      let policy = notificationRegistry
+        .getAllPolicies()
+        .find((p) => p.id === 'sync-error-toast');
+      expect(policy?.priority).toBe('critical');
+
+      // Reset to defaults should restore bundled defaults
+      await notificationRegistry.resetToDefaults();
+
+      policy = notificationRegistry
+        .getAllPolicies()
+        .find((p) => p.id === 'sync-error-toast');
+      expect(policy?.priority).toBe('high'); // bundled default
     });
   });
 
@@ -378,6 +463,41 @@ describe('NotificationRegistry', () => {
       const savedConfig = JSON.parse(savedArg.config) as PolicyConfigFile;
       const savedPolicy = savedConfig.policies.find((p) => p.id === 'sync-error-toast');
       expect(savedPolicy?.priority).toBe('critical');
+    });
+
+    it('persists ALL policies (defaults + user + overrides), not just overridden ones', async () => {
+      mockInvoke.mockResolvedValueOnce(null); // initialize
+      mockInvoke.mockResolvedValueOnce(undefined); // save
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      // Only override one policy
+      notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
+      await notificationRegistry.saveToConfig();
+
+      const savedArg = mockInvoke.mock.calls[1][1] as { config: string };
+      const savedConfig = JSON.parse(savedArg.config) as PolicyConfigFile;
+
+      // Should contain ALL policies, not just the overridden one
+      const allPolicies = notificationRegistry.getAllPolicies();
+      expect(savedConfig.policies.length).toBe(allPolicies.length);
+      expect(savedConfig.policies.length).toBeGreaterThan(1);
+    });
+
+    it('uses save_notification_policies IPC command', async () => {
+      mockInvoke.mockResolvedValueOnce(null); // initialize
+      mockInvoke.mockResolvedValueOnce(undefined); // save
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      await notificationRegistry.saveToConfig();
+
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'save_notification_policies',
+        expect.objectContaining({ config: expect.any(String) })
+      );
     });
   });
 });

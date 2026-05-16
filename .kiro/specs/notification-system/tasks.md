@@ -45,7 +45,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Hỗ trợ wildcard matching cho sourceKey (ví dụ: `preference.*` matches `preference.changed.general.autoSyncInterval`)
     - _Requirements: 1.1, 1.3, 1.4, 1.5, 1.8_
 
-  - [~] 2.2 Implement policy override và persistence
+  - [x] 2.2 Implement policy override và persistence
     - `overridePolicy(policyId, overrides)`: in-memory override, không persist
     - `saveToConfig()`: persist current state (defaults + overrides) vào Policy_Config_File via IPC
     - `resetToDefaults()`: clear overrides, reload từ bundled defaults
