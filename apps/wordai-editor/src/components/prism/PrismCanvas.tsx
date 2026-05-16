@@ -11,6 +11,8 @@ import type { Document, TextSelection } from '../../types/document';
 import type { IPCError } from '../../types/ipc';
 import type { AuraSphereSuggestion, PrismSlotIndex } from './types';
 import { usePrismState } from './usePrismState';
+import { useSyncScroll } from './useSyncScroll';
+import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { PrismToolbar } from './PrismToolbar';
 import { PrismVariantPane } from './PrismVariantPane';
 import { markdownToBlock } from '../../utils/markdownToBlock';
@@ -67,6 +69,16 @@ export function PrismCanvas({
     pinVariant,
     addAuraSphereVariants,
   } = usePrismState(document.id, document.content);
+
+  // Sync scroll hook (Req 9.1, 9.2, 9.4, 9.5)
+  const { registerPane, handlePaneScroll } = useSyncScroll({
+    syncScroll: state.syncScroll,
+    focusedSlot: state.focusedSlot,
+    activePaneCount: state.slots.filter(Boolean).length,
+  });
+
+  // Keyboard shortcuts (Req 11.1): Cmd+1/2/3 to switch focus, Cmd+Enter to add variant
+  useKeyboardShortcuts({ state, setFocus, addVariant });
 
   // Toast state for AuraSphere parse failure notification (Req 10.9)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -196,6 +208,8 @@ export function PrismCanvas({
               onPin={() => pinVariant(index as PrismSlotIndex)}
               disablePromote={disablePromote}
               fontSize={fontSize}
+              registerScrollPane={registerPane}
+              onPaneScroll={handlePaneScroll}
             />
           ) : null
         )}

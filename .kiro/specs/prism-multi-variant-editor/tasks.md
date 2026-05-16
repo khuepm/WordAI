@@ -242,21 +242,21 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [ ] 11. M6 — Polish: keyboard shortcuts, sync scroll, accessibility, perf review
-  - [~] 11.1 Implement sync scroll giữa các pane
+  - [x] 11.1 Implement sync scroll giữa các pane
     - Khi syncScroll bật: scroll 1 pane → cập nhật tất cả pane khác theo % scrollTop
     - Đồng bộ trong vòng 100ms
     - Khi toggle bật: đồng bộ tất cả pane về % scrollTop của focusedSlot
     - Hoạt động cho cả Preview và Code view
     - _Requirements: 9.1, 9.2, 9.4, 9.5_
 
-  - [~] 11.2 Implement keyboard shortcuts
+  - [x] 11.2 Implement keyboard shortcuts
     - `Cmd+1/2/3`: chuyển focus slot
     - `Cmd+Enter`: thêm variant mới
     - Chỉ gắn keyboard listeners cho slot đang focus
     - Các EditorCanvas ngoài focus render read-only (không đăng ký keyboard listeners global)
     - _Requirements: 11.1_
 
-  - [~] 11.3 Implement scroll position preservation khi toggle view mode
+  - [x] 11.3 Implement scroll position preservation khi toggle view mode
     - Lưu % scrollTop trước khi chuyển view
     - Khôi phục % scrollTop sau khi mount view mới (sai lệch tối đa 5%)
     - _Requirements: 2.4_

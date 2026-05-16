@@ -77,6 +77,10 @@ export interface PrismVariantPaneProps {
   /** Disable Promote button when only 1 variant active (Req 7.9) */
   disablePromote?: boolean;
   fontSize?: number;
+  /** Register the scrollable container for sync scroll (Req 9.1) */
+  registerScrollPane?: (slotIndex: number, element: HTMLElement | null) => void;
+  /** Notify parent that this pane was scrolled (Req 9.1) */
+  onPaneScroll?: (slotIndex: number) => void;
 }
 
 /**
@@ -127,12 +131,21 @@ export function PrismVariantPane({
   onPin,
   disablePromote = false,
   fontSize,
+  registerScrollPane,
+  onPaneScroll,
 }: PrismVariantPaneProps) {
   // Local markdown state — kept in sync with blockContent via transforms
   const [localMarkdown, setLocalMarkdown] = useState<string>(() =>
     blockToMarkdown(variant.blockContent)
   );
   const [parseError, setParseError] = useState<string | null>(null);
+
+  // Store scroll percentage per view mode so we can restore on toggle (Req 2.4)
+  // Key: 'preview' | 'code', Value: scroll percentage (0-1)
+  const scrollPercentRef = useRef<Record<PrismViewMode, number>>({
+    preview: 0,
+    code: 0,
+  });
 
   // Refs for debounce/idle cancellation (Req 4.8)
   const previewToCodeTimerRef = useRef<number | null>(null);
@@ -143,6 +156,25 @@ export function PrismVariantPane({
   // Track whether the last blockContent change came from code→preview transform
   // to avoid circular updates
   const isInternalBlockUpdateRef = useRef(false);
+
+  // Ref callback for the scrollable content container (Req 9.1, 9.4)
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const scrollContentRefCallback = useCallback(
+    (node: HTMLDivElement | null) => {
+      contentRef.current = node;
+      if (registerScrollPane) {
+        registerScrollPane(slotIndex, node);
+      }
+    },
+    [registerScrollPane, slotIndex]
+  );
+
+  // Handle scroll events on the content container (Req 9.1)
+  const handleContentScroll = useCallback(() => {
+    if (onPaneScroll) {
+      onPaneScroll(slotIndex);
+    }
+  }, [onPaneScroll, slotIndex]);
 
   // Sync markdown when blockContent changes from Preview edits (Req 4.1)
   // Debounce 500ms + requestIdleCallback
@@ -193,6 +225,16 @@ export function PrismVariantPane({
   // When switching to Code view, immediately compute markdown from current blockContent
   const handleTabClick = useCallback(
     (mode: PrismViewMode) => {
+      if (mode === viewMode) return; // no-op if same mode
+
+      // Save current scroll percentage before switching (Req 2.4)
+      const container = contentRef.current;
+      if (container) {
+        const scrollableHeight = container.scrollHeight - container.clientHeight;
+        const percent = scrollableHeight > 0 ? container.scrollTop / scrollableHeight : 0;
+        scrollPercentRef.current[viewMode] = percent;
+      }
+
       if (mode === 'code' && viewMode !== 'code') {
         // Switching to Code: compute markdown immediately (Req 2.3)
         const md = blockToMarkdown(variant.blockContent);
@@ -203,6 +245,25 @@ export function PrismVariantPane({
     },
     [onViewModeChange, viewMode, variant.blockContent]
   );
+
+  // Restore scroll position after view mode changes (Req 2.4)
+  useEffect(() => {
+    const savedPercent = scrollPercentRef.current[viewMode];
+    if (savedPercent === 0) return; // nothing to restore
+
+    // Use requestAnimationFrame to ensure DOM has rendered the new view
+    const rafId = requestAnimationFrame(() => {
+      const container = contentRef.current;
+      if (container) {
+        const scrollableHeight = container.scrollHeight - container.clientHeight;
+        if (scrollableHeight > 0) {
+          container.scrollTop = savedPercent * scrollableHeight;
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [viewMode]);
 
   // Handle onChange from PrismCodeView (already debounced 500ms internally by PrismCodeView)
   // Convert markdown → blockContent using requestIdleCallback (Req 4.2, 4.3, 11.2)
@@ -251,8 +312,12 @@ export function PrismVariantPane({
       if (previewToCodeIdleRef.current !== null) cancelIdle(previewToCodeIdleRef.current);
       if (codeToPreviewTimerRef.current !== null) clearTimeout(codeToPreviewTimerRef.current);
       if (codeToPreviewIdleRef.current !== null) cancelIdle(codeToPreviewIdleRef.current);
+      // Unregister scroll pane on unmount (Req 9.1)
+      if (registerScrollPane) {
+        registerScrollPane(slotIndex, null);
+      }
     };
-  }, []);
+  }, [registerScrollPane, slotIndex]);
 
   // Build a minimal Document object for EditorCanvas from variant.blockContent
   const variantDocument: Document = {
@@ -418,7 +483,7 @@ export function PrismVariantPane({
       })()}
 
       {/* Content area */}
-      <div style={styles.content}>
+      <div style={styles.content} ref={scrollContentRefCallback} onScroll={handleContentScroll}>
         {viewMode === 'preview' ? (
           <EditorCanvas
             document={variantDocument}
