@@ -340,6 +340,123 @@ describe('NotificationRegistry', () => {
       notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
       expect(listener).not.toHaveBeenCalled();
     });
+
+    it('notifies listeners on initialize', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+
+      const listener = vi.fn();
+      notificationRegistry.subscribe(listener);
+
+      await notificationRegistry.initialize();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('notifies listeners on resetToDefaults', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      const listener = vi.fn();
+      notificationRegistry.subscribe(listener);
+      listener.mockClear();
+
+      await notificationRegistry.resetToDefaults();
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getSnapshot (useSyncExternalStore compatibility)', () => {
+    it('returns stable reference when policies have not changed', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      const snapshot1 = notificationRegistry.getSnapshot();
+      const snapshot2 = notificationRegistry.getSnapshot();
+
+      // Must be the exact same reference (referential equality)
+      expect(snapshot1).toBe(snapshot2);
+    });
+
+    it('returns new reference after overridePolicy', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      const snapshotBefore = notificationRegistry.getSnapshot();
+      notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
+      const snapshotAfter = notificationRegistry.getSnapshot();
+
+      // Must be a different reference after change
+      expect(snapshotBefore).not.toBe(snapshotAfter);
+    });
+
+    it('returns new reference after resetToDefaults', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
+      const snapshotBefore = notificationRegistry.getSnapshot();
+
+      await notificationRegistry.resetToDefaults();
+      const snapshotAfter = notificationRegistry.getSnapshot();
+
+      expect(snapshotBefore).not.toBe(snapshotAfter);
+    });
+
+    it('snapshot reflects current policies with overrides applied', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      notificationRegistry.overridePolicy('sync-error-toast', { priority: 'critical' });
+      const snapshot = notificationRegistry.getSnapshot();
+
+      const policy = snapshot.find((p) => p.id === 'sync-error-toast');
+      expect(policy?.priority).toBe('critical');
+    });
+
+    it('is compatible with useSyncExternalStore pattern (subscribe + getSnapshot)', async () => {
+      mockInvoke.mockResolvedValueOnce(null);
+
+      const { notificationRegistry } = registryModule;
+      await notificationRegistry.initialize();
+
+      // Simulate useSyncExternalStore behavior:
+      // 1. Subscribe to changes
+      // 2. getSnapshot returns stable ref between changes
+      // 3. After change, getSnapshot returns new ref
+      const snapshots: Readonly<NotificationPolicy[]>[] = [];
+
+      const unsubscribe = notificationRegistry.subscribe(() => {
+        snapshots.push(notificationRegistry.getSnapshot());
+      });
+
+      const initialSnapshot = notificationRegistry.getSnapshot();
+
+      // No change — same reference
+      expect(notificationRegistry.getSnapshot()).toBe(initialSnapshot);
+
+      // Trigger change
+      notificationRegistry.overridePolicy('sync-error-toast', { silent: true });
+
+      // Listener received new snapshot
+      expect(snapshots).toHaveLength(1);
+      expect(snapshots[0]).not.toBe(initialSnapshot);
+
+      // getSnapshot now returns the new reference
+      expect(notificationRegistry.getSnapshot()).toBe(snapshots[0]);
+
+      unsubscribe();
+    });
   });
 
   describe('overridePolicy', () => {

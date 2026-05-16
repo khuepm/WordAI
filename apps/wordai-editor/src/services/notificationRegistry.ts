@@ -135,6 +135,8 @@ class NotificationRegistryImpl {
   private overrides: Map<string, Partial<NotificationPolicy>> = new Map();
   private initialized = false;
   private listeners: Set<PolicyChangeListener> = new Set();
+  /** Cached snapshot for useSyncExternalStore referential equality */
+  private cachedSnapshot: Readonly<NotificationPolicy[]> = [];
 
   /**
    * Load policies from config file (IPC) + merge with defaults.
@@ -248,9 +250,11 @@ class NotificationRegistryImpl {
 
   /**
    * Get current snapshot (for useSyncExternalStore).
+   * Returns a stable reference — same object when policies haven't changed.
+   * This is critical for useSyncExternalStore to avoid infinite re-renders.
    */
   getSnapshot(): Readonly<NotificationPolicy[]> {
-    return this.getAllPolicies();
+    return this.cachedSnapshot;
   }
 
   /**
@@ -261,6 +265,10 @@ class NotificationRegistryImpl {
   }
 
   private notifyListeners(): void {
+    // Rebuild cached snapshot so getSnapshot() returns a new reference
+    // only when policies actually change. This ensures useSyncExternalStore
+    // sees referential equality when nothing has changed.
+    this.cachedSnapshot = this.getAllPolicies();
     for (const listener of this.listeners) {
       listener();
     }

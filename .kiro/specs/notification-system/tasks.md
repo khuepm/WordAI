@@ -51,7 +51,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - `resetToDefaults()`: clear overrides, reload từ bundled defaults
     - _Requirements: 1.10, 5.5, 5.9, 5.10_
 
-  - [~] 2.3 Implement subscribe/getSnapshot pattern
+  - [x] 2.3 Implement subscribe/getSnapshot pattern
     - `subscribe(listener)` + `getSnapshot()` cho `useSyncExternalStore`
     - Notify listeners khi policies thay đổi (load, override, reset)
     - _Requirements: 1.10_
