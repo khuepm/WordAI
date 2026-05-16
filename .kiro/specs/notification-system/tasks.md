@@ -152,7 +152,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
   - [x] 5.3 Đăng ký commands vào `tauri::Builder`
     - _Requirements: 6.6_
 
-- [ ] 6. Tích hợp Event Emitters vào Existing Services
+- [x] 6. Tích hợp Event Emitters vào Existing Services
   - [x] 6.1 Cập nhật `auraBrainManager.ts`
     - Emit `sync.start` khi bắt đầu sync
     - Emit `sync.success` khi sync thành công (kèm version, timestamp)
@@ -170,14 +170,14 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Emit `autoSync.skip` khi skip do clean/syncing
     - _Requirements: 7.5_
 
-  - [-] 6.4 Cập nhật `exportService.ts`
+  - [x] 6.4 Cập nhật `exportService.ts`
     - Emit `export.start` khi bắt đầu export
     - Emit `export.complete` khi export thành công (kèm path, format)
     - Emit `export.error` khi export thất bại (kèm error)
     - _Requirements: 7.3_
 
 - [ ] 7. Migrate EditorStatusBar sang Channel-based
-  - [~] 7.1 Cập nhật `EditorStatusBar.tsx`
+  - [x] 7.1 Cập nhật `EditorStatusBar.tsx`
     - Subscribe vào `statusBar` channel via `useNotificationChannel('statusBar')`
     - Render top notification theo format (elapsed, countdown, message, indicator)
     - Fallback: nếu không có notification → hiển thị behavior cũ

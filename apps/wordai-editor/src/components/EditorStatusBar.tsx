@@ -1,10 +1,16 @@
 /**
  * EditorStatusBar - Sync status bar fixed at the bottom of the editor
- * Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8
+ * Requirements: 7.1, 7.6, 7.7, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8
+ *
+ * Subscribes to the 'statusBar' notification channel. If a notification is active,
+ * it renders the notification content (supporting elapsed, countdown, message, indicator formats).
+ * If no notification is present, falls back to the original hardcoded behavior.
  */
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTopNotification } from '../hooks/useNotificationChannel';
+import { useTimerFormat } from '../hooks/useTimerFormat';
 
 export interface EditorStatusBarProps {
   isSyncing: boolean;
@@ -27,24 +33,47 @@ export function EditorStatusBar({
   storagePath,
 }: EditorStatusBarProps) {
   const { t } = useTranslation();
-  // Tick every second to update "Synced · Ns ago" (Req 13.7)
+
+  // Subscribe to the statusBar notification channel (Req 7.1)
+  const topNotification = useTopNotification('statusBar');
+
+  // Self-updating timer for elapsed/countdown formats (Req 3.1, 3.2, 3.7)
+  const { displayContent } = useTimerFormat(topNotification);
+
+  // Tick every second to update fallback "Synced · Ns ago" (Req 13.7)
   const [, setTick] = useState(0);
   useEffect(() => {
+    // Only run the fallback timer when there's no notification driving the display
+    if (topNotification !== null) return;
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [topNotification]);
 
+  // Determine status text: notification-driven or fallback (Req 7.6, 7.7)
   let statusText: string;
-  if (isSyncing) {
-    // Req 13.3
-    statusText = t('statusBar.syncing');
-  } else if (isDirty || lastSyncedAt === null) {
-    // Req 13.4, 13.8
-    statusText = t('statusBar.unsaved');
+
+  if (topNotification !== null) {
+    // Notification channel is active — render based on format
+    if (topNotification.format === 'elapsed' || topNotification.format === 'countdown') {
+      // Timer formats use the self-updating displayContent from useTimerFormat
+      statusText = displayContent;
+    } else {
+      // 'message' and 'indicator' formats use resolvedContent directly
+      statusText = topNotification.resolvedContent;
+    }
   } else {
-    // Req 13.2, 13.7
-    const n = secondsSince(lastSyncedAt);
-    statusText = t('statusBar.synced', { seconds: n });
+    // Fallback: no notification → existing hardcoded behavior (Req 7.6, 7.7)
+    if (isSyncing) {
+      // Req 13.3
+      statusText = t('statusBar.syncing');
+    } else if (isDirty || lastSyncedAt === null) {
+      // Req 13.4, 13.8
+      statusText = t('statusBar.unsaved');
+    } else {
+      // Req 13.2, 13.7
+      const n = secondsSince(lastSyncedAt);
+      statusText = t('statusBar.synced', { seconds: n });
+    }
   }
 
   return (
