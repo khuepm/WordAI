@@ -48,19 +48,19 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [ ] 3. M2 — Multi-slot layout, add/discard actions
-  - [~] 3.1 Implement layout đa cột trong `PrismCanvas`
+  - [x] 3.1 Implement layout đa cột trong `PrismCanvas`
     - Sử dụng CSS Grid với `gridTemplateColumns: repeat(N, 1fr)` dựa trên số slot active
     - Thêm CSS transition cho layout shift (< 50ms)
     - Đảm bảo không unmount/remount EditorCanvas khi thêm/xóa variant (giữ React key ổn định)
     - _Requirements: 1.1, 11.4, 11.5_
 
-  - [~] 3.2 Tạo `PrismToolbar` tại `src/components/prism/PrismToolbar.tsx`
+  - [x] 3.2 Tạo `PrismToolbar` tại `src/components/prism/PrismToolbar.tsx`
     - Nút "+ Variant" gọi addVariant, disabled khi variantCount === 3 với tooltip "Tối đa 3 biến thể"
     - Toggle sync scroll on/off
     - Hiển thị số variant hiện tại
     - _Requirements: 1.5, 9.3_
 
-  - [~] 3.3 Tạo skeleton `PrismVariantPane` tại `src/components/prism/PrismVariantPane.tsx`
+  - [x] 3.3 Tạo skeleton `PrismVariantPane` tại `src/components/prism/PrismVariantPane.tsx`
     - Render tab bar (Preview | Code) với indicator active
     - Khi Preview: mount EditorCanvas với variant.blockContent
     - Hiển thị label, pin status badge, dirty indicator
