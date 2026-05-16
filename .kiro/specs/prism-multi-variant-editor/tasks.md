@@ -44,7 +44,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Export component để sẵn sàng thay thế EditorCanvas trong App.tsx
     - _Requirements: 1.1, 1.3_
 
-- [~] 2. Checkpoint — Đảm bảo tất cả tests pass
+- [x] 2. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [x] 3. M2 — Multi-slot layout, add/discard actions
@@ -78,7 +78,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Test discard variant ở slot 0 → không thay đổi
     - _Requirements: 1.5, 1.6, 1.7_
 
-- [~] 4. Checkpoint — Đảm bảo tất cả tests pass
+- [x] 4. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [x] 5. M3 — Code view + Markdown round-trip
@@ -132,7 +132,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Test empty input → []
     - _Requirements: 4.4, 4.5, 4.6, 4.7_
 
-- [~] 6. Checkpoint — Đảm bảo tất cả tests pass
+- [x] 6. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [x] 7. M4 — .aura bundle: schema (zod), auraBundleService load/save, sub-tab .aura
@@ -185,7 +185,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Test detectSource fallback khi không có sourcePath
     - _Requirements: 5.4, 5.5, 6.1, 6.2, 6.3, 6.5_
 
-- [~] 8. Checkpoint — Đảm bảo tất cả tests pass
+- [x] 8. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [x] 9. M5 — AuraSphere wiring: panel generates ≥2 variants, fill slots, Pin/Promote
@@ -238,7 +238,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Test tất cả slot đầy → variant thừa bị bỏ qua
     - _Requirements: 7.1, 7.5, 8.1, 8.6_
 
-- [~] 10. Checkpoint — Đảm bảo tất cả tests pass
+- [x] 10. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [x] 11. M6 — Polish: keyboard shortcuts, sync scroll, accessibility, perf review
@@ -280,7 +280,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Test view toggle giữ scroll position
     - _Requirements: 9.1, 9.2, 11.1_
 
-- [~] 12. Final checkpoint — Đảm bảo tất cả tests pass
+- [x] 12. Final checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 ## Notes
