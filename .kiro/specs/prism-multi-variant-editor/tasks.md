@@ -82,12 +82,12 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [ ] 5. M3 — Code view + Markdown round-trip
-  - [~] 5.1 Tạo `blockToMarkdown` tại `src/utils/blockToMarkdown.ts`
+  - [x] 5.1 Tạo `blockToMarkdown` tại `src/utils/blockToMarkdown.ts`
     - Implement chuyển đổi cho tất cả supported block types: header, paragraph, list, quote, todo, code
     - Unsupported block types → fenced code block chứa JSON (lossy-safe)
     - _Requirements: 4.4, 4.6_
 
-  - [~] 5.2 Tạo `markdownToBlock` tại `src/utils/markdownToBlock.ts`
+  - [x] 5.2 Tạo `markdownToBlock` tại `src/utils/markdownToBlock.ts`
     - Parse heading (h1-h6), paragraph, list (ordered/unordered), quote, todo, code block
     - Mỗi block được gán unique ID (crypto.randomUUID)
     - Throw ParseError nếu gặp cấu trúc không parse được
