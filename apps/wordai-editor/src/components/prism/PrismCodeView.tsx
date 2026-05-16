@@ -2,10 +2,10 @@
  * PrismCodeView — Code editor hiển thị Markdown/OOXML/HTML/.aura với syntax highlighting.
  * Sử dụng CodeMirror 6. Lazy loaded — chỉ mount khi user mở Code view.
  *
- * Requirements: 3.2, 3.3, 3.4, 3.5
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 10.1, 10.2, 10.3
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { EditorView, keymap } from '@codemirror/view';
 import { EditorState, type Extension } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
@@ -19,6 +19,8 @@ export interface PrismCodeViewProps {
   readonly: boolean;
   onChange: (content: string) => void;
   fontSize?: number;
+  /** Error message from markdownToBlock parse failure. null = no error. */
+  parseError?: string | null;
 }
 
 /**
@@ -63,12 +65,50 @@ export function PrismCodeView({
   readonly,
   onChange,
   fontSize = 14,
+  parseError = null,
 }: PrismCodeViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isExternalUpdateRef = useRef(false);
   const onChangeRef = useRef(onChange);
+
+  // Scroll position preservation per sub-tab (Req 3.6)
+  const scrollPositionsRef = useRef<Record<string, number>>({});
+  const prevSubTabRef = useRef<PrismCodeSubTab>(subTab);
+
+  // Error banner state: tracks visibility and dismissal animation
+  const [bannerVisible, setBannerVisible] = useState(!!parseError);
+  const [bannerMessage, setBannerMessage] = useState<string | null>(parseError ?? null);
+  const bannerHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Handle parseError transitions (Req 10.1, 10.3)
+  useEffect(() => {
+    if (bannerHideTimerRef.current !== null) {
+      clearTimeout(bannerHideTimerRef.current);
+      bannerHideTimerRef.current = null;
+    }
+
+    if (parseError) {
+      // Show banner immediately when there's an error
+      setBannerMessage(parseError);
+      setBannerVisible(true);
+    } else if (bannerMessage !== null) {
+      // Parse succeeded after a failure — animate out over 300ms
+      setBannerVisible(false);
+      bannerHideTimerRef.current = setTimeout(() => {
+        setBannerMessage(null);
+        bannerHideTimerRef.current = null;
+      }, 300);
+    }
+
+    return () => {
+      if (bannerHideTimerRef.current !== null) {
+        clearTimeout(bannerHideTimerRef.current);
+        bannerHideTimerRef.current = null;
+      }
+    };
+  }, [parseError]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep onChange ref up to date without re-creating the editor
   useEffect(() => {
@@ -85,6 +125,15 @@ export function PrismCodeView({
       debounceTimerRef.current = null;
     }, 500);
   }, []);
+
+  // Save scroll position for the previous sub-tab before editor recreation (Req 3.6)
+  useEffect(() => {
+    if (prevSubTabRef.current !== subTab && viewRef.current) {
+      const scrollDOM = viewRef.current.scrollDOM;
+      scrollPositionsRef.current[prevSubTabRef.current] = scrollDOM.scrollTop;
+    }
+    prevSubTabRef.current = subTab;
+  }, [subTab]);
 
   // Create/recreate EditorView when subTab or readonly changes
   useEffect(() => {
@@ -148,12 +197,24 @@ export function PrismCodeView({
 
     viewRef.current = view;
 
+    // Restore scroll position for the current sub-tab (Req 3.6)
+    const savedScrollTop = scrollPositionsRef.current[subTab];
+    if (savedScrollTop !== undefined && savedScrollTop > 0) {
+      // Use requestAnimationFrame to ensure the DOM has rendered
+      requestAnimationFrame(() => {
+        view.scrollDOM.scrollTop = savedScrollTop;
+      });
+    }
+
     // Cleanup on unmount or re-creation
     return () => {
       if (debounceTimerRef.current !== null) {
         clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
       }
+      // Save scroll position before destroying (for unmount case)
+      const scrollDOM = view.scrollDOM;
+      scrollPositionsRef.current[subTab] = scrollDOM.scrollTop;
       view.destroy();
       viewRef.current = null;
     };
@@ -180,23 +241,70 @@ export function PrismCodeView({
   }, [content]);
 
   return (
-    <div
-      ref={containerRef}
-      className="prism-code-view"
-      style={styles.container}
-      data-subtab={subTab}
-      data-readonly={isEffectivelyReadonly(subTab, readonly)}
-      role="textbox"
-      aria-label={`Code editor: ${subTab}`}
-      aria-readonly={isEffectivelyReadonly(subTab, readonly)}
-    />
+    <div className="prism-code-view-wrapper" style={styles.wrapper}>
+      {/* Error banner (Req 10.1, 10.3) */}
+      {bannerMessage !== null && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="prism-code-view-error-banner"
+          style={{
+            ...styles.errorBanner,
+            opacity: bannerVisible ? 1 : 0,
+            maxHeight: bannerVisible ? '4rem' : '0',
+            padding: bannerVisible ? '0.5rem 0.75rem' : '0 0.75rem',
+            transition: 'opacity 300ms ease, max-height 300ms ease, padding 300ms ease',
+          }}
+        >
+          <span style={styles.errorIcon} aria-hidden="true">⚠️</span>
+          <span style={styles.errorText}>
+            Lỗi cú pháp Markdown: {bannerMessage}. Preview giữ nguyên nội dung trước đó.
+          </span>
+        </div>
+      )}
+      {/* CodeMirror container */}
+      <div
+        ref={containerRef}
+        className="prism-code-view"
+        style={styles.container}
+        data-subtab={subTab}
+        data-readonly={isEffectivelyReadonly(subTab, readonly)}
+        role="textbox"
+        aria-label={`Code editor: ${subTab}`}
+        aria-readonly={isEffectivelyReadonly(subTab, readonly)}
+      />
+    </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
     height: '100%',
     width: '100%',
+    overflow: 'hidden',
+  },
+  errorBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    backgroundColor: 'var(--md-sys-color-error-container, #fdecea)',
+    borderBottom: '1px solid var(--md-sys-color-error, #d32f2f)',
+    overflow: 'hidden',
+  },
+  errorIcon: {
+    flexShrink: 0,
+    fontSize: '1rem',
+  },
+  errorText: {
+    fontFamily: 'var(--font-family-ui, system-ui, sans-serif)',
+    fontSize: '0.8rem',
+    color: 'var(--md-sys-color-on-error-container, #5f2120)',
+    lineHeight: 1.4,
+  },
+  container: {
+    flex: 1,
     overflow: 'hidden',
     backgroundColor: 'var(--md-sys-color-surface, #ffffff)',
   },

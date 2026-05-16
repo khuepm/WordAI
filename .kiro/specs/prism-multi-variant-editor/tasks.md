@@ -81,7 +81,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 - [~] 4. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 5. M3 — Code view + Markdown round-trip
+- [x] 5. M3 — Code view + Markdown round-trip
   - [x] 5.1 Tạo `blockToMarkdown` tại `src/utils/blockToMarkdown.ts`
     - Implement chuyển đổi cho tất cả supported block types: header, paragraph, list, quote, todo, code
     - Unsupported block types → fenced code block chứa JSON (lossy-safe)
@@ -108,20 +108,20 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - OOXML và .aura sub-tab luôn readonly
     - _Requirements: 3.2, 3.3, 3.4, 3.5_
 
-  - [~] 5.6 Implement view toggle trong `PrismVariantPane`
+  - [x] 5.6 Implement view toggle trong `PrismVariantPane`
     - Khi chuyển sang Code: gọi blockToMarkdown và truyền cho PrismCodeView
     - Khi chuyển sang Preview: gọi markdownToBlock và cập nhật EditorCanvas
     - Debounce 500ms cho mỗi hướng chuyển đổi
     - Sử dụng requestIdleCallback để không block main thread
     - _Requirements: 2.2, 2.3, 4.1, 4.2, 4.3, 4.8, 11.2_
 
-  - [~] 5.7 Implement error banner trong `PrismCodeView`
+  - [x] 5.7 Implement error banner trong `PrismCodeView`
     - Hiển thị error banner khi markdownToBlock parse thất bại
     - Ẩn banner trong 300ms khi parse thành công sau lỗi
     - Giữ nguyên blockContent cũ khi parse lỗi
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [~] 5.8 Implement sub-tabs trong `PrismCodeView`
+  - [x] 5.8 Implement sub-tabs trong `PrismCodeView`
     - Hiển thị sub-tabs dựa trên PrismSourceFormat: Markdown, HTML, OOXML, .aura
     - Giữ scroll position riêng cho từng sub-tab
     - _Requirements: 3.1, 3.6_

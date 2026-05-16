@@ -1,18 +1,53 @@
 /**
  * Unit tests for PrismVariantPane component.
- * Requirements: 1.5, 1.6, 1.7, 2.1, 2.5, 2.6
+ * Requirements: 1.5, 1.6, 1.7, 2.1, 2.5, 2.6, 3.1, 3.6
  */
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { PrismVariantPane } from './PrismVariantPane';
-import type { PrismVariant } from './types';
+import { PrismVariantPane, getAvailableSubTabs } from './PrismVariantPane';
+import type { PrismVariant, PrismSourceFormat } from './types';
 
 // Mock EditorCanvas since it has complex dependencies
 vi.mock('../EditorCanvas', () => ({
   EditorCanvas: ({ document }: { document: { title: string } }) => (
     <div data-testid="mock-editor-canvas">{document.title}</div>
   ),
+}));
+
+// Mock PrismCodeView since it depends on CodeMirror
+vi.mock('./PrismCodeView', () => ({
+  PrismCodeView: ({ content, onChange }: { content: string; onChange: (v: string) => void }) => (
+    <div data-testid="mock-code-view">
+      <span data-testid="code-content">{content}</span>
+      <button data-testid="code-change-trigger" onClick={() => onChange('# Changed')}>
+        Trigger Change
+      </button>
+    </div>
+  ),
+}));
+
+// Mock blockToMarkdown and markdownToBlock
+vi.mock('../../utils/blockToMarkdown', () => ({
+  blockToMarkdown: (blockContent: string) => {
+    if (!blockContent || blockContent === '[]') return '';
+    return '# Mocked Markdown';
+  },
+}));
+
+vi.mock('../../utils/markdownToBlock', () => ({
+  markdownToBlock: (markdown: string) => {
+    if (!markdown) return '[]';
+    return JSON.stringify([{ id: 'mock-id', type: 'paragraph', text: markdown }]);
+  },
+  ParseError: class ParseError extends Error {
+    line: number;
+    constructor(message: string, line: number) {
+      super(message);
+      this.name = 'ParseError';
+      this.line = line;
+    }
+  },
 }));
 
 function createVariant(overrides: Partial<PrismVariant> = {}): PrismVariant {
@@ -187,5 +222,186 @@ describe('PrismVariantPane', () => {
 
       expect(screen.queryByLabelText('Unsaved changes')).not.toBeInTheDocument();
     });
+  });
+
+  describe('View toggle — Code view integration (Req 2.2, 2.3, 4.1, 4.2)', () => {
+    it('renders PrismCodeView when viewMode is code', () => {
+      render(<PrismVariantPane {...defaultProps} viewMode="code" />);
+
+      expect(screen.getByTestId('mock-code-view')).toBeInTheDocument();
+      expect(screen.queryByTestId('mock-editor-canvas')).not.toBeInTheDocument();
+    });
+
+    it('renders EditorCanvas when viewMode is preview', () => {
+      render(<PrismVariantPane {...defaultProps} viewMode="preview" />);
+
+      expect(screen.getByTestId('mock-editor-canvas')).toBeInTheDocument();
+      expect(screen.queryByTestId('mock-code-view')).not.toBeInTheDocument();
+    });
+
+    it('passes markdown content to PrismCodeView when in code mode', () => {
+      const variant = createVariant({
+        blockContent: JSON.stringify([{ type: 'paragraph', text: 'Hello' }]),
+      });
+      render(
+        <PrismVariantPane {...defaultProps} variant={variant} viewMode="code" />
+      );
+
+      // The mock blockToMarkdown returns '# Mocked Markdown' for non-empty content
+      expect(screen.getByTestId('code-content')).toHaveTextContent('# Mocked Markdown');
+    });
+
+    it('calls onContentChange when PrismCodeView emits onChange (via requestIdleCallback)', async () => {
+      vi.useFakeTimers();
+      const onContentChange = vi.fn();
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          onContentChange={onContentChange}
+        />
+      );
+
+      // Trigger a code change via the mock
+      fireEvent.click(screen.getByTestId('code-change-trigger'));
+
+      // The onChange goes through requestIdleCallback (polyfilled as setTimeout(cb, 1))
+      vi.advanceTimersByTime(10);
+
+      expect(onContentChange).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('calls onMarkdownChange when code content changes', () => {
+      const onMarkdownChange = vi.fn();
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          onMarkdownChange={onMarkdownChange}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('code-change-trigger'));
+
+      // onMarkdownChange is called immediately (before requestIdleCallback)
+      expect(onMarkdownChange).toHaveBeenCalledWith('# Changed');
+    });
+  });
+
+  describe('Sub-tab bar (Req 3.1, 3.6)', () => {
+    it('does not show sub-tab bar in preview mode', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="preview"
+          variant={createVariant({ source: { kind: 'aura', bundle: {} as any } })}
+        />
+      );
+
+      expect(screen.queryByRole('tablist', { name: 'Code format sub-tabs' })).not.toBeInTheDocument();
+    });
+
+    it('shows sub-tab bar in code mode when source has multiple sub-tabs (aura)', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          variant={createVariant({ source: { kind: 'aura', bundle: {} as any } })}
+        />
+      );
+
+      const subTabBar = screen.getByRole('tablist', { name: 'Code format sub-tabs' });
+      expect(subTabBar).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Markdown' })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: '.aura' })).toBeInTheDocument();
+    });
+
+    it('does not show sub-tab bar when source has only one sub-tab (markdown)', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          variant={createVariant({ source: { kind: 'markdown' } })}
+        />
+      );
+
+      expect(screen.queryByRole('tablist', { name: 'Code format sub-tabs' })).not.toBeInTheDocument();
+    });
+
+    it('does not show sub-tab bar when source has only one sub-tab (html)', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          variant={createVariant({ source: { kind: 'html' } })}
+        />
+      );
+
+      expect(screen.queryByRole('tablist', { name: 'Code format sub-tabs' })).not.toBeInTheDocument();
+    });
+
+    it('does not show sub-tab bar when source has only one sub-tab (docx)', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          variant={createVariant({ source: { kind: 'docx', filePath: '/test.docx' } })}
+        />
+      );
+
+      expect(screen.queryByRole('tablist', { name: 'Code format sub-tabs' })).not.toBeInTheDocument();
+    });
+
+    it('calls onCodeSubTabChange when a sub-tab is clicked', () => {
+      const onCodeSubTabChange = vi.fn();
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          variant={createVariant({ source: { kind: 'aura', bundle: {} as any } })}
+          onCodeSubTabChange={onCodeSubTabChange}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('tab', { name: '.aura' }));
+      expect(onCodeSubTabChange).toHaveBeenCalledWith('aura');
+    });
+
+    it('marks the active sub-tab as selected', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          codeSubTab="aura"
+          variant={createVariant({ source: { kind: 'aura', bundle: {} as any } })}
+        />
+      );
+
+      expect(screen.getByRole('tab', { name: '.aura' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: 'Markdown' })).toHaveAttribute('aria-selected', 'false');
+    });
+  });
+});
+
+describe('getAvailableSubTabs', () => {
+  it('returns ["markdown"] for markdown source', () => {
+    const source: PrismSourceFormat = { kind: 'markdown' };
+    expect(getAvailableSubTabs(source)).toEqual(['markdown']);
+  });
+
+  it('returns ["html"] for html source', () => {
+    const source: PrismSourceFormat = { kind: 'html' };
+    expect(getAvailableSubTabs(source)).toEqual(['html']);
+  });
+
+  it('returns ["ooxml"] for docx source', () => {
+    const source: PrismSourceFormat = { kind: 'docx', filePath: '/test.docx' };
+    expect(getAvailableSubTabs(source)).toEqual(['ooxml']);
+  });
+
+  it('returns ["markdown", "aura"] for aura source', () => {
+    const source: PrismSourceFormat = { kind: 'aura', bundle: {} as any };
+    expect(getAvailableSubTabs(source)).toEqual(['markdown', 'aura']);
   });
 });
