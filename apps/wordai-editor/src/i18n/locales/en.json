@@ -413,7 +413,8 @@
     "quotaExceeded": {
       "title": "AI quota exceeded",
       "description": "You've reached your monthly AI usage limit. Your quota will reset on {{date}}.",
-      "hint": "Upgrade your plan for higher limits and priority access."
+      "hint": "Upgrade your plan for higher limits and priority access.",
+      "nextCycle": "the next billing cycle"
     },
     "suspended": {
       "title": "Account suspended",
