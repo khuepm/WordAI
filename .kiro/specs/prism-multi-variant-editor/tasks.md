@@ -6,8 +6,8 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 
 ## Tasks
 
-- [ ] 1. M1 — Foundation: Types, usePrismState, skeleton PrismCanvas
-  - [ ] 1.1 Cài đặt dependencies mới
+- [-] 1. M1 — Foundation: Types, usePrismState, skeleton PrismCanvas
+  - [x] 1.1 Cài đặt dependencies mới
     - Chạy `npm install @codemirror/view @codemirror/state @codemirror/lang-markdown @codemirror/lang-html @codemirror/lang-json zod` trong `apps/wordai-editor`
     - _Requirements: (infrastructure)_
 
