@@ -137,7 +137,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Cả hai tự cập nhật mà không cần re-dispatch
     - _Requirements: 3.1, 3.2, 3.7_
 
-- [ ] 5. Implement Tauri IPC cho Config File
+- [x] 5. Implement Tauri IPC cho Config File
   - [x] 5.1 Thêm Rust command `load_notification_policies`
     - Đọc file từ platform-specific path
     - Trả về JSON string hoặc null nếu file không tồn tại
@@ -149,11 +149,11 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Backup file cũ trước khi overwrite
     - _Requirements: 6.6, 6.7_
 
-  - [~] 5.3 Đăng ký commands vào `tauri::Builder`
+  - [x] 5.3 Đăng ký commands vào `tauri::Builder`
     - _Requirements: 6.6_
 
 - [ ] 6. Tích hợp Event Emitters vào Existing Services
-  - [~] 6.1 Cập nhật `auraBrainManager.ts`
+  - [-] 6.1 Cập nhật `auraBrainManager.ts`
     - Emit `sync.start` khi bắt đầu sync
     - Emit `sync.success` khi sync thành công (kèm version, timestamp)
     - Emit `sync.error` khi sync thất bại (kèm error message)

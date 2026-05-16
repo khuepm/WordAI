@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { AuraIntentDocument } from '../types/auraDocument';
 import type { Document } from '../types/document';
 import { documentToAuraIntent } from './auraDocumentAdapter';
+import { notificationDispatcher } from './notificationDispatcher';
 
 export interface SyncEntry {
   document: Document;
@@ -121,6 +122,20 @@ export async function isDocumentDirty(document: Document): Promise<boolean> {
   return current !== baseline;
 }
 
+/**
+ * Emit a document.dirty notification when the dirty state changes.
+ * Call this from external code (e.g., editor content change handlers)
+ * when the document transitions between dirty and clean states.
+ */
+export function notifyDirtyStateChanged(isDirty: boolean): void {
+  notificationDispatcher.dispatch({
+    sourceKey: 'document.dirty',
+    trigger: 'onEvent',
+    data: { isDirty },
+    timestamp: Date.now(),
+  });
+}
+
 async function executeSyncIPC(document: Document): Promise<SyncResult> {
   const { value: auraDocument } = documentToAuraIntent(document);
   try {
@@ -133,6 +148,23 @@ async function executeSyncIPC(document: Document): Promise<SyncResult> {
     state.lastErrorByDocumentId[document.id] = null;
     syncLegacyDerivedFields(document.id);
     notify();
+
+    // Emit sync.success notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'sync.success',
+      trigger: 'onEvent',
+      data: { version, timestamp: Date.now() },
+      timestamp: Date.now(),
+    });
+
+    // Emit document.dirty (document is now clean after successful sync)
+    notificationDispatcher.dispatch({
+      sourceKey: 'document.dirty',
+      trigger: 'onEvent',
+      data: { isDirty: false },
+      timestamp: Date.now(),
+    });
+
     return { success: true, version };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -140,6 +172,15 @@ async function executeSyncIPC(document: Document): Promise<SyncResult> {
     state.lastErrorByDocumentId[document.id] = message;
     syncLegacyDerivedFields(document.id);
     notify();
+
+    // Emit sync.error notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'sync.error',
+      trigger: 'onEvent',
+      data: { error: message },
+      timestamp: Date.now(),
+    });
+
     return { success: false, error: message };
   }
 }
@@ -158,6 +199,14 @@ export async function syncDocument(document: Document, reason: SyncReason = 'man
   state.isSyncing = true;
   state.activeDocumentId = document.id;
   notify();
+
+  // Emit sync.start notification
+  notificationDispatcher.dispatch({
+    sourceKey: 'sync.start',
+    trigger: 'onEvent',
+    data: {},
+    timestamp: Date.now(),
+  });
 
   let result = await executeSyncIPC(document);
 
