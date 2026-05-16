@@ -135,7 +135,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 - [~] 6. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 7. M4 — .aura bundle: schema (zod), auraBundleService load/save, sub-tab .aura
+- [x] 7. M4 — .aura bundle: schema (zod), auraBundleService load/save, sub-tab .aura
   - [x] 7.1 Tạo `auraSchema` tại `src/utils/auraSchema.ts`
     - Định nghĩa zod schema cho AuraBundle v1 với tất cả trường bắt buộc
     - Validate: $schema URL, version === 1, intentId không rỗng, lastModified ISO 8601
@@ -177,7 +177,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Sử dụng @codemirror/lang-json cho syntax highlighting
     - _Requirements: 3.1, 3.2_
 
-  - [~] 7.8 Viết unit tests cho auraBundleService và intentSourceService
+  - [x] 7.8 Viết unit tests cho auraBundleService và intentSourceService
     - Test loadBundle trả về null khi file không tồn tại
     - Test loadBundle trả về null khi file corrupt
     - Test saveBundle ghi file thành công
