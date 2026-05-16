@@ -165,7 +165,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Payload: `{ key, oldValue, newValue, label }`
     - _Requirements: 7.4_
 
-  - [~] 6.3 Cập nhật `useAutoSync` hook
+  - [x] 6.3 Cập nhật `useAutoSync` hook
     - Emit `autoSync.tick` mỗi interval (kèm remainingSeconds)
     - Emit `autoSync.skip` khi skip do clean/syncing
     - _Requirements: 7.5_

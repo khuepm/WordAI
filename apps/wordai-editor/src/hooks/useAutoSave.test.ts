@@ -493,6 +493,12 @@ vi.mock('../services/auraBrainManager', () => ({
   getState: vi.fn(),
 }));
 
+vi.mock('../services/notificationDispatcher', () => ({
+  notificationDispatcher: {
+    dispatch: vi.fn(),
+  },
+}));
+
 const mockSync = vi.mocked(auraBrainManager.syncDocument);
 const mockGetState = vi.mocked(auraBrainManager.getState);
 const mockIsDocumentDirty = vi.mocked(auraBrainManager.isDocumentDirty);

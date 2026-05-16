@@ -110,6 +110,7 @@ export function useAutoSave(
 // ---------------------------------------------------------------------------
 
 import { getState, isDocumentDirty, syncDocument } from '../services/auraBrainManager';
+import { notificationDispatcher } from '../services/notificationDispatcher';
 
 const BLUR_DEBOUNCE_MS = 2000;
 
@@ -136,17 +137,51 @@ export function useAutoSync(options: UseAutoSyncOptions): void {
   useEffect(() => { documentRef.current = document; }, [document]);
 
   // Interval-based sync (Req 2.1)
+  // Track remaining seconds for countdown notification (Req 7.5)
+  const remainingRef = useRef(autoSyncInterval);
+
   useEffect(() => {
     if (!autoSyncEnabled) return;
+
+    // Reset remaining seconds when interval changes
+    remainingRef.current = autoSyncInterval;
 
     const intervalMs = autoSyncInterval * 1000;
     const id = setInterval(() => {
       const doc = documentRef.current;
       if (!doc) return;
+
+      // Emit autoSync.tick each interval (Req 7.5)
+      notificationDispatcher.dispatch({
+        sourceKey: 'autoSync.tick',
+        trigger: 'onEvent',
+        data: { remainingSeconds: remainingRef.current },
+        timestamp: Date.now(),
+      });
+
       const state = getState();
-      if (state.isSyncing) return; // Req 2.7
+      if (state.isSyncing) {
+        // Emit autoSync.skip when skipping due to syncing (Req 7.5)
+        notificationDispatcher.dispatch({
+          sourceKey: 'autoSync.skip',
+          trigger: 'onEvent',
+          data: { reason: 'syncing' },
+          timestamp: Date.now(),
+        });
+        return; // Req 2.7
+      }
       void isDocumentDirty(doc).then((dirty) => {
-        if (dirty) void syncDocument(doc, 'auto');
+        if (!dirty) {
+          // Emit autoSync.skip when skipping due to clean document (Req 7.5)
+          notificationDispatcher.dispatch({
+            sourceKey: 'autoSync.skip',
+            trigger: 'onEvent',
+            data: { reason: 'clean' },
+            timestamp: Date.now(),
+          });
+        } else {
+          void syncDocument(doc, 'auto');
+        }
       });
     }, intervalMs);
 
