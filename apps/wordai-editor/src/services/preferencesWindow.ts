@@ -11,18 +11,26 @@ const PREFERENCES_WINDOW_LABEL = 'preferences';
 
 /**
  * Open the Preferences window as a separate OS window.
- * If the window is already open, it will be focused instead of creating a new one.
+ * If the window is already open, it will be closed and reopened with new params
+ * to navigate to the correct setting.
  */
 export async function openPreferencesWindow(options?: {
   tab?: Tab;
   settingId?: string;
 }): Promise<void> {
-  // Check if window already exists
+  // Close existing window if open (so we can reopen with new params)
   const existing = await WebviewWindow.getByLabel(PREFERENCES_WINDOW_LABEL);
   if (existing) {
-    // Focus the existing window
-    await existing.setFocus();
-    return;
+    if (options?.settingId || options?.tab) {
+      // Close and reopen with new params to navigate to the setting
+      await existing.close();
+      // Small delay to ensure window is fully closed before reopening
+      await new Promise((r) => setTimeout(r, 100));
+    } else {
+      // No specific target — just focus
+      await existing.setFocus();
+      return;
+    }
   }
 
   // Build URL with optional query params

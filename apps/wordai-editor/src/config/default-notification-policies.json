@@ -3,6 +3,7 @@
   "policies": [
     {
       "id": "sync-status-elapsed",
+      "bundle": "sync",
       "sourceKey": "sync.success",
       "channel": "statusBar",
       "format": "elapsed",
@@ -11,10 +12,26 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "Synced · {seconds}s ago",
-      "description": "Show elapsed time since last sync on status bar"
+      "settingId": "general.autoSave",
+      "description": "Show elapsed time since last sync on status bar (shows minutes after 60s)"
+    },
+    {
+      "id": "sync-success-brief",
+      "bundle": "sync",
+      "sourceKey": "sync.success",
+      "channel": "statusBar",
+      "format": "message",
+      "priority": "medium",
+      "duration": 2000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "✓ Synced",
+      "settingId": "general.autoSave",
+      "description": "Brief success indicator on status bar (2s, then elapsed takes over)"
     },
     {
       "id": "sync-status-syncing",
+      "bundle": "sync",
       "sourceKey": "sync.start",
       "channel": "statusBar",
       "format": "indicator",
@@ -23,10 +40,12 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "Syncing...",
+      "settingId": "general.autoSave",
       "description": "Show syncing indicator on status bar"
     },
     {
       "id": "sync-error-toast",
+      "bundle": "sync",
       "sourceKey": "sync.error",
       "channel": "toast",
       "format": "message",
@@ -35,10 +54,12 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "Sync failed: {error}",
+      "settingId": "general.autoSave",
       "description": "Toast notification when sync fails"
     },
     {
       "id": "sync-error-statusbar",
+      "bundle": "sync",
       "sourceKey": "sync.error",
       "channel": "statusBar",
       "format": "indicator",
@@ -47,10 +68,26 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "⚠ Sync error",
+      "settingId": "general.autoSave",
       "description": "Persistent error indicator on status bar"
     },
     {
+      "id": "autosync-interval-countdown",
+      "bundle": "sync",
+      "sourceKey": "autoSync.countdown",
+      "channel": "statusBar",
+      "format": "countdown",
+      "priority": "medium",
+      "duration": null,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "Next sync in {remainingSeconds}s",
+      "settingId": "general.autoSave",
+      "description": "Countdown to next auto-sync (shows 60s before sync)"
+    },
+    {
       "id": "dirty-titlebar-indicator",
+      "bundle": "dirty",
       "sourceKey": "document.dirty",
       "channel": "titleBar",
       "format": "indicator",
@@ -59,10 +96,12 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "●",
+      "settingId": "general.autoSave",
       "description": "Unsaved indicator on title bar"
     },
     {
       "id": "dirty-statusbar",
+      "bundle": "dirty",
       "sourceKey": "document.dirty",
       "channel": "statusBar",
       "format": "message",
@@ -71,23 +110,12 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "Unsaved changes",
+      "settingId": "general.autoSave",
       "description": "Unsaved changes text on status bar"
     },
     {
-      "id": "autosync-interval-countdown",
-      "sourceKey": "general.autoSyncInterval",
-      "channel": "statusBar",
-      "format": "countdown",
-      "priority": "low",
-      "duration": null,
-      "silent": true,
-      "trigger": "periodic",
-      "periodic": { "intervalMs": 1000 },
-      "template": "Next sync in {remainingSeconds}s",
-      "description": "Countdown to next auto-sync (disabled by default)"
-    },
-    {
       "id": "preference-change-toast",
+      "bundle": "preferences",
       "sourceKey": "preference.*",
       "channel": "toast",
       "format": "message",
@@ -100,6 +128,7 @@
     },
     {
       "id": "export-success-toast",
+      "bundle": "export",
       "sourceKey": "export.complete",
       "channel": "toast",
       "format": "message",
@@ -112,6 +141,7 @@
     },
     {
       "id": "export-error-toast",
+      "bundle": "export",
       "sourceKey": "export.error",
       "channel": "toast",
       "format": "message",
@@ -124,6 +154,7 @@
     },
     {
       "id": "ai-service-unavailable",
+      "bundle": "ai",
       "sourceKey": "ai.unavailable",
       "channel": "toast",
       "format": "message",
@@ -132,6 +163,7 @@
       "silent": false,
       "trigger": "onEvent",
       "template": "AI service unavailable. Check connection.",
+      "settingId": "ai-engine.agent",
       "description": "Toast when AI service becomes unavailable"
     }
   ]

@@ -214,6 +214,31 @@ class NotificationRegistryImpl {
   }
 
   /**
+   * Add a new policy at runtime (in-memory, not persisted until saveToConfig).
+   */
+  addPolicy(policy: NotificationPolicy): void {
+    // Prevent duplicate IDs
+    const exists = this.policies.some((p) => p.id === policy.id);
+    if (exists) {
+      console.warn(`[NotificationRegistry] Policy with id "${policy.id}" already exists`);
+      return;
+    }
+    this.policies.push(policy);
+    this.notifyListeners();
+  }
+
+  /**
+   * Remove a policy by id at runtime (in-memory, not persisted until saveToConfig).
+   */
+  removePolicy(policyId: string): void {
+    const index = this.policies.findIndex((p) => p.id === policyId);
+    if (index === -1) return;
+    this.policies.splice(index, 1);
+    this.overrides.delete(policyId);
+    this.notifyListeners();
+  }
+
+  /**
    * Persist current policies (including overrides) to config file via IPC.
    */
   async saveToConfig(): Promise<void> {

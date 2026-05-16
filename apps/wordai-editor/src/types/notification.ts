@@ -21,6 +21,9 @@ export interface NotificationPolicy {
   /** Unique identifier for this policy */
   id: string;
 
+  /** Policy bundle — groups related policies into a logical unit (e.g. "sync", "export", "dirty") */
+  bundle?: string;
+
   /** Preference key (e.g. "general.autoSyncInterval") or event key (e.g. "sync.error") */
   sourceKey: string;
 
@@ -53,6 +56,9 @@ export interface NotificationPolicy {
 
   /** Human-readable description for Dev Dashboard */
   description?: string;
+
+  /** Setting ID to deep-link to in Preferences when user clicks settings action (e.g. "general.autoSave") */
+  settingId?: string;
 }
 
 export interface PolicyConfigFile {
@@ -89,4 +95,6 @@ export interface ActiveNotification {
   state: 'pending' | 'active' | 'dismissed';
   createdAt: number;
   dismissAt: number | null;
+  /** Setting ID for deep-linking to Preferences */
+  settingId?: string;
 }

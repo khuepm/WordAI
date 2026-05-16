@@ -131,7 +131,10 @@ export interface UseAutoSyncOptions {
  * Requirements: 2.1, 2.2, 2.3, 2.6, 2.7
  */
 export function useAutoSync(options: UseAutoSyncOptions): void {
-  const { document, autoSyncEnabled, autoSyncInterval } = options;
+  const { document, autoSyncEnabled, autoSyncInterval: rawInterval } = options;
+
+  // Clamp autoSyncInterval to valid range [5, 60] seconds
+  const autoSyncInterval = Math.max(5, Math.min(60, rawInterval));
 
   const documentRef = useRef(document);
   useEffect(() => { documentRef.current = document; }, [document]);
@@ -146,10 +149,32 @@ export function useAutoSync(options: UseAutoSyncOptions): void {
     // Reset remaining seconds when interval changes
     remainingRef.current = autoSyncInterval;
 
+    // Countdown threshold: start showing countdown 60s before sync (or full interval if < 60s)
+    const countdownThreshold = Math.min(60, autoSyncInterval);
+
+    // Tick every second to emit countdown events
+    const tickId = setInterval(() => {
+      remainingRef.current -= 1;
+
+      // Emit countdown when within threshold
+      if (remainingRef.current <= countdownThreshold && remainingRef.current > 0) {
+        notificationDispatcher.dispatch({
+          sourceKey: 'autoSync.countdown',
+          trigger: 'onEvent',
+          data: { remainingSeconds: remainingRef.current },
+          timestamp: Date.now(),
+        });
+      }
+    }, 1000);
+
+    // Actual sync at the full interval
     const intervalMs = autoSyncInterval * 1000;
-    const id = setInterval(() => {
+    const syncId = setInterval(() => {
       const doc = documentRef.current;
       if (!doc) return;
+
+      // Reset countdown
+      remainingRef.current = autoSyncInterval;
 
       // Emit autoSync.tick each interval (Req 7.5)
       notificationDispatcher.dispatch({
@@ -185,7 +210,7 @@ export function useAutoSync(options: UseAutoSyncOptions): void {
       });
     }, intervalMs);
 
-    return () => clearInterval(id);
+    return () => { clearInterval(tickId); clearInterval(syncId); };
   }, [autoSyncEnabled, autoSyncInterval]);
 
   // Blur-triggered sync with debounce (Req 2.2, 2.6)

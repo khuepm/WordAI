@@ -7,10 +7,12 @@
  * If no notification is present, falls back to the original hardcoded behavior.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTopNotification } from '../hooks/useNotificationChannel';
 import { useTimerFormat } from '../hooks/useTimerFormat';
+import { openPreferencesWindow } from '../services/preferencesWindow';
+import type { Tab } from '../types/preferences';
 
 export interface EditorStatusBarProps {
   isSyncing: boolean;
@@ -54,11 +56,11 @@ export function EditorStatusBar({
 
   if (topNotification !== null) {
     // Notification channel is active — render based on format
-    if (topNotification.format === 'elapsed' || topNotification.format === 'countdown') {
-      // Timer formats use the self-updating displayContent from useTimerFormat
+    if (topNotification.format === 'elapsed') {
+      // Elapsed format uses self-updating displayContent from useTimerFormat
       statusText = displayContent;
     } else {
-      // 'message' and 'indicator' formats use resolvedContent directly
+      // Countdown (re-dispatched each second), message, indicator — use resolvedContent directly
       statusText = topNotification.resolvedContent;
     }
   } else {
@@ -72,9 +74,21 @@ export function EditorStatusBar({
     } else {
       // Req 13.2, 13.7
       const n = secondsSince(lastSyncedAt);
-      statusText = t('statusBar.synced', { seconds: n });
+      if (n >= 60) {
+        const minutes = Math.floor(n / 60);
+        statusText = t('statusBar.syncedMinutes', { minutes });
+      } else {
+        statusText = t('statusBar.synced', { seconds: n });
+      }
     }
   }
+
+  const handleOpenSettings = useCallback(() => {
+    const settingId = topNotification?.settingId;
+    if (!settingId) return;
+    const tab = settingId.split('.')[0] as Tab;
+    void openPreferencesWindow({ tab, settingId });
+  }, [topNotification?.settingId]);
 
   return (
     <div
@@ -86,6 +100,17 @@ export function EditorStatusBar({
       <span data-testid="status-text" style={styles.text}>
         {statusText}
       </span>
+      {topNotification?.settingId && (
+        <button
+          onClick={handleOpenSettings}
+          style={styles.settingsBtn}
+          aria-label="Open related settings"
+          title="Open settings"
+          data-testid="status-bar-settings-btn"
+        >
+          ⚙
+        </button>
+      )}
     </div>
   );
 }
@@ -103,10 +128,23 @@ const styles: Record<string, React.CSSProperties> = {
     userSelect: 'none',
     flexShrink: 0,
     cursor: 'default',
+    gap: '0.5rem',
   },
   text: {
     opacity: 0.75,
     letterSpacing: '0.02em',
+  },
+  settingsBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '1px 3px',
+    fontSize: '0.7rem',
+    lineHeight: 1,
+    color: 'var(--md-sys-color-primary, #4343d5)',
+    opacity: 0.7,
+    borderRadius: '3px',
+    transition: 'opacity 0.15s',
   },
 };
 

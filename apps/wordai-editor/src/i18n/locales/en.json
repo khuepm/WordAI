@@ -362,7 +362,8 @@
   "statusBar": {
     "syncing": "Syncing...",
     "unsaved": "Unsaved changes",
-    "synced": "Synced · {{seconds}}s ago"
+    "synced": "Synced · {{seconds}}s ago",
+    "syncedMinutes": "Synced · {{minutes}}m ago"
   },
   "document": {
     "untitled": "Untitled Intent",

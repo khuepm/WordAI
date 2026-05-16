@@ -28,6 +28,8 @@ import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
 import { loadPreferences } from './services/preferencesService';
+import { notificationRegistry } from './services/notificationRegistry';
+import { notificationDispatcher } from './services/notificationDispatcher';
 import type { AuraIntentDocument, AuraIntentSummary } from './types/auraDocument';
 import type { Document, TextSelection } from './types/document';
 import type { AISuggestion } from './types/ai';
@@ -215,7 +217,15 @@ function App() {
     getAuraBrainStoragePath()
       .then(setStoragePath)
       .catch(() => setStoragePath(''));
+    // Initialize notification system
+    void notificationRegistry.initialize();
+    notificationDispatcher.initWindowListeners();
   }, [refreshPreferences]);
+
+  // Cleanup notification system on unmount
+  useEffect(() => {
+    return () => { notificationDispatcher.cleanup(); };
+  }, []);
 
   // Initialize: restore last AuraBrain intent or create a fresh in-memory intent.
   useEffect(() => {
@@ -519,7 +529,7 @@ function App() {
             </button >
             <button
               data-testid="ai-service-preferences-button"
-              onClick={() => void openPreferencesWindow()}
+              onClick={() => void openPreferencesWindow({ tab: 'ai-engine', settingId: 'ai-engine.agent' })}
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 color: '#d1d5db',

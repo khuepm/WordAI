@@ -410,7 +410,7 @@ function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
         <SettingRow icon="cloud_sync" label="">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.every')}</span>
-            <input type="number" defaultValue={5} style={{
+            <input type="number" defaultValue={5} min={1} max={60} step={1} style={{
               width: '64px', height: '32px', borderRadius: '0.75rem',
               border: 'none', padding: '0 0.75rem',
               fontSize: '0.75rem', background: '#f4f4f5',
@@ -1426,13 +1426,25 @@ export function PreferencesDialogContent({ initialTab, targetSettingId, onClose,
 
   useEffect(() => {
     if (!targetSettingId) return;
+    // Derive the correct tab from settingId (e.g. "general.autoSave" → "general", "ai-engine.model" → "ai-engine")
+    const dotIndex = targetSettingId.indexOf('.');
+    const tabFromId = dotIndex > 0 ? targetSettingId.slice(0, dotIndex) : undefined;
+    if (tabFromId && tabFromId !== activeTab) {
+      setActiveTab(tabFromId as Tab);
+    }
+    // Scroll after tab switch renders
     const timer = setTimeout(() => {
       const el = document.querySelector(`[data-setting-id="${targetSettingId}"]`);
       if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
         (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight briefly
+        (el as HTMLElement).style.transition = 'background 0.2s';
+        (el as HTMLElement).style.background = 'rgba(67,67,213,0.08)';
+        setTimeout(() => { (el as HTMLElement).style.background = ''; }, 1200);
       }
-    }, 300);
+    }, 400);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetSettingId]);
 
   const tabContent: Record<Tab, React.ReactNode> = {

@@ -128,12 +128,17 @@ export async function isDocumentDirty(document: Document): Promise<boolean> {
  * when the document transitions between dirty and clean states.
  */
 export function notifyDirtyStateChanged(isDirty: boolean): void {
-  notificationDispatcher.dispatch({
-    sourceKey: 'document.dirty',
-    trigger: 'onEvent',
-    data: { isDirty },
-    timestamp: Date.now(),
-  });
+  if (isDirty) {
+    notificationDispatcher.dispatch({
+      sourceKey: 'document.dirty',
+      trigger: 'onEvent',
+      data: { isDirty, value: isDirty },
+      timestamp: Date.now(),
+    });
+  } else {
+    // When document becomes clean, dismiss dirty notifications
+    notificationDispatcher.dismissChannel('titleBar');
+  }
 }
 
 async function executeSyncIPC(document: Document): Promise<SyncResult> {
@@ -158,12 +163,7 @@ async function executeSyncIPC(document: Document): Promise<SyncResult> {
     });
 
     // Emit document.dirty (document is now clean after successful sync)
-    notificationDispatcher.dispatch({
-      sourceKey: 'document.dirty',
-      trigger: 'onEvent',
-      data: { isDirty: false },
-      timestamp: Date.now(),
-    });
+    notificationDispatcher.dismissChannel('titleBar');
 
     return { success: true, version };
   } catch (err) {

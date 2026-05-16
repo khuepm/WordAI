@@ -33,6 +33,11 @@ export function formatTimerContent(
 
   if (format === 'elapsed') {
     const elapsedSeconds = Math.max(0, Math.floor((currentTime - createdAt) / 1000));
+    // When > 60s, display minutes instead of seconds
+    if (elapsedSeconds >= 60) {
+      const minutes = Math.floor(elapsedSeconds / 60);
+      return `Synced · ${minutes}m ago`;
+    }
     // Replace {seconds} in the template with the calculated elapsed value
     return resolvedContent.replace(/\d+(?=s\s*ago)/, String(elapsedSeconds));
   }

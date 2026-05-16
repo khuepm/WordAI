@@ -471,6 +471,7 @@ class NotificationDispatcherImpl {
       state: 'active',
       createdAt: now,
       dismissAt: policy.duration !== null ? now + policy.duration : null,
+      settingId: policy.settingId,
     };
 
     // 5. Store in activeNotifications map

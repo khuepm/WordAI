@@ -16,7 +16,9 @@ import { useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { useNotificationChannel } from '../hooks/useNotificationChannel';
 import { notificationDispatcher } from '../services/notificationDispatcher';
+import { openPreferencesWindow } from '../services/preferencesWindow';
 import type { ActiveNotification, NotificationPriority } from '../types/notification';
+import type { Tab } from '../types/preferences';
 
 // ─── Priority Styling ───────────────────────────────────────────────────────────
 
@@ -102,6 +104,20 @@ const dismissBtnStyle: CSSProperties = {
   transition: 'opacity 0.15s',
 };
 
+const settingsBtnStyle: CSSProperties = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: '2px 4px',
+  fontSize: '0.875rem',
+  lineHeight: 1,
+  color: 'var(--md-sys-color-primary, #4343d5)',
+  opacity: 0.8,
+  flexShrink: 0,
+  borderRadius: '4px',
+  transition: 'opacity 0.15s',
+};
+
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export function NotificationToast() {
@@ -142,6 +158,15 @@ interface ToastItemProps {
 function ToastItem({ notification, onDismiss }: ToastItemProps) {
   const priorityConfig = PRIORITY_COLORS[notification.priority];
 
+  const handleOpenSettings = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!notification.settingId) return;
+    // Derive tab from settingId (e.g. "general.autoSave" → "general", "ai-engine.model" → "ai-engine")
+    const tab = notification.settingId.split('.')[0] as Tab;
+    void openPreferencesWindow({ tab, settingId: notification.settingId });
+    onDismiss(notification.id);
+  }, [notification.settingId, notification.id, onDismiss]);
+
   const itemStyle: CSSProperties = {
     ...toastItemStyle,
     background: priorityConfig.bg,
@@ -165,6 +190,19 @@ function ToastItem({ notification, onDismiss }: ToastItemProps) {
       <span style={contentStyle}>
         {notification.resolvedContent}
       </span>
+
+      {/* Settings button — deep-links to relevant preference */}
+      {notification.settingId && (
+        <button
+          data-testid={`notification-toast-settings-${notification.id}`}
+          style={settingsBtnStyle}
+          onClick={handleOpenSettings}
+          aria-label="Open settings"
+          title="Open settings"
+        >
+          ⚙
+        </button>
+      )}
 
       {/* Dismiss button */}
       <button

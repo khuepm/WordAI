@@ -8,8 +8,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./utils/reactInternals";
 import { DevDashboardWindow } from "./components/DevDashboardWindow";
+import { notificationRegistry } from "./services/notificationRegistry";
 import "./styles/variables.css";
 import "./styles/base.css";
+
+// Initialize notification registry so DevDashboard can see policies
+void notificationRegistry.initialize();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

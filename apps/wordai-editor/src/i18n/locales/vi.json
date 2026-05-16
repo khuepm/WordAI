@@ -362,7 +362,8 @@
   "statusBar": {
     "syncing": "Đang đồng bộ...",
     "unsaved": "Chưa lưu thay đổi",
-    "synced": "Đã đồng bộ · {{seconds}}s trước"
+    "synced": "Đã đồng bộ · {{seconds}}s trước",
+    "syncedMinutes": "Đã đồng bộ · {{minutes}}m trước"
   },
   "document": {
     "untitled": "Ý niệm chưa đặt tên",
