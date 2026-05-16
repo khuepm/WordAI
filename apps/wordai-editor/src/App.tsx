@@ -23,7 +23,7 @@ import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
-import { useAIAccessState } from './services/authStore';
+import { useAIAccessState, useAccessContext } from './services/authStore';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -117,6 +117,7 @@ function App() {
 
   // Req 13.8–13.11 — derive AI access state to gate AI features
   const aiAccessState = useAIAccessState();
+  const accessContext = useAccessContext();
 
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -477,6 +478,8 @@ function App() {
         onNew={handleNew}
         onSave={openRenderDrawer}
         onOpenPreferences={() => void openPreferencesWindow()}
+        userName={accessContext?.user.display_name}
+        userEmail={accessContext?.user.email}
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
         onRename={handleRename}

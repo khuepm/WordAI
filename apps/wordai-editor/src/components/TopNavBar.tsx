@@ -16,6 +16,8 @@ interface TopNavBarProps {
   onOpenPreferences?: () => void;
   /** Authenticated user's display name; omit for anonymous/guest. */
   userName?: string;
+  /** Authenticated user's email address; omit for anonymous/guest. */
+  userEmail?: string;
   /** AuraBrain dirty state — true when content differs from last sync (Req 3.3, 3.4) */
   isDirty?: boolean;
   /** AuraBrain syncing state — true while sync is in progress (Req 1.1) */
@@ -26,9 +28,13 @@ interface TopNavBarProps {
   activeTab?: 'editor' | 'library';
   /** Called when the user clicks a nav tab button */
   onTabChange?: (tab: 'editor' | 'library') => void;
+  /** Called when guest clicks Sign In */
+  onSignIn?: () => void;
+  /** Called when authenticated user clicks Sign Out */
+  onSignOut?: () => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false, onRename, activeTab = 'editor', onTabChange }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, userEmail, isDirty = false, isSyncing = false, onRename, activeTab = 'editor', onTabChange, onSignIn, onSignOut }: TopNavBarProps) {
   const { t } = useTranslation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -242,81 +248,115 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                   borderRadius: 'var(--radius-sm, 0.5rem)',
                 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface, #191c1d)', fontFamily: 'var(--font-family-ui)' }}>
-                    Digital Curator
+                    {userName || 'Guest'}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant, #40484c)', fontFamily: 'var(--font-family-ui)' }}>
-                    curator@ethereal.editor
-                  </div>
+                  {userEmail && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant, #40484c)', fontFamily: 'var(--font-family-ui)' }}>
+                      {userEmail}
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <button
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      borderRadius: 'var(--radius-sm, 0.25rem)',
-                      color: 'var(--md-sys-color-on-surface, #191c1d)',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      fontFamily: 'var(--font-family-ui)',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>person</span>
-                    {t('nav.profile')}
-                  </button>
-                  <button
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      borderRadius: 'var(--radius-sm, 0.25rem)',
-                      color: 'var(--md-sys-color-on-surface, #191c1d)',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      fontFamily: 'var(--font-family-ui)',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>workspace_premium</span>
-                    {t('nav.subscription')}
-                  </button>
-                  <button
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      borderRadius: 'var(--radius-sm, 0.25rem)',
-                      color: 'var(--md-sys-color-error, #ba1a1a)',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      fontFamily: 'var(--font-family-ui)',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-error-container, #ffdad6)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
-                    {t('nav.signOut')}
-                  </button>
-                </div>
+                {userName ? (
+                  /* Authenticated user menu */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        borderRadius: 'var(--radius-sm, 0.25rem)',
+                        color: 'var(--md-sys-color-on-surface, #191c1d)',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        fontFamily: 'var(--font-family-ui)',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>person</span>
+                      {t('nav.profile')}
+                    </button>
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        borderRadius: 'var(--radius-sm, 0.25rem)',
+                        color: 'var(--md-sys-color-on-surface, #191c1d)',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        fontFamily: 'var(--font-family-ui)',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>workspace_premium</span>
+                      {t('nav.subscription')}
+                    </button>
+                    <button
+                      onClick={onSignOut}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        borderRadius: 'var(--radius-sm, 0.25rem)',
+                        color: 'var(--md-sys-color-error, #ba1a1a)',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        fontFamily: 'var(--font-family-ui)',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-error-container, #ffdad6)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
+                      {t('nav.signOut')}
+                    </button>
+                  </div>
+                ) : (
+                  /* Guest menu */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <button
+                      onClick={onSignIn}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '0.75rem 1rem',
+                        textAlign: 'left',
+                        borderRadius: 'var(--radius-sm, 0.25rem)',
+                        color: 'var(--md-sys-color-primary, #4343d5)',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        fontFamily: 'var(--font-family-ui)',
+                        fontWeight: 600,
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>login</span>
+                      {t('nav.signIn')}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
