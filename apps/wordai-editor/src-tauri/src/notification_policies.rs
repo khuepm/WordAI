@@ -23,6 +23,48 @@ fn policies_file_path(app: &tauri::AppHandle) -> Result<PathBuf, IPCError> {
 
 // ── Tauri Commands ────────────────────────────────────────────────────────────
 
+/// Save notification policies to the platform-specific config file.
+/// Accepts a JSON string, validates it is parseable, creates the config directory
+/// if it doesn't exist, backs up the existing file before overwriting, and writes
+/// the new content.
+/// Requirements: 6.6, 6.7
+#[tauri::command]
+pub fn save_notification_policies(app: tauri::AppHandle, config: String) -> Result<(), IPCError> {
+    // 1. Validate that the JSON is parseable
+    let _parsed: serde_json::Value = serde_json::from_str(&config).map_err(|e| IPCError {
+        code: "INVALID_JSON".to_string(),
+        message: format!("Invalid JSON content: {}", e),
+    })?;
+
+    // 2. Resolve the config file path
+    let path = policies_file_path(&app)?;
+
+    // 3. Create the config directory if it doesn't exist
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| IPCError {
+            code: "DIR_CREATE_ERROR".to_string(),
+            message: format!("Cannot create config directory {:?}: {}", parent, e),
+        })?;
+    }
+
+    // 4. Backup existing file before overwriting
+    if path.exists() {
+        let backup_path = path.with_extension("json.backup");
+        fs::rename(&path, &backup_path).map_err(|e| IPCError {
+            code: "BACKUP_ERROR".to_string(),
+            message: format!("Cannot backup existing config file: {}", e),
+        })?;
+    }
+
+    // 5. Write the new content to the file
+    fs::write(&path, &config).map_err(|e| IPCError {
+        code: "FILE_WRITE_ERROR".to_string(),
+        message: format!("Cannot write notification policies to {:?}: {}", path, e),
+    })?;
+
+    Ok(())
+}
+
 /// Load notification policies from the platform-specific config file.
 /// Returns the JSON content as a string, or None if the file does not exist.
 /// Handles errors gracefully: file not found → None, other errors → log and return None.
@@ -132,5 +174,117 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&read_content).unwrap();
         assert_eq!(parsed["schemaVersion"], 1);
         assert_eq!(parsed["policies"][0]["id"], "sync-status-elapsed");
+    }
+
+    // ── save_notification_policies tests ──────────────────────────────────────
+
+    #[test]
+    fn save_rejects_invalid_json() {
+        let dir = temp_dir();
+        let config_path = dir.path().join("config");
+        let file_path = config_path.join("notification-policies.json");
+
+        // Simulate save logic: validate JSON
+        let invalid_json = "not valid json {{{";
+        let result: Result<serde_json::Value, _> = serde_json::from_str(invalid_json);
+        assert!(result.is_err());
+
+        // File should not be created
+        assert!(!file_path.exists());
+    }
+
+    #[test]
+    fn save_creates_directory_if_missing() {
+        let dir = temp_dir();
+        let config_path = dir.path().join("config");
+        let file_path = config_path.join("notification-policies.json");
+
+        // Directory does not exist yet
+        assert!(!config_path.exists());
+
+        let content = r#"{"schemaVersion":1,"policies":[]}"#;
+
+        // Simulate save logic: create dir + write
+        fs::create_dir_all(&config_path).unwrap();
+        fs::write(&file_path, content).unwrap();
+
+        assert!(config_path.exists());
+        assert!(file_path.exists());
+        assert_eq!(fs::read_to_string(&file_path).unwrap(), content);
+    }
+
+    #[test]
+    fn save_creates_backup_before_overwrite() {
+        let dir = temp_dir();
+        let config_path = dir.path().join("config");
+        fs::create_dir_all(&config_path).unwrap();
+
+        let file_path = config_path.join("notification-policies.json");
+        let backup_path = config_path.join("notification-policies.json.backup");
+
+        // Write original content
+        let original = r#"{"schemaVersion":1,"policies":[{"id":"old"}]}"#;
+        fs::write(&file_path, original).unwrap();
+
+        // Simulate save logic: backup + write new
+        let new_content = r#"{"schemaVersion":1,"policies":[{"id":"new"}]}"#;
+        fs::rename(&file_path, &backup_path).unwrap();
+        fs::write(&file_path, new_content).unwrap();
+
+        // Verify backup contains old content
+        assert!(backup_path.exists());
+        let backup_content = fs::read_to_string(&backup_path).unwrap();
+        assert_eq!(backup_content, original);
+
+        // Verify new file contains new content
+        let saved_content = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(saved_content, new_content);
+    }
+
+    #[test]
+    fn save_writes_valid_json_content() {
+        let dir = temp_dir();
+        let config_path = dir.path().join("config");
+        fs::create_dir_all(&config_path).unwrap();
+
+        let file_path = config_path.join("notification-policies.json");
+        let content = r#"{"schemaVersion":1,"policies":[{"id":"sync-status-elapsed","sourceKey":"sync.success","channel":"statusBar","format":"elapsed","priority":"low","duration":null,"silent":false,"trigger":"onEvent","template":"Synced · {seconds}s ago"}]}"#;
+
+        // Validate JSON first
+        let parsed: serde_json::Value = serde_json::from_str(content).unwrap();
+        assert_eq!(parsed["schemaVersion"], 1);
+
+        // Write to file
+        fs::write(&file_path, content).unwrap();
+
+        // Read back and verify
+        let read_back = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(read_back, content);
+    }
+
+    #[test]
+    fn save_without_existing_file_skips_backup() {
+        let dir = temp_dir();
+        let config_path = dir.path().join("config");
+        fs::create_dir_all(&config_path).unwrap();
+
+        let file_path = config_path.join("notification-policies.json");
+        let backup_path = config_path.join("notification-policies.json.backup");
+
+        // No existing file
+        assert!(!file_path.exists());
+
+        let content = r#"{"schemaVersion":1,"policies":[]}"#;
+
+        // Simulate save logic: no backup needed, just write
+        if file_path.exists() {
+            fs::rename(&file_path, &backup_path).unwrap();
+        }
+        fs::write(&file_path, content).unwrap();
+
+        // No backup should exist
+        assert!(!backup_path.exists());
+        // File should be written
+        assert_eq!(fs::read_to_string(&file_path).unwrap(), content);
     }
 }

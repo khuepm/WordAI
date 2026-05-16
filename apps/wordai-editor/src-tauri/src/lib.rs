@@ -468,6 +468,7 @@ pub fn run() {
             preferences_store::save_preferences,
             preferences_store::reset_preferences,
             notification_policies::load_notification_policies,
+            notification_policies::save_notification_policies,
             sync_intent,
             get_intent,
             list_intents,

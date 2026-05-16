@@ -143,7 +143,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Trả về JSON string hoặc null nếu file không tồn tại
     - _Requirements: 6.1, 6.6_
 
-  - [~] 5.2 Thêm Rust command `save_notification_policies`
+  - [x] 5.2 Thêm Rust command `save_notification_policies`
     - Nhận JSON string, validate, ghi vào file
     - Tạo thư mục nếu chưa tồn tại
     - Backup file cũ trước khi overwrite
