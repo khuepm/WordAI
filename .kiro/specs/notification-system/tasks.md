@@ -234,7 +234,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Verify production bundle không chứa DevDashboard code
     - _Requirements: 5.11, 5.12_
 
-- [ ] 9. Notification Lifecycle & Cleanup
+- [x] 9. Notification Lifecycle & Cleanup
   - [x] 9.1 Implement auto-dismiss timer
     - Khi notification có duration !== null, start timer
     - Khi timer fires, transition to 'dismissed'
@@ -253,8 +253,8 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Unsubscribe all listeners
     - _Requirements: 8.8_
 
-- [ ] 10. Testing
-  - [~] 10.1 Unit tests cho NotificationRegistry
+- [x] 10. Testing
+  - [x] 10.1 Unit tests cho NotificationRegistry
     - Load default config
     - Merge user config with defaults
     - Lookup policies by sourceKey
@@ -265,7 +265,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Invalid config fallback
     - _Requirements: 1.1-1.10_
 
-  - [~] 10.2 Unit tests cho NotificationDispatcher
+  - [x] 10.2 Unit tests cho NotificationDispatcher
     - Dispatch event routes to correct channel
     - Silent policy suppresses notification
     - Template resolution with variables
@@ -276,21 +276,21 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Multiple policies for same event
     - _Requirements: 2.7, 3.6, 3.8, 4.6, 4.8, 8.6_
 
-  - [~] 10.3 Unit tests cho Channels
+  - [x] 10.3 Unit tests cho Channels
     - StatusBar channel renders top notification
     - Toast channel auto-dismisses
     - TitleBar channel renders indicator
     - None channel is no-op
     - _Requirements: 2.1-2.6_
 
-  - [~] 10.4 Unit tests cho trigger conditions
+  - [x] 10.4 Unit tests cho trigger conditions
     - onChange fires on value change
     - onThreshold fires when threshold crossed
     - onEvent fires on matching event
     - periodic fires at interval
     - _Requirements: 4.1-4.5_
 
-  - [~] 10.5 Integration tests
+  - [x] 10.5 Integration tests
     - Preference change → toast notification appears
     - Sync error → toast + statusBar notification
     - Auto-sync countdown (when enabled) → statusBar countdown
