@@ -107,7 +107,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - `onEvent`: match khi event.trigger === 'onEvent' và sourceKey match
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.7_
 
-- [ ] 4. Implement Notification Channels
+- [x] 4. Implement Notification Channels
   - [x] 4.1 Tạo `src/services/notificationChannels.ts`
     - Abstract channel interface
     - StatusBar channel: persistent notifications, priority ordering
@@ -123,7 +123,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Dùng `useSyncExternalStore` pattern
     - _Requirements: 2.10_
 
-  - [-] 4.3 Tạo `src/components/NotificationToast.tsx`
+  - [x] 4.3 Tạo `src/components/NotificationToast.tsx`
     - Render toast overlay (fixed position, top-right hoặc bottom-center)
     - Stack multiple toasts
     - Auto-dismiss animation
@@ -131,7 +131,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Dismiss on click
     - _Requirements: 2.3, 2.8_
 
-  - [~] 4.4 Implement countdown và elapsed format logic
+  - [x] 4.4 Implement countdown và elapsed format logic
     - Countdown: start từ value, giảm mỗi giây, dispatch "done" khi = 0
     - Elapsed: start từ 0, tăng mỗi giây
     - Cả hai tự cập nhật mà không cần re-dispatch
