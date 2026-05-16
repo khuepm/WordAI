@@ -188,7 +188,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 - [~] 8. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 9. M5 — AuraSphere wiring: panel generates ≥2 variants, fill slots, Pin/Promote
+- [x] 9. M5 — AuraSphere wiring: panel generates ≥2 variants, fill slots, Pin/Promote
   - [x] 9.1 Implement `addAuraSphereVariants` trong usePrismState
     - Nhận AuraSphereSuggestion, validate từng variant (label không rỗng, markdown parse được)
     - Phân phối vào slot trống theo thứ tự index tăng dần
@@ -225,13 +225,13 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - **Property 9: AuraSphere Partial Failure Resilience** — chỉ variant parse thành công được thêm, variant lỗi bị bỏ qua
     - **Validates: Requirements 10.8**
 
-  - [~] 9.8 Wire AuraSphere suggestion vào PrismCanvas
+  - [x] 9.8 Wire AuraSphere suggestion vào PrismCanvas
     - Nhận auraSuggestion prop, gọi addAuraSphereVariants khi có suggestion mới
     - Hiển thị toast nếu tất cả variant parse thất bại
     - Disable nút Promote khi chỉ có 1 variant active
     - _Requirements: 8.1, 8.7, 7.9, 10.9_
 
-  - [~] 9.9 Viết unit tests cho promote, pin, AuraSphere integration
+  - [x] 9.9 Viết unit tests cho promote, pin, AuraSphere integration
     - Test promote slot 2 → state về 1 slot, content đúng
     - Test pin variant → AuraSphere push không ghi đè
     - Test AuraSphere suggestion với 2 variant → fill 2 slot trống

@@ -74,6 +74,8 @@ export interface PrismVariantPaneProps {
   onDiscard: () => void;
   onPromote: () => void;
   onPin: () => void;
+  /** Disable Promote button when only 1 variant active (Req 7.9) */
+  disablePromote?: boolean;
   fontSize?: number;
 }
 
@@ -123,6 +125,7 @@ export function PrismVariantPane({
   onDiscard,
   onPromote,
   onPin,
+  disablePromote = false,
   fontSize,
 }: PrismVariantPaneProps) {
   // Local markdown state — kept in sync with blockContent via transforms
@@ -332,9 +335,13 @@ export function PrismVariantPane({
               e.stopPropagation();
               onPromote();
             }}
-            style={styles.actionButton}
+            disabled={disablePromote}
+            style={{
+              ...styles.actionButton,
+              ...(disablePromote ? styles.actionButtonDisabled : {}),
+            }}
             aria-label="Promote variant"
-            title="Promote variant to main"
+            title={disablePromote ? 'Cần ít nhất 2 variant để promote' : 'Promote variant to main'}
           >
             Promote
           </button>
