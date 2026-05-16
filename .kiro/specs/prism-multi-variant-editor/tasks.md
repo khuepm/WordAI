@@ -11,7 +11,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Chạy `npm install @codemirror/view @codemirror/state @codemirror/lang-markdown @codemirror/lang-html @codemirror/lang-json zod` trong `apps/wordai-editor`
     - _Requirements: (infrastructure)_
 
-  - [ ] 1.2 Tạo type definitions tại `src/components/prism/types.ts`
+  - [x] 1.2 Tạo type definitions tại `src/components/prism/types.ts`
     - Định nghĩa `PrismSlotIndex`, `PrismViewMode`, `PrismCodeSubTab`
     - Định nghĩa `PrismVariant` interface với id, label, blockContent, source, promptRef, pinned, dirty
     - Định nghĩa `PrismState` interface với slots, modes, codeSubTabs, focusedSlot, syncScroll
