@@ -123,7 +123,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Dùng `useSyncExternalStore` pattern
     - _Requirements: 2.10_
 
-  - [~] 4.3 Tạo `src/components/NotificationToast.tsx`
+  - [-] 4.3 Tạo `src/components/NotificationToast.tsx`
     - Render toast overlay (fixed position, top-right hoặc bottom-center)
     - Stack multiple toasts
     - Auto-dismiss animation
