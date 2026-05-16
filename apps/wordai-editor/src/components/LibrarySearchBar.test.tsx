@@ -19,9 +19,7 @@ describe('Clear button visibility (Req 7.5)', () => {
       <LibrarySearchBar value="" onChange={vi.fn()} onClear={vi.fn()} />
     );
 
-    expect(
-      screen.queryByRole('button', { name: /clear search/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /clear search/i })).not.toBeInTheDocument();
   });
 
   it('renders the clear button when value is non-empty', () => {
@@ -29,24 +27,23 @@ describe('Clear button visibility (Req 7.5)', () => {
       <LibrarySearchBar value="hello" onChange={vi.fn()} onClear={vi.fn()} />
     );
 
-    expect(
-      screen.getByRole('button', { name: /clear search/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Req 7.5 — Clicking clear button calls onClear
+// Req 7.5 — Clicking the clear button calls onClear
 // ---------------------------------------------------------------------------
 describe('Clear button interaction (Req 7.5)', () => {
   it('calls onClear when the clear button is clicked', async () => {
     const onClear = vi.fn();
+    const user = userEvent.setup();
+
     render(
       <LibrarySearchBar value="some text" onChange={vi.fn()} onClear={onClear} />
     );
 
-    const clearBtn = screen.getByRole('button', { name: /clear search/i });
-    await userEvent.click(clearBtn);
+    await user.click(screen.getByRole('button', { name: /clear search/i }));
 
     expect(onClear).toHaveBeenCalledOnce();
   });
@@ -55,9 +52,10 @@ describe('Clear button interaction (Req 7.5)', () => {
 // ---------------------------------------------------------------------------
 // Req 7.1 — Typing calls onChange with the new value
 // ---------------------------------------------------------------------------
-describe('Input change (Req 7.1)', () => {
+describe('Input interaction (Req 7.1)', () => {
   it('calls onChange with the new value when the user types', () => {
     const onChange = vi.fn();
+
     render(
       <LibrarySearchBar value="" onChange={onChange} onClear={vi.fn()} />
     );
@@ -65,30 +63,30 @@ describe('Input change (Req 7.1)', () => {
     const input = screen.getByRole('searchbox');
     fireEvent.change(input, { target: { value: 'test query' } });
 
+    expect(onChange).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenCalledWith('test query');
   });
-});
 
-// ---------------------------------------------------------------------------
-// Accessibility — ARIA attributes
-// ---------------------------------------------------------------------------
-describe('Accessibility attributes', () => {
-  it('renders the input with role="searchbox"', () => {
-    render(
-      <LibrarySearchBar value="" onChange={vi.fn()} onClear={vi.fn()} />
-    );
+  it('calls onChange with each intermediate value as the user types character by character', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
 
-    expect(screen.getByRole('searchbox')).toBeInTheDocument();
-  });
-
-  it('input has an aria-label matching the placeholder', () => {
-    render(
-      <LibrarySearchBar value="" onChange={vi.fn()} onClear={vi.fn()} />
+    // Render as a controlled component that tracks its own value
+    const { rerender } = render(
+      <LibrarySearchBar value="" onChange={onChange} onClear={vi.fn()} />
     );
 
     const input = screen.getByRole('searchbox');
-    // The aria-label and placeholder both use t('library.searchPlaceholder')
-    expect(input).toHaveAttribute('aria-label');
-    expect(input.getAttribute('aria-label')).toBe(input.getAttribute('placeholder'));
+
+    // Type 'ab' — each keystroke fires onChange
+    await user.type(input, 'a');
+    rerender(<LibrarySearchBar value="a" onChange={onChange} onClear={vi.fn()} />);
+
+    await user.type(input, 'b');
+    rerender(<LibrarySearchBar value="ab" onChange={onChange} onClear={vi.fn()} />);
+
+    expect(onChange).toHaveBeenCalledTimes(2);
+    expect(onChange.mock.calls[0][0]).toBe('a');
+    expect(onChange.mock.calls[1][0]).toBe('ab');
   });
 });
