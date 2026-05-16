@@ -114,12 +114,27 @@ function compareValues(
   }
 }
 
+/** Info needed to pause/resume an auto-dismiss timer. Requirement: 8.7 */
+interface PausedTimerInfo {
+  notificationId: string;
+  remainingMs: number;
+  pausedAt: number;
+}
+
 class NotificationDispatcherImpl {
   private activeNotifications: Map<string, ActiveNotification> = new Map();
   private log: ActiveNotification[] = [];
   private channelListeners: Map<NotificationChannel, Set<ChannelListener>> = new Map();
   /** Track auto-dismiss timers by notification id for cleanup. Requirement: 8.5 */
   private autoDismissTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  /** Track timer start info for pause/resume calculation. Requirement: 8.7 */
+  private timerStartInfo: Map<string, { startedAt: number; durationMs: number }> = new Map();
+  /** Track paused timers (toast channel only) during window blur. Requirement: 8.7 */
+  private pausedTimers: Map<string, PausedTimerInfo> = new Map();
+  /** Whether toast timers are currently paused due to window blur. Requirement: 8.7 */
+  private isBlurred = false;
+  /** Window event listener cleanup functions. */
+  private windowListenerCleanups: (() => void)[] = [];
   /** Track periodic policy timers by policy id. Requirement: 4.4 */
   private periodicTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
 
@@ -322,6 +337,98 @@ class NotificationDispatcherImpl {
   }
 
   /**
+   * Initialize window blur/focus listeners for pausing toast auto-dismiss timers.
+   * Should be called once when the notification system starts.
+   *
+   * Requirement: 8.7
+   */
+  initWindowListeners(): void {
+    if (typeof window === 'undefined') return;
+
+    const handleBlur = () => this.handleWindowBlur();
+    const handleFocus = () => this.handleWindowFocus();
+
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
+    this.windowListenerCleanups.push(
+      () => window.removeEventListener('blur', handleBlur),
+      () => window.removeEventListener('focus', handleFocus)
+    );
+  }
+
+  /**
+   * Handle window blur — pause auto-dismiss timers for toast channel notifications.
+   * Requirement: 8.7
+   */
+  private handleWindowBlur(): void {
+    if (this.isBlurred) return;
+    this.isBlurred = true;
+
+    const now = Date.now();
+
+    for (const [notifId, timerId] of this.autoDismissTimers) {
+      const notification = this.activeNotifications.get(notifId);
+      if (!notification || notification.channel !== 'toast') continue;
+
+      const startInfo = this.timerStartInfo.get(notifId);
+      if (!startInfo) continue;
+
+      const elapsed = now - startInfo.startedAt;
+      const remainingMs = Math.max(0, startInfo.durationMs - elapsed);
+
+      // Clear the active timer
+      clearTimeout(timerId);
+      this.autoDismissTimers.delete(notifId);
+      this.timerStartInfo.delete(notifId);
+
+      // Store paused state
+      this.pausedTimers.set(notifId, {
+        notificationId: notifId,
+        remainingMs,
+        pausedAt: now,
+      });
+    }
+  }
+
+  /**
+   * Handle window focus — resume paused auto-dismiss timers for toast channel notifications.
+   * Requirement: 8.7
+   */
+  private handleWindowFocus(): void {
+    if (!this.isBlurred) return;
+    this.isBlurred = false;
+
+    for (const [notifId, pausedInfo] of this.pausedTimers) {
+      const notification = this.activeNotifications.get(notifId);
+      if (!notification || notification.state !== 'active') {
+        this.pausedTimers.delete(notifId);
+        continue;
+      }
+
+      // Restart timer with remaining duration
+      const remainingMs = pausedInfo.remainingMs;
+      if (remainingMs <= 0) {
+        // Timer should have already fired — dismiss immediately
+        this.pausedTimers.delete(notifId);
+        this.dismiss(notifId);
+        continue;
+      }
+
+      const now = Date.now();
+      const timerId = setTimeout(() => {
+        this.autoDismissTimers.delete(notifId);
+        this.timerStartInfo.delete(notifId);
+        this.dismiss(notifId);
+      }, remainingMs);
+
+      this.autoDismissTimers.set(notifId, timerId);
+      this.timerStartInfo.set(notifId, { startedAt: now, durationMs: remainingMs });
+      this.pausedTimers.delete(notifId);
+    }
+  }
+
+  /**
    * Dispatch a single policy for an event.
    * Creates an ActiveNotification and stores it.
    *
@@ -371,11 +478,22 @@ class NotificationDispatcherImpl {
 
     // Start auto-dismiss timer if duration is set (Requirement 8.5a)
     if (policy.duration !== null && policy.duration > 0) {
-      const timerId = setTimeout(() => {
-        this.autoDismissTimers.delete(notification.id);
-        this.dismiss(notification.id);
-      }, policy.duration);
-      this.autoDismissTimers.set(notification.id, timerId);
+      // If window is blurred and this is a toast notification, store as paused immediately (Requirement 8.7)
+      if (this.isBlurred && policy.channel === 'toast') {
+        this.pausedTimers.set(notification.id, {
+          notificationId: notification.id,
+          remainingMs: policy.duration,
+          pausedAt: now,
+        });
+      } else {
+        const timerId = setTimeout(() => {
+          this.autoDismissTimers.delete(notification.id);
+          this.timerStartInfo.delete(notification.id);
+          this.dismiss(notification.id);
+        }, policy.duration);
+        this.autoDismissTimers.set(notification.id, timerId);
+        this.timerStartInfo.set(notification.id, { startedAt: now, durationMs: policy.duration });
+      }
     }
 
     // Add to log (ring buffer, max 200)
@@ -387,6 +505,7 @@ class NotificationDispatcherImpl {
 
   /**
    * Clear an auto-dismiss timer for a specific notification.
+   * Also cleans up timer start info and paused timer state.
    */
   private clearAutoDismissTimer(notificationId: string): void {
     const timerId = this.autoDismissTimers.get(notificationId);
@@ -394,6 +513,8 @@ class NotificationDispatcherImpl {
       clearTimeout(timerId);
       this.autoDismissTimers.delete(notificationId);
     }
+    this.timerStartInfo.delete(notificationId);
+    this.pausedTimers.delete(notificationId);
   }
 
   /**
@@ -412,6 +533,15 @@ class NotificationDispatcherImpl {
       clearTimeout(timerId);
     }
     this.autoDismissTimers.clear();
+    this.timerStartInfo.clear();
+    this.pausedTimers.clear();
+    this.isBlurred = false;
+
+    // Remove window event listeners
+    for (const cleanup of this.windowListenerCleanups) {
+      cleanup();
+    }
+    this.windowListenerCleanups = [];
 
     // Dismiss all active notifications
     const affectedChannels = new Set<NotificationChannel>();

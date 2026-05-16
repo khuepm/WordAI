@@ -588,5 +588,193 @@ describe('NotificationDispatcher', () => {
 
       expect(listener).toHaveBeenCalled();
     });
+
+    it('should remove window event listeners', async () => {
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      dispatcher.initWindowListeners();
+      dispatcher.cleanup();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('blur', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('focus', expect.any(Function));
+      removeEventListenerSpy.mockRestore();
+    });
+
+    it('should clear paused timers on cleanup', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'toast-p', channel: 'toast', duration: 5000 });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Blur to pause the timer
+      window.dispatchEvent(new Event('blur'));
+
+      // Cleanup should clear paused timers
+      dispatcher.cleanup();
+
+      // Focus should not restart any timers
+      window.dispatchEvent(new Event('focus'));
+      vi.advanceTimersByTime(10000);
+
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0);
+      vi.useRealTimers();
+    });
+  });
+
+  describe('pause/resume on window blur/focus (Requirement 8.7)', () => {
+    it('should pause toast auto-dismiss timer on window blur', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'toast-1', channel: 'toast', duration: 5000, template: 'Toast msg' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Advance 2s, then blur
+      vi.advanceTimersByTime(2000);
+      window.dispatchEvent(new Event('blur'));
+
+      // Advance well past the original duration — toast should NOT be dismissed
+      vi.advanceTimersByTime(10000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      vi.useRealTimers();
+    });
+
+    it('should resume toast auto-dismiss timer on window focus', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'toast-1', channel: 'toast', duration: 5000, template: 'Toast msg' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Advance 2s (3s remaining), then blur
+      vi.advanceTimersByTime(2000);
+      window.dispatchEvent(new Event('blur'));
+
+      // Advance 10s while blurred — should not dismiss
+      vi.advanceTimersByTime(10000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      // Focus — timer resumes with ~3s remaining
+      window.dispatchEvent(new Event('focus'));
+
+      // Advance 2s — still active (3s remaining)
+      vi.advanceTimersByTime(2000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      // Advance 1 more second — should now be dismissed
+      vi.advanceTimersByTime(1000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0);
+
+      vi.useRealTimers();
+    });
+
+    it('should NOT pause statusBar auto-dismiss timer on window blur', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'sb-1', channel: 'statusBar', duration: 3000, template: 'Status' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Blur window
+      window.dispatchEvent(new Event('blur'));
+
+      // Advance past duration — statusBar should still auto-dismiss
+      vi.advanceTimersByTime(3000);
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+
+      vi.useRealTimers();
+    });
+
+    it('should dismiss immediately on focus if remaining time was 0', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'toast-1', channel: 'toast', duration: 2000, template: 'Toast' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Advance almost to the end, then blur
+      vi.advanceTimersByTime(1999);
+      window.dispatchEvent(new Event('blur'));
+
+      // The remaining time is 1ms, which gets clamped
+      // Focus — should dismiss very quickly
+      window.dispatchEvent(new Event('focus'));
+      vi.advanceTimersByTime(1);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0);
+
+      vi.useRealTimers();
+    });
+
+    it('should store toast as paused immediately if dispatched while blurred', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'toast-1', channel: 'toast', duration: 3000, template: 'Toast' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.initWindowListeners();
+
+      // Blur first
+      window.dispatchEvent(new Event('blur'));
+
+      // Dispatch while blurred
+      dispatcher.dispatch(makeEvent());
+
+      // Advance well past duration — should NOT dismiss
+      vi.advanceTimersByTime(10000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      // Focus — timer starts with full 3s
+      window.dispatchEvent(new Event('focus'));
+      vi.advanceTimersByTime(2999);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      vi.advanceTimersByTime(1);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0);
+
+      vi.useRealTimers();
+    });
+
+    it('should handle multiple toast notifications pausing/resuming independently', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy1 = makePolicy({ id: 'toast-a', channel: 'toast', duration: 3000, template: 'A' });
+      const policy2 = makePolicy({ id: 'toast-b', channel: 'toast', duration: 6000, template: 'B' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy1, policy2]);
+
+      dispatcher.initWindowListeners();
+      dispatcher.dispatch(makeEvent());
+
+      // Advance 2s (A has 1s left, B has 4s left), then blur
+      vi.advanceTimersByTime(2000);
+      window.dispatchEvent(new Event('blur'));
+
+      // Advance while blurred — neither should dismiss
+      vi.advanceTimersByTime(10000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(2);
+
+      // Focus — A resumes with 1s, B resumes with 4s
+      window.dispatchEvent(new Event('focus'));
+
+      vi.advanceTimersByTime(1000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1); // A dismissed
+
+      vi.advanceTimersByTime(3000);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0); // B dismissed
+
+      vi.useRealTimers();
+    });
   });
 });

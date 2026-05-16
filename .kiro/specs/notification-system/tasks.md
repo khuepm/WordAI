@@ -235,19 +235,19 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 5.11, 5.12_
 
 - [ ] 9. Notification Lifecycle & Cleanup
-  - [~] 9.1 Implement auto-dismiss timer
+  - [x] 9.1 Implement auto-dismiss timer
     - Khi notification có duration !== null, start timer
     - Khi timer fires, transition to 'dismissed'
     - Pause timer khi window blur (toast channel only)
     - Resume timer khi window focus
     - _Requirements: 8.5, 8.7_
 
-  - [~] 9.2 Implement state-change dismiss
+  - [x] 9.2 Implement state-change dismiss
     - Khi new notification cùng policyId dispatch, dismiss old notification
     - Khi source state thay đổi (ví dụ: dirty → clean), dismiss related notifications
     - _Requirements: 8.5_
 
-  - [~] 9.3 Implement cleanup on unmount
+  - [x] 9.3 Implement cleanup on unmount
     - Clear all timers
     - Dismiss all active notifications
     - Unsubscribe all listeners
