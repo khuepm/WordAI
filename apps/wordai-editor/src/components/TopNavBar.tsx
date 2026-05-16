@@ -22,9 +22,13 @@ interface TopNavBarProps {
   isSyncing?: boolean;
   /** Called when the user renames the document via the title bar. */
   onRename?: (newTitle: string) => void;
+  /** Currently active top-level tab */
+  activeTab?: 'editor' | 'library';
+  /** Called when the user clicks a nav tab button */
+  onTabChange?: (tab: 'editor' | 'library') => void;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false, onRename }: TopNavBarProps) {
+export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, isDirty = false, isSyncing = false, onRename, activeTab = 'editor', onTabChange }: TopNavBarProps) {
   const { t } = useTranslation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -67,21 +71,60 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
             WordAI
           </span>
           <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <a
-              href="#"
+            <button
+              data-testid="nav-drafts"
+              onClick={() => onTabChange?.('editor')}
               style={{
-                color: 'var(--md-sys-color-primary)',
-                fontWeight: 600,
-                fontSize: 'var(--font-size-sm)',
-                textDecoration: 'none',
-                borderBottom: '2px solid var(--md-sys-color-primary)',
+                background: 'none',
+                border: 'none',
+                padding: '0',
                 paddingBottom: '2px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-sm)',
+                color: activeTab === 'editor' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+                fontWeight: activeTab === 'editor' ? 600 : 400,
+                borderBottom: activeTab === 'editor' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent',
               }}
             >
               {t('nav.drafts')}
-            </a>
-            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>{t('nav.archive')}</a>
-            <a href="#" style={{ color: '#5a5a5a', fontSize: 'var(--font-size-sm)', textDecoration: 'none' }}>{t('nav.library')}</a>
+            </button>
+            <button
+              data-testid="nav-archive"
+              onClick={() => onTabChange?.('editor')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0',
+                paddingBottom: '2px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-sm)',
+                color: activeTab === 'editor' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+                fontWeight: activeTab === 'editor' ? 600 : 400,
+                borderBottom: activeTab === 'editor' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent',
+              }}
+            >
+              {t('nav.archive')}
+            </button>
+            <button
+              data-testid="nav-library"
+              onClick={() => onTabChange?.('library')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0',
+                paddingBottom: '2px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                fontSize: 'var(--font-size-sm)',
+                color: activeTab === 'library' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+                fontWeight: activeTab === 'library' ? 600 : 400,
+                borderBottom: activeTab === 'library' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent',
+              }}
+            >
+              {t('nav.library')}
+            </button>
           </nav>
         </div>
 

@@ -160,7 +160,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Modify `TopNavBar` to support tab switching
-  - [~] 11.1 Add `activeTab` and `onTabChange` props to `TopNavBar` and convert nav links to buttons
+  - [x] 11.1 Add `activeTab` and `onTabChange` props to `TopNavBar` and convert nav links to buttons
     - Add `activeTab?: 'editor' | 'library'` and `onTabChange?: (tab: 'editor' | 'library') => void` to `TopNavBarProps`
     - Replace the three `<a>` nav links with `<button>` elements
     - "Drafts" and "Archive" buttons call `onTabChange?.('editor')`; "Library" button calls `onTabChange?.('library')`
@@ -196,12 +196,12 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - _Requirements: 10.5_
 
 - [ ] 14. Write property-based tests for the 8 correctness properties
-  - [~] 14.1 Write property test for Property 1 (document list sorted by recency) in `src/components/LibraryView.property.test.tsx`
+  - [x] 14.1 Write property test for Property 1 (document list sorted by recency) in `src/components/LibraryView.property.test.tsx`
     - **Property 1: Document list renders cards sorted by recency**
     - **Validates: Requirements 2.2**
     - For any non-empty array of `AuraIntentSummary` records, mock `list_intents` to return them, render `LibraryView`, assert card count equals array length and cards appear in descending `updated_at` order
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), ...), { numRuns: 100 })`
-  - [~] 14.2 Write property test for Property 2 (open document switches to editor tab) in `src/components/LibraryView.property.test.tsx`
+  - [x] 14.2 Write property test for Property 2 (open document switches to editor tab) in `src/components/LibraryView.property.test.tsx`
     - **Property 2: Opening a document from the library always switches to the editor tab**
     - **Validates: Requirements 4.2, 4.3, 4.4**
     - For any valid `AuraIntentDocument`, mock `get_intent` to return it, click the corresponding card, assert `onTabChange` was called with `'editor'` and `localStorage` contains the document's `id` under `wordai_last_intent_id`
@@ -218,22 +218,22 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Extract `applyFilters(intents, query, filter)` as a pure exported function from `src/utils/libraryFilters.ts`
     - For any array, query, and filter value, assert applying filters twice produces the same result (idempotence) and all results satisfy both predicates
     - Use `fc.assert(fc.property(fc.array(...), fc.string(), fc.constantFrom('all', 'documents', 'ai-ready'), ...), { numRuns: 100 })`
-  - [~] 14.5 Write property test for Property 5 (successful import opens editor) in `src/components/LibraryView.property.test.tsx`
+  - [x] 14.5 Write property test for Property 5 (successful import opens editor) in `src/components/LibraryView.property.test.tsx`
     - **Property 5: Successful import always opens the document in the editor**
     - **Validates: Requirements 6.2, 6.3, 6.4**
     - For any `AuraIntentDocument` returned by a successful import, mock `importFile` to call `onOpenIntent` with the document, assert `onTabChange` was called with `'editor'`
     - Use `fc.assert(fc.property(arbitraryAuraIntentDocument(), ...), { numRuns: 100 })`
-  - [~] 14.6 Write property test for Property 6 (delete calls correct id and removes card) in `src/components/LibraryView.property.test.tsx`
+  - [x] 14.6 Write property test for Property 6 (delete calls correct id and removes card) in `src/components/LibraryView.property.test.tsx`
     - **Property 6: Delete confirmation calls delete_intent with the correct id and removes the card**
     - **Validates: Requirements 9.3, 9.4**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, confirm, assert `delete_intent` was called exactly once with the target `id`, assert the card is no longer in the rendered output
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), fc.nat(), ...), { numRuns: 100 })`
-  - [~] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
+  - [-] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
     - **Property 7: Cancelling any destructive action never persists changes**
     - **Validates: Requirements 6.9, 9.5**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, cancel, assert `delete_intent` was never called and the card is still present in the grid
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), fc.nat(), ...), { numRuns: 100 })`
-  - [~] 14.8 Write property test for Property 8 (LibraryCard renders all metadata) — already covered in task 7.2
+  - [x] 14.8 Write property test for Property 8 (LibraryCard renders all metadata) — already covered in task 7.2
     - This property is implemented as part of task 7.2 (`LibraryCard.property.test.tsx`)
     - Verify the test file exists and covers `intent_name`, timestamp, and `version` for any `AuraIntentSummary`
     - **Property 8: Library_Card always renders all required metadata fields**
