@@ -176,7 +176,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Emit `export.error` khi export thất bại (kèm error)
     - _Requirements: 7.3_
 
-- [ ] 7. Migrate EditorStatusBar sang Channel-based
+- [x] 7. Migrate EditorStatusBar sang Channel-based
   - [x] 7.1 Cập nhật `EditorStatusBar.tsx`
     - Subscribe vào `statusBar` channel via `useNotificationChannel('statusBar')`
     - Render top notification theo format (elapsed, countdown, message, indicator)
@@ -184,7 +184,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Giữ nguyên styling và layout hiện tại
     - _Requirements: 7.1, 7.6, 7.7_
 
-  - [~] 7.2 Cập nhật `DocumentTitleBar.tsx`
+  - [x] 7.2 Cập nhật `DocumentTitleBar.tsx`
     - Subscribe vào `titleBar` channel
     - Render indicator notification (●) khi có
     - Fallback: giữ behavior cũ nếu channel empty

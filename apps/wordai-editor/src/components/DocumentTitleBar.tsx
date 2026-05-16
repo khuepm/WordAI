@@ -12,6 +12,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTopNotification } from '../hooks/useNotificationChannel';
 
 interface DocumentTitleBarProps {
   intentName: string | null; // null → display "Untitled Intent"
@@ -55,7 +56,12 @@ export function DocumentTitleBar({ intentName, isDirty, isSyncing: _isSyncing, o
     setIsEditing(false);
   }
 
-  const dirtyDot = isDirty ? '● ' : '';
+  // Subscribe to titleBar notification channel (Req 7.2)
+  // Priority: notification channel indicator > fallback isDirty behavior (Req 7.6, 7.7)
+  const titleBarNotification = useTopNotification('titleBar');
+  const dirtyDot = titleBarNotification
+    ? `${titleBarNotification.resolvedContent} `
+    : isDirty ? '● ' : '';
 
   if (isEditing) {
     return (
