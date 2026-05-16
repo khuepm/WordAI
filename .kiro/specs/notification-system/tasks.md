@@ -6,7 +6,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
 
 ## Tasks
 
-- [-] 1. Định nghĩa Types và Default Config
+- [x] 1. Định nghĩa Types và Default Config
   - [x] 1.1 Tạo `src/types/notification.ts`
     - Định nghĩa `NotificationChannel`, `NotificationFormat`, `NotificationPriority`, `TriggerType`
     - Định nghĩa `ThresholdConfig`, `PeriodicConfig`
@@ -31,7 +31,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Schema version = 1
     - _Requirements: 1.3, 6.4, 7.7_
 
-  - [~] 1.3 Tạo JSON schema file `src/config/notification-policies.schema.json`
+  - [x] 1.3 Tạo JSON schema file `src/config/notification-policies.schema.json`
     - Validate structure của PolicyConfigFile
     - Dùng cho IDE autocompletion khi edit config
     - _Requirements: 1.2, 6.8_

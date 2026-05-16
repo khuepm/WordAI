@@ -1,0 +1,126 @@
+{
+  "$id": "https://wordai.app/schemas/notification-policies.schema.json",
+  "title": "PolicyConfigFile",
+  "description": "Schema for WordAI notification policies configuration file",
+  "type": "object",
+  "required": ["schemaVersion", "policies"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version for future migration"
+    },
+    "policies": {
+      "type": "array",
+      "description": "Array of all notification policies",
+      "items": {
+        "$ref": "#/definitions/NotificationPolicy"
+      }
+    }
+  },
+  "definitions": {
+    "NotificationChannel": {
+      "type": "string",
+      "enum": ["statusBar", "toast", "titleBar", "badge", "none"],
+      "description": "Channel to deliver notification"
+    },
+    "NotificationFormat": {
+      "type": "string",
+      "enum": ["countdown", "elapsed", "message", "indicator", "progress"],
+      "description": "Display format for the notification"
+    },
+    "NotificationPriority": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Priority for ordering within same channel"
+    },
+    "TriggerType": {
+      "type": "string",
+      "enum": ["onChange", "onThreshold", "onError", "periodic", "onEvent"],
+      "description": "When to trigger this notification"
+    },
+    "ThresholdOperator": {
+      "type": "string",
+      "enum": [">", "<", ">=", "<=", "==", "!="],
+      "description": "Comparison operator for threshold trigger"
+    },
+    "ThresholdConfig": {
+      "type": "object",
+      "description": "Threshold configuration for onThreshold trigger",
+      "required": ["operator", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "operator": {
+          "$ref": "#/definitions/ThresholdOperator"
+        },
+        "value": {
+          "description": "Threshold value to compare against"
+        }
+      }
+    },
+    "PeriodicConfig": {
+      "type": "object",
+      "description": "Periodic configuration for periodic trigger",
+      "required": ["intervalMs"],
+      "additionalProperties": false,
+      "properties": {
+        "intervalMs": {
+          "type": "number",
+          "minimum": 100,
+          "description": "Interval in milliseconds between periodic triggers"
+        }
+      }
+    },
+    "NotificationPolicy": {
+      "type": "object",
+      "description": "A notification policy defining how a preference or system event notifies the user",
+      "required": ["id", "sourceKey", "channel", "format", "priority", "duration", "silent", "trigger"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this policy"
+        },
+        "sourceKey": {
+          "type": "string",
+          "description": "Preference key (e.g. \"general.autoSyncInterval\") or event key (e.g. \"sync.error\"). Supports wildcard (*) matching."
+        },
+        "channel": {
+          "$ref": "#/definitions/NotificationChannel"
+        },
+        "format": {
+          "$ref": "#/definitions/NotificationFormat"
+        },
+        "priority": {
+          "$ref": "#/definitions/NotificationPriority"
+        },
+        "duration": {
+          "type": ["number", "null"],
+          "description": "Duration in ms. null = persistent until state change"
+        },
+        "silent": {
+          "type": "boolean",
+          "description": "If true, notification is suppressed entirely"
+        },
+        "trigger": {
+          "$ref": "#/definitions/TriggerType"
+        },
+        "template": {
+          "type": "string",
+          "description": "Template string with {variable} placeholders"
+        },
+        "threshold": {
+          "$ref": "#/definitions/ThresholdConfig"
+        },
+        "periodic": {
+          "$ref": "#/definitions/PeriodicConfig"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description for Dev Dashboard"
+        }
+      }
+    }
+  }
+}
