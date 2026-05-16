@@ -399,4 +399,194 @@ describe('NotificationDispatcher', () => {
       expect(notifications[0].resolvedContent).toBe('Simulated');
     });
   });
+
+  describe('auto-dismiss timer (Requirement 8.5)', () => {
+    it('should auto-dismiss notification after duration ms', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ duration: 3000, template: 'Auto dismiss me' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      // Notification should be active initially
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(1);
+
+      // Advance time by 3000ms
+      vi.advanceTimersByTime(3000);
+
+      // Notification should be dismissed
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+      vi.useRealTimers();
+    });
+
+    it('should not auto-dismiss when duration is null (persistent)', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ duration: null, template: 'Persistent' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      // Advance time significantly
+      vi.advanceTimersByTime(60000);
+
+      // Notification should still be active
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(1);
+      vi.useRealTimers();
+    });
+
+    it('should notify channel listeners when auto-dismiss fires', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ duration: 2000, channel: 'toast' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      const listener = vi.fn();
+      dispatcher.subscribeChannel('toast', listener);
+
+      vi.advanceTimersByTime(2000);
+
+      expect(listener).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should clear timer when notification is manually dismissed', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ duration: 5000 });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      const notifications = dispatcher.getChannelNotifications('statusBar');
+      const notifId = notifications[0].id;
+
+      // Manually dismiss before timer fires
+      dispatcher.dismiss(notifId);
+
+      // Advance past the original duration — should not throw or cause issues
+      vi.advanceTimersByTime(5000);
+
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+      vi.useRealTimers();
+    });
+  });
+
+  describe('policy replacement (Requirement 8.5)', () => {
+    it('should dismiss old notification when new one with same policyId is dispatched', async () => {
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'sync-status', template: 'Synced · {seconds}s ago' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      // First dispatch
+      dispatcher.dispatch(makeEvent({ data: { seconds: 5 } }));
+      const firstNotifications = dispatcher.getChannelNotifications('statusBar');
+      expect(firstNotifications).toHaveLength(1);
+      expect(firstNotifications[0].resolvedContent).toBe('Synced · 5s ago');
+
+      // Second dispatch with same policyId
+      dispatcher.dispatch(makeEvent({ data: { seconds: 10 } }));
+      const secondNotifications = dispatcher.getChannelNotifications('statusBar');
+      expect(secondNotifications).toHaveLength(1);
+      expect(secondNotifications[0].resolvedContent).toBe('Synced · 10s ago');
+    });
+
+    it('should not affect notifications from different policies', async () => {
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy1 = makePolicy({ id: 'policy-a', template: 'A' });
+      const policy2 = makePolicy({ id: 'policy-b', template: 'B' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy1, policy2]);
+
+      dispatcher.dispatch(makeEvent());
+
+      // Both should be active
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(2);
+
+      // Dispatch again — each policy replaces its own old notification
+      dispatcher.dispatch(makeEvent());
+
+      // Still only 2 active (old ones replaced, new ones created)
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(2);
+    });
+
+    it('should clear auto-dismiss timer of replaced notification', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ id: 'timed-policy', duration: 5000, template: 'Timed' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      // First dispatch starts a 5s timer
+      dispatcher.dispatch(makeEvent());
+
+      // Second dispatch replaces the first (clears old timer, starts new one)
+      vi.advanceTimersByTime(3000);
+      dispatcher.dispatch(makeEvent());
+
+      // After 3 more seconds (6s total from first dispatch), old timer would have fired
+      // but it was cleared, so notification should still be active
+      vi.advanceTimersByTime(3000);
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(1);
+
+      // After 5s from second dispatch, new timer fires
+      vi.advanceTimersByTime(2000);
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+      vi.useRealTimers();
+    });
+  });
+
+  describe('cleanup (Requirement 8.8)', () => {
+    it('should dismiss all active notifications', async () => {
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policies = [
+        makePolicy({ id: 'p1', channel: 'statusBar', template: 'Status' }),
+        makePolicy({ id: 'p2', channel: 'toast', template: 'Toast' }),
+      ];
+      vi.mocked(registry.lookupPolicies).mockReturnValue(policies);
+
+      dispatcher.dispatch(makeEvent());
+
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(1);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(1);
+
+      dispatcher.cleanup();
+
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+      expect(dispatcher.getChannelNotifications('toast')).toHaveLength(0);
+    });
+
+    it('should clear all auto-dismiss timers', async () => {
+      vi.useFakeTimers();
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ duration: 5000 });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      dispatcher.cleanup();
+
+      // Advancing time should not cause any issues (timers cleared)
+      vi.advanceTimersByTime(10000);
+
+      expect(dispatcher.getChannelNotifications('statusBar')).toHaveLength(0);
+      vi.useRealTimers();
+    });
+
+    it('should notify channel listeners on cleanup', async () => {
+      const { dispatcher, registry } = await createFreshDispatcher();
+      const policy = makePolicy({ channel: 'toast' });
+      vi.mocked(registry.lookupPolicies).mockReturnValue([policy]);
+
+      dispatcher.dispatch(makeEvent());
+
+      const listener = vi.fn();
+      dispatcher.subscribeChannel('toast', listener);
+
+      dispatcher.cleanup();
+
+      expect(listener).toHaveBeenCalled();
+    });
+  });
 });

@@ -73,13 +73,13 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
       5. Route tới channel
     - _Requirements: 1.6, 1.9, 4.6, 4.8_
 
-  - [~] 3.2 Implement template resolution
+  - [x] 3.2 Implement template resolution
     - Parse `{variableName}` trong template string
     - Resolve từ `event.data`
     - Fallback `[unknown]` nếu variable không tồn tại
     - _Requirements: 3.6, 3.8_
 
-  - [~] 3.3 Implement notification lifecycle
+  - [x] 3.3 Implement notification lifecycle
     - Generate unique id cho mỗi notification
     - State transitions: pending → active → dismissed
     - Auto-dismiss sau `duration` ms (nếu duration !== null)
