@@ -117,7 +117,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - None channel: no-op
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-  - [~] 4.2 Tạo `src/hooks/useNotificationChannel.ts`
+  - [x] 4.2 Tạo `src/hooks/useNotificationChannel.ts`
     - `useNotificationChannel(channel)`: hook subscribe vào channel, trả về ActiveNotification[]
     - `useTopNotification(channel)`: trả về highest-priority notification hoặc null
     - Dùng `useSyncExternalStore` pattern
