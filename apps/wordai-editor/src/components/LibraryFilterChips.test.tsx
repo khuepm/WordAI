@@ -94,7 +94,7 @@ describe('Chip click interactions (Req 8.2, 8.5)', () => {
 // Rendering — all three chips are always present
 // ---------------------------------------------------------------------------
 describe('Chip rendering', () => {
-  it('renders all three chips regardless of activeFilter', () => {
+  it('renders all standard chips and special chips regardless of activeFilter', () => {
     render(
       <LibraryFilterChips activeFilter="all" onChange={vi.fn()} />
     );
@@ -102,6 +102,11 @@ describe('Chip rendering', () => {
     expect(screen.getByTestId('filter-chip-all')).toBeInTheDocument();
     expect(screen.getByTestId('filter-chip-documents')).toBeInTheDocument();
     expect(screen.getByTestId('filter-chip-ai-ready')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-templates')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-research')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-references')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-reports')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-chip-verified')).toBeInTheDocument();
   });
 
   it('renders chip labels from i18n keys', () => {

@@ -322,120 +322,10 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        background: 'var(--md-sys-color-surface, #fafafa)',
+        background: 'var(--md-sys-color-surface-container-lowest, #ffffff)',
         fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
       }}
     >
-      {/* ── Header ── */}
-      <div
-        style={{
-          padding: '1.5rem 2rem 1rem',
-          borderBottom: '1px solid var(--md-sys-color-outline-variant, #c7c4d7)',
-          flexShrink: 0,
-        }}
-      >
-        {/* Title row */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1rem',
-            gap: '1rem',
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                margin: 0,
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                color: 'var(--md-sys-color-on-surface, #191c1d)',
-                lineHeight: 1.3,
-              }}
-            >
-              {t('library.title')}
-            </h1>
-            <p
-              style={{
-                margin: '0.25rem 0 0',
-                fontSize: '0.8125rem',
-                color: 'var(--md-sys-color-on-surface-variant, #464555)',
-              }}
-            >
-              {t('library.subtitle')}
-            </p>
-          </div>
-
-          {/* Action buttons — stubs for sub-tasks 9.3 and 9.4 */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-            <button
-              type="button"
-              data-testid="library-new-document-button"
-              onClick={handleCreateNew}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.5rem 1rem',
-                borderRadius: 'var(--radius-md, 0.625rem)',
-                border: 'none',
-                background: 'var(--md-sys-color-primary, #4343d5)',
-                color: 'var(--md-sys-color-on-primary, #ffffff)',
-                fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {t('library.newDocument')}
-            </button>
-            <button
-              type="button"
-              data-testid="library-open-file-button"
-              onClick={() => void handleOpenFile()}
-              disabled={isImporting}
-              aria-label={t('library.openFileAriaLabel')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.5rem 1rem',
-                borderRadius: 'var(--radius-md, 0.625rem)',
-                border: '1.5px solid var(--md-sys-color-outline-variant, #c5c4d4)',
-                background: 'var(--md-sys-color-surface-container-low, #f3f3f7)',
-                color: 'var(--md-sys-color-on-surface-variant, #464555)',
-                fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                cursor: isImporting ? 'not-allowed' : 'pointer',
-                opacity: isImporting ? 0.6 : 1,
-              }}
-            >
-              {isImporting ? t('library.import.importing') : t('library.openFile')}
-            </button>
-          </div>
-        </div>
-
-        {/* Search region — role="search" (Req 10.5) */}
-        <div role="search" aria-label={t('library.searchPlaceholder')}>
-          <LibrarySearchBar
-            value={searchInput}
-            onChange={setSearchInput}
-            onClear={handleClearSearch}
-            autoFocus
-          />
-        </div>
-
-        {/* Filter chips */}
-        <div style={{ marginTop: '0.75rem' }}>
-          <LibraryFilterChips
-            activeFilter={activeFilter}
-            onChange={setActiveFilter}
-          />
-        </div>
-      </div>
-
       {/* ── Import error banner ── */}
       {importError && (
         <div
@@ -490,7 +380,7 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
         </div>
       )}
 
-      {/* ── Document grid region — role="region" (Req 10.5) ── */}
+      {/* ── Main scrollable canvas ── */}
       <div
         role="region"
         aria-label={t('library.title')}
@@ -498,48 +388,184 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '1.5rem 2rem',
+          padding: '3rem 2rem 4rem',
         }}
       >
-        {/* Empty state: no documents at all (Req 2.3) */}
-        {intents.length === 0 && (
-          <LibraryEmptyState
-            reason="no-documents"
-            onCreateNew={handleCreateNew}
-          />
-        )}
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          {/* ── Page Header ── */}
+          <div style={{ marginBottom: '3rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                marginBottom: '0.75rem',
+              }}
+            >
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: '2rem',
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
+                  letterSpacing: '-0.02em',
+                  color: 'var(--md-sys-color-on-background, #191c1d)',
+                }}
+              >
+                {t('library.title')}
+              </h1>
 
-        {/* Empty state: search/filter yielded no results */}
-        {intents.length > 0 && displayedIntents.length === 0 && (
-          <LibraryEmptyState
-            reason="no-results"
-            searchQuery={searchQuery}
-            onCreateNew={handleClearSearch}
-          />
-        )}
-
-        {/* Document grid (Req 2.2) — full layout wired in sub-task 9.6 */}
-        {displayedIntents.length > 0 && (
-          <div
-            data-testid="library-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: '1rem',
-            }}
-          >
-            {displayedIntents.map((summary) => (
-              <LibraryCard
-                key={summary.id}
-                summary={summary}
-                isLoading={cardLoadingId === summary.id}
-                hasError={cardErrorId === summary.id}
-                onOpen={handleCardOpen}
-                onDelete={handleCardDelete}
-              />
-            ))}
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                <button
+                  type="button"
+                  data-testid="library-new-document-button"
+                  onClick={handleCreateNew}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                    padding: '0.625rem 1.25rem',
+                    borderRadius: '0.75rem',
+                    border: 'none',
+                    background: 'var(--md-sys-color-primary, #4343d5)',
+                    color: 'var(--md-sys-color-on-primary, #ffffff)',
+                    fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 300ms',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                  <span>{t('library.newDocument')}</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="library-open-file-button"
+                  onClick={() => void handleOpenFile()}
+                  disabled={isImporting}
+                  aria-label={t('library.openFileAriaLabel')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                    padding: '0.625rem 1.25rem',
+                    borderRadius: '0.75rem',
+                    border: '1.5px solid var(--md-sys-color-outline-variant, #c5c4d4)',
+                    background: 'var(--md-sys-color-surface-container-low, #f3f4f5)',
+                    color: 'var(--md-sys-color-on-surface-variant, #464555)',
+                    fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    cursor: isImporting ? 'not-allowed' : 'pointer',
+                    opacity: isImporting ? 0.6 : 1,
+                    transition: 'all 300ms',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
+                  <span>{isImporting ? t('library.import.importing') : t('library.openFile')}</span>
+                </button>
+              </div>
+            </div>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '1.125rem',
+                color: 'var(--md-sys-color-on-surface-variant, #464555)',
+                fontFamily: 'var(--font-family-content, Newsreader, serif)',
+              }}
+            >
+              {t('library.subtitle')}
+            </p>
           </div>
-        )}
+
+          {/* ── Prominent Search ── */}
+          <div style={{ maxWidth: '56rem', margin: '0 auto 2.5rem' }} role="search" aria-label={t('library.searchPlaceholder')}>
+            <LibrarySearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onClear={handleClearSearch}
+              autoFocus
+            />
+          </div>
+
+          {/* ── Filter Chips ── */}
+          <div style={{ marginBottom: '3rem' }}>
+            <LibraryFilterChips
+              activeFilter={activeFilter}
+              onChange={setActiveFilter}
+            />
+          </div>
+
+          {/* ── Content ── */}
+          {/* Empty state: no documents at all (Req 2.3) */}
+          {intents.length === 0 && (
+            <LibraryEmptyState
+              reason="no-documents"
+              onCreateNew={handleCreateNew}
+            />
+          )}
+
+          {/* Empty state: search/filter yielded no results */}
+          {intents.length > 0 && displayedIntents.length === 0 && (
+            <LibraryEmptyState
+              reason="no-results"
+              searchQuery={searchQuery}
+              onCreateNew={handleClearSearch}
+            />
+          )}
+
+          {/* ── Document sections ── */}
+          {displayedIntents.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem' }}>
+              {/* Section: Recently Used */}
+              <section>
+                <h2
+                  style={{
+                    fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
+                    fontWeight: 700,
+                    fontSize: '1.25rem',
+                    color: 'var(--md-sys-color-on-background, #191c1d)',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {t('library.sections.recentlyUsed', 'Recently Used')}
+                  <span
+                    style={{
+                      marginLeft: '0.75rem',
+                      height: '1px',
+                      flex: 1,
+                      background: 'linear-gradient(to right, rgba(199, 196, 215, 0.3), transparent)',
+                    }}
+                  />
+                </h2>
+                <div
+                  data-testid="library-grid"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '1.5rem',
+                  }}
+                >
+                  {displayedIntents.map((summary) => (
+                    <LibraryCard
+                      key={summary.id}
+                      summary={summary}
+                      isLoading={cardLoadingId === summary.id}
+                      hasError={cardErrorId === summary.id}
+                      onOpen={handleCardOpen}
+                      onDelete={handleCardDelete}
+                    />
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── ReplaceConfirmationDialog for import conflict (Req 6.6) ── */}

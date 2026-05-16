@@ -452,12 +452,26 @@
     "newDocument": "New Document",
     "openFile": "Open File",
     "openFileAriaLabel": "Open file from file system",
-    "searchPlaceholder": "Search library...",
+    "searchPlaceholder": "Search Library, templates, references...",
     "searchClearAriaLabel": "Clear search",
+    "search": {
+      "placeholder": "Search Library, templates, references...",
+      "button": "Search",
+      "try": "Try:"
+    },
+    "sections": {
+      "recentlyUsed": "Recently Used",
+      "templates": "Templates"
+    },
     "filters": {
       "all": "All",
       "documents": "Documents",
-      "aiReady": "AI-ready"
+      "templates": "Templates",
+      "research": "Research",
+      "references": "References",
+      "reports": "Reports",
+      "aiReady": "AI-ready",
+      "verified": "Verified"
     },
     "card": {
       "updatedAt": "Updated {{time}}",

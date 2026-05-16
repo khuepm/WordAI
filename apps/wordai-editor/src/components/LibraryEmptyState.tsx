@@ -25,8 +25,8 @@ const containerStyle: CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '1rem',
-  padding: '4rem 2rem',
+  gap: '1.25rem',
+  padding: '5rem 2rem',
   textAlign: 'center',
   fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
 };
@@ -35,17 +35,18 @@ const iconWrapperStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '3.5rem',
-  height: '3.5rem',
-  borderRadius: 'var(--radius-xl, 1rem)',
-  background: 'var(--md-sys-color-surface-container, #f3f3f7)',
+  width: '4rem',
+  height: '4rem',
+  borderRadius: '1rem',
+  background: 'var(--md-sys-color-surface-container-low, #f3f4f5)',
   color: 'var(--md-sys-color-on-surface-variant, #464555)',
+  border: '1px solid rgba(199, 196, 215, 0.2)',
   flexShrink: 0,
 };
 
 const titleStyle: CSSProperties = {
   margin: 0,
-  fontSize: '1.0625rem',
+  fontSize: '1.25rem',
   fontWeight: 700,
   color: 'var(--md-sys-color-on-surface, #191c1d)',
   lineHeight: 1.3,
@@ -53,8 +54,9 @@ const titleStyle: CSSProperties = {
 
 const messageStyle: CSSProperties = {
   margin: 0,
-  fontSize: '0.875rem',
+  fontSize: '1rem',
   color: 'var(--md-sys-color-on-surface-variant, #464555)',
+  fontFamily: 'var(--font-family-content, Newsreader, serif)',
   lineHeight: 1.5,
   maxWidth: '28rem',
 };
@@ -63,16 +65,17 @@ const ctaButtonStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.375rem',
-  padding: '0.625rem 1.25rem',
-  borderRadius: 'var(--radius-md, 0.625rem)',
+  padding: '0.75rem 1.5rem',
+  borderRadius: '0.75rem',
   border: 'none',
   background: 'var(--md-sys-color-primary, #4343d5)',
   color: 'var(--md-sys-color-on-primary, #ffffff)',
   fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
   fontSize: '0.875rem',
-  fontWeight: 600,
+  fontWeight: 500,
   cursor: 'pointer',
-  transition: 'opacity 0.15s',
+  transition: 'all 300ms',
+  marginTop: '0.5rem',
 };
 
 /** Document icon for 'no-documents' state */

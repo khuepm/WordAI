@@ -452,12 +452,26 @@
     "newDocument": "Tài liệu mới",
     "openFile": "Mở file",
     "openFileAriaLabel": "Mở file từ hệ thống",
-    "searchPlaceholder": "Tìm kiếm thư viện...",
+    "searchPlaceholder": "Tìm kiếm Thư viện, mẫu, tài liệu tham khảo...",
     "searchClearAriaLabel": "Xóa tìm kiếm",
+    "search": {
+      "placeholder": "Tìm kiếm Thư viện, mẫu, tài liệu tham khảo...",
+      "button": "Tìm kiếm",
+      "try": "Thử:"
+    },
+    "sections": {
+      "recentlyUsed": "Sử dụng gần đây",
+      "templates": "Mẫu"
+    },
     "filters": {
       "all": "Tất cả",
       "documents": "Tài liệu",
-      "aiReady": "AI-ready"
+      "templates": "Mẫu",
+      "research": "Nghiên cứu",
+      "references": "Tham khảo",
+      "reports": "Báo cáo",
+      "aiReady": "AI-ready",
+      "verified": "Đã xác minh"
     },
     "card": {
       "updatedAt": "Cập nhật {{time}}",

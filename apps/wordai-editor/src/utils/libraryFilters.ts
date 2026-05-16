@@ -9,7 +9,7 @@
 
 import type { AuraIntentSummary } from '../types/auraDocument';
 
-export type LibraryFilter = 'all' | 'documents' | 'ai-ready';
+export type LibraryFilter = 'all' | 'documents' | 'ai-ready' | 'templates' | 'research' | 'references' | 'reports' | 'verified';
 
 /**
  * Case-insensitive substring match on `intent_name`.
@@ -31,9 +31,14 @@ export function applySearchFilter(
 
 /**
  * Filter by chip category.
- * - 'all'       → all intents
- * - 'documents' → all intents (reserved for future sub-type tagging)
- * - 'ai-ready'  → intents with version >= 2
+ * - 'all'        → all intents
+ * - 'documents'  → all intents (reserved for future sub-type tagging)
+ * - 'ai-ready'   → intents with version >= 2
+ * - 'templates'  → reserved for future template tagging
+ * - 'research'   → reserved for future research tagging
+ * - 'references' → reserved for future reference tagging
+ * - 'reports'    → reserved for future report tagging
+ * - 'verified'   → intents with version >= 3
  *
  * Requirements: 8.2, 8.3
  */
@@ -44,7 +49,11 @@ export function applyFilterChip(
   if (filter === 'ai-ready') {
     return intents.filter((intent) => intent.version >= 2);
   }
-  // 'all' and 'documents' both return everything
+  if (filter === 'verified') {
+    return intents.filter((intent) => intent.version >= 3);
+  }
+  // 'all', 'documents', 'templates', 'research', 'references', 'reports' all return everything
+  // (reserved for future sub-type tagging)
   return intents;
 }
 
