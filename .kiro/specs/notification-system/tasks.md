@@ -190,45 +190,45 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Fallback: giữ behavior cũ nếu channel empty
     - _Requirements: 7.2, 7.6, 7.7_
 
-- [ ] 8. Implement Dev Dashboard
+- [x] 8. Implement Dev Dashboard
   - [x] 8.1 Tạo `src/components/DevDashboard.tsx` (lazy loaded)
     - Conditional render: `import.meta.env.DEV` only
     - Keyboard shortcut: `Ctrl+Shift+Alt+D` / `Cmd+Shift+Option+D`
     - Layout: full-screen overlay hoặc side panel
     - _Requirements: 5.1, 5.2, 5.3, 5.12_
 
-  - [~] 8.2 Implement Policy Table section
+  - [x] 8.2 Implement Policy Table section
     - Bảng hiển thị tất cả policies
     - Columns: id, sourceKey, channel, format, priority, silent, trigger
     - Inline editing cho mỗi field
     - Toggle silent on/off
     - _Requirements: 5.4, 5.5_
 
-  - [~] 8.3 Implement Notification Log section
+  - [x] 8.3 Implement Notification Log section
     - Timeline view các notifications đã dispatch
     - Hiển thị: timestamp, channel, format, resolvedContent, state
     - Filter by channel, priority
     - _Requirements: 5.6_
 
-  - [~] 8.4 Implement Event Simulator section
+  - [x] 8.4 Implement Event Simulator section
     - Dropdown chọn event type (sync.start, sync.error, preference.changed, etc.)
     - Input fields cho data payload
     - Button "Simulate" → dispatch event
     - _Requirements: 5.7_
 
-  - [~] 8.5 Implement Live Preferences section
+  - [x] 8.5 Implement Live Preferences section
     - Hiển thị tất cả preference values realtime
     - Group by tab (general, ai-engine, typography, privacy)
     - Highlight khi value thay đổi
     - _Requirements: 5.8_
 
-  - [~] 8.6 Implement Save/Reset actions
+  - [x] 8.6 Implement Save/Reset actions
     - "Save to Config" button → persist overrides vào file
     - "Reset to Defaults" button → clear overrides, reload defaults
     - Confirmation dialog trước khi reset
     - _Requirements: 5.9, 5.10_
 
-  - [~] 8.7 Ensure tree-shaking
+  - [x] 8.7 Ensure tree-shaking
     - Dùng dynamic import: `const DevDashboard = lazy(() => import('./DevDashboard'))`
     - Wrap trong `if (import.meta.env.DEV)` guard
     - Verify production bundle không chứa DevDashboard code
