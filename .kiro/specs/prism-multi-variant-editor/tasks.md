@@ -209,19 +209,19 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Variant pinned không bị archive khi promote, không bị ghi đè bởi AuraSphere
     - _Requirements: 7.5, 7.8_
 
-  - [~] 9.4 Viết property test cho promote correctness
+  - [x] 9.4 Viết property test cho promote correctness
     - **Property 3: Promote Correctness** — sau promote: promotedVariantId đúng, markdown đúng, state về 1 slot active
     - **Validates: Requirements 7.1, 7.2, 7.4**
 
-  - [~] 9.5 Viết property test cho pin/protected slot invariant
+  - [x] 9.5 Viết property test cho pin/protected slot invariant
     - **Property 4: Pin/Protected Slot Invariant** — slot pinned không bị ghi đè bởi AuraSphere hoặc archive bởi promote
     - **Validates: Requirements 7.3, 7.5, 8.2, 8.3, 8.4**
 
-  - [~] 9.6 Viết property test cho archive idempotency
+  - [x] 9.6 Viết property test cho archive idempotency
     - **Property 5: Archive Idempotency** — variant đã archived không bị thay đổi archivedAt khi promote lại
     - **Validates: Requirements 7.3**
 
-  - [~] 9.7 Viết property test cho AuraSphere partial failure resilience
+  - [x] 9.7 Viết property test cho AuraSphere partial failure resilience
     - **Property 9: AuraSphere Partial Failure Resilience** — chỉ variant parse thành công được thêm, variant lỗi bị bỏ qua
     - **Validates: Requirements 10.8**
 
