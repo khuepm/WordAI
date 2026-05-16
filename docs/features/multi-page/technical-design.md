@@ -211,9 +211,31 @@ interface AuraSphereSuggestion {
 5. **M5 — AuraSphere wiring** (2 ngày): panel sinh ra ≥ 2 Variant, lấp slot, Pin / Promote.
 6. **M6 — Polish** (2 ngày): keyboard, sync scroll, accessibility, perf review.
 
-## 10. Open questions
+## 10. Quyết định (đã resolved)
 
-- [ ] Có cho phép tạo Intent **mới hoàn toàn** từ Code view (gõ Markdown vào slot trống) không? Mặc định: chưa, phải có Variant nguồn.
-- [ ] OOXML readonly trong M3, có nâng lên editable ở M? sau? Cần khảo sát library.
-- [ ] `.aura` có nên versioned (giữ N bundle gần nhất) hay chỉ overwrite? Nghiêng về overwrite + dựa vào Version History sẵn có cho lịch sử.
-- [ ] Khi Promote, các Variant không Pin nên bị **xoá** hay **archive trong `.aura`**? Cần quyết.
+| # | Câu hỏi | Quyết định | Lý do |
+|---|---------|-----------|-------|
+| 1 | Tạo Intent mới hoàn toàn từ Code view? | **Không** | Code view là transformer (nguyên tắc #3), không phải creation tool. Flow tạo Intent mới phức tạp, nằm ngoài scope Prism. |
+| 2 | OOXML editable ở milestone sau? | **Không — giữ readonly vĩnh viễn** | Không có library JS nào hỗ trợ in-place OOXML editing đáng tin cậy. User edit qua Preview + export `.docx` mới. |
+| 3 | `.aura` versioned hay overwrite? | **Overwrite** | Nguyên tắc #4 "Persist tối thiểu". Delegate history cho Git / App Version History. Giữ schema đơn giản, dễ migrate. |
+| 4 | Variant không Pin khi Promote: xoá hay archive? | **Archive** (thêm `archivedAt` field) | Tránh mất dữ liệu không phục hồi. Variant archived ẩn khỏi UI nhưng có thể truy cập qua "Variant History" sau này. |
+
+### Chi tiết quyết định #4 — Schema update
+
+```ts
+interface AuraVariantEntry {
+  id: string;
+  label: string;
+  markdown: string;
+  createdBy: 'user' | 'aurasphere';
+  promptRef?: string;
+  createdAt: string;
+  archivedAt?: string;  // ISO 8601, null/undefined = active
+}
+```
+
+Khi Promote variant X:
+1. `promotedVariantId = X.id`
+2. `bundle.markdown = X.markdown`
+3. Mỗi variant khác không có `pinned=true` → set `archivedAt = now()`
+4. UI chỉ render variants có `archivedAt == null`
