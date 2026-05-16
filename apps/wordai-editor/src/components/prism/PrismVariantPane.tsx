@@ -5,7 +5,7 @@
  * Requirements: 2.1, 2.2, 2.3, 2.5, 2.6, 3.1, 3.6, 4.1, 4.2, 4.3, 4.8, 7.6, 11.2
  */
 
-import { useCallback, useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect, memo } from 'react';
 import type {
   PrismVariant,
   PrismSlotIndex,
@@ -114,7 +114,7 @@ const cancelIdle: (id: number) => void =
  *
  * Defaults to Preview mode on first mount (Req 2.6).
  */
-export function PrismVariantPane({
+export const PrismVariantPane = memo(function PrismVariantPane({
   variant,
   slotIndex,
   viewMode,
@@ -353,6 +353,7 @@ export function PrismVariantPane({
       style={styles.container}
       role="region"
       aria-label={`Variant pane: ${variant.label}`}
+      tabIndex={0}
     >
       {/* Header: label, pin badge, dirty indicator */}
       <div style={styles.header}>
@@ -428,7 +429,10 @@ export function PrismVariantPane({
       <div style={styles.tabBar} role="tablist" aria-label="View mode tabs">
         <button
           role="tab"
+          id={`tab-preview-${slotIndex}`}
           aria-selected={viewMode === 'preview'}
+          aria-controls={`tabpanel-${slotIndex}`}
+          tabIndex={viewMode === 'preview' ? 0 : -1}
           onClick={() => handleTabClick('preview')}
           style={{
             ...styles.tab,
@@ -439,7 +443,10 @@ export function PrismVariantPane({
         </button>
         <button
           role="tab"
+          id={`tab-code-${slotIndex}`}
           aria-selected={viewMode === 'code'}
+          aria-controls={`tabpanel-${slotIndex}`}
+          tabIndex={viewMode === 'code' ? 0 : -1}
           onClick={() => handleTabClick('code')}
           style={{
             ...styles.tab,
@@ -466,6 +473,7 @@ export function PrismVariantPane({
                 key={tab}
                 role="tab"
                 aria-selected={codeSubTab === tab}
+                tabIndex={codeSubTab === tab ? 0 : -1}
                 onClick={(e) => {
                   e.stopPropagation();
                   onCodeSubTabChange(tab);
@@ -483,7 +491,14 @@ export function PrismVariantPane({
       })()}
 
       {/* Content area */}
-      <div style={styles.content} ref={scrollContentRefCallback} onScroll={handleContentScroll}>
+      <div
+        id={`tabpanel-${slotIndex}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${viewMode}-${slotIndex}`}
+        style={styles.content}
+        ref={scrollContentRefCallback}
+        onScroll={handleContentScroll}
+      >
         {viewMode === 'preview' ? (
           <EditorCanvas
             document={variantDocument}
@@ -518,7 +533,7 @@ export function PrismVariantPane({
       )}
     </div>
   );
-}
+});
 
 const styles: Record<string, React.CSSProperties> = {
   container: {

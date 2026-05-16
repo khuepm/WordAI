@@ -175,7 +175,7 @@ export function PrismCanvas({
       />
 
       {/* Multi-slot grid layout */}
-      <div style={gridStyle}>
+      <div style={gridStyle} role="region" aria-label="Variant editor panes">
         {state.slots.map((variant, index) =>
           variant ? (
             <PrismVariantPane

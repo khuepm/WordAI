@@ -5,6 +5,7 @@
  * Requirements: 1.5, 9.3
  */
 
+import { memo } from 'react';
 import { Tooltip } from '../Tooltip';
 
 export interface PrismToolbarProps {
@@ -20,7 +21,7 @@ export interface PrismToolbarProps {
   onToggleSyncScroll: () => void;
 }
 
-export function PrismToolbar({
+export const PrismToolbar = memo(function PrismToolbar({
   variantCount,
   maxVariants,
   syncScroll,
@@ -148,6 +149,6 @@ export function PrismToolbar({
       </div>
     </div>
   );
-}
+});
 
 export default PrismToolbar;

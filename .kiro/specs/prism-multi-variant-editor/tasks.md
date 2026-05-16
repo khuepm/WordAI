@@ -241,7 +241,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 - [~] 10. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 11. M6 — Polish: keyboard shortcuts, sync scroll, accessibility, perf review
+- [x] 11. M6 — Polish: keyboard shortcuts, sync scroll, accessibility, perf review
   - [x] 11.1 Implement sync scroll giữa các pane
     - Khi syncScroll bật: scroll 1 pane → cập nhật tất cả pane khác theo % scrollTop
     - Đồng bộ trong vòng 100ms
@@ -261,20 +261,20 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Khôi phục % scrollTop sau khi mount view mới (sai lệch tối đa 5%)
     - _Requirements: 2.4_
 
-  - [~] 11.4 Accessibility review và cải thiện
+  - [x] 11.4 Accessibility review và cải thiện
     - Thêm aria-labels cho tất cả interactive elements
     - Đảm bảo tab navigation hoạt động đúng giữa các pane
     - Thêm role và aria-live cho error banners và toast notifications
     - _Requirements: 10.1, 10.5_
 
-  - [~] 11.5 Performance review và optimization
+  - [x] 11.5 Performance review và optimization
     - Verify CodeMirror lazy load (không mount khi Preview)
     - Verify CSS Grid transition không unmount existing panes
     - Verify requestIdleCallback cho transform pipeline
     - Verify layout shift < 50ms, first paint 3 pane < 1000ms
     - _Requirements: 11.2, 11.3, 11.4, 11.5, 11.6_
 
-  - [~] 11.6 Viết integration tests cho keyboard shortcuts và sync scroll
+  - [x] 11.6 Viết integration tests cho keyboard shortcuts và sync scroll
     - Test Cmd+1/2/3 chuyển focus
     - Test sync scroll toggle → scroll đồng bộ
     - Test view toggle giữ scroll position

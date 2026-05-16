@@ -5,7 +5,7 @@
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 10.1, 10.2, 10.3
  */
 
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState, memo } from 'react';
 import { EditorView, keymap } from '@codemirror/view';
 import { EditorState, type Extension } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
@@ -59,7 +59,7 @@ function isEffectivelyReadonly(subTab: PrismCodeSubTab, readonly: boolean): bool
  * - External content sync without triggering onChange
  * - Cleanup on unmount
  */
-export function PrismCodeView({
+export const PrismCodeView = memo(function PrismCodeView({
   content,
   subTab,
   readonly,
@@ -275,7 +275,7 @@ export function PrismCodeView({
       />
     </div>
   );
-}
+});
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: {
