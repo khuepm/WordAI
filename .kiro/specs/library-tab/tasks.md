@@ -131,11 +131,11 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - On card click, set `cardLoadingId` to the card's `id`, invoke `get_intent`, convert result via `auraIntentToDocument`, call `onOpenDocument(doc)` and `onTabChange('editor')`, store `id` in `localStorage` under `wordai_last_intent_id`
     - On `get_intent` failure, set `cardErrorId` and display inline error on the card; do not navigate
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
-  - [-] 9.3 Implement new document flow in `LibraryView`
+  - [x] 9.3 Implement new document flow in `LibraryView`
     - Render a "New Document" button (`t('library.newDocument')`) always visible
     - On click, create an in-memory `Document` with `crypto.randomUUID()`, `title: 'Untitled Intent'`, empty content, `version: 1`, call `onOpenDocument(doc)` and `onTabChange('editor')`
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
-  - [-] 9.4 Implement import (Open File) flow in `LibraryView`
+  - [x] 9.4 Implement import (Open File) flow in `LibraryView`
     - Render an "Open File" button (`t('library.openFile')`) with `aria-label={t('library.openFileAriaLabel')}`; disable it while `isImporting` is true
     - Call `importFile({ onConflict, onOpenIntent })` from `exportService.ts`
     - Wire `onConflict` to store a `ConflictState` (with `resolve` function) in local state, which renders `ReplaceConfirmationDialog`
@@ -143,13 +143,13 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - On `status: 'error'`, set `importError`; on `status: 'opened'` with warnings, set `importWarnings`
     - Show a non-blocking warning notification when `importWarnings` is non-empty (Req 6.5)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9_
-  - [-] 9.5 Implement delete flow in `LibraryView`
+  - [x] 9.5 Implement delete flow in `LibraryView`
     - On delete button click on a card, set `deleteTargetId` to show `ConfirmationDialog` with title `t('library.delete.confirmTitle')`, message `t('library.delete.confirmMessage', { name })`, `isDangerous=true`
     - On confirm, invoke `delete_intent` IPC; on success, remove the card from `intents` state without a full reload; if the deleted id matches `currentDocumentId`, call `onOpenDocument` with a new blank document
     - On `delete_intent` failure, set `deleteError` and display error message; retain the card
     - On cancel, clear `deleteTargetId` without invoking IPC
     - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
-  - [-] 9.6 Implement `LibraryView` layout and grid
+  - [x] 9.6 Implement `LibraryView` layout and grid
     - Render the Document_Grid as a CSS grid with `repeat(auto-fill, minmax(240px, 1fr))` for responsive 1–3 column layout
     - Render `LibrarySearchBar`, `LibraryFilterChips`, and the grid of `LibraryCard` components
     - Render `LibraryEmptyState` with `reason='no-documents'` when `intents` is empty after load, or `reason='no-results'` when the filtered list is empty but `intents` is not
@@ -195,7 +195,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Add `confirmationDialog.ariaLabel` key
     - _Requirements: 10.5_
 
-- [ ] 14. Write property-based tests for the 8 correctness properties
+- [x] 14. Write property-based tests for the 8 correctness properties
   - [x] 14.1 Write property test for Property 1 (document list sorted by recency) in `src/components/LibraryView.property.test.tsx`
     - **Property 1: Document list renders cards sorted by recency**
     - **Validates: Requirements 2.2**
@@ -206,7 +206,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - **Validates: Requirements 4.2, 4.3, 4.4**
     - For any valid `AuraIntentDocument`, mock `get_intent` to return it, click the corresponding card, assert `onTabChange` was called with `'editor'` and `localStorage` contains the document's `id` under `wordai_last_intent_id`
     - Use `fc.assert(fc.property(arbitraryAuraIntentDocument(), ...), { numRuns: 100 })`
-  - [-] 14.3 Write property test for Property 3 (search filter correctness) in `src/utils/libraryFilters.property.test.ts`
+  - [x] 14.3 Write property test for Property 3 (search filter correctness) in `src/utils/libraryFilters.property.test.ts`
     - **Property 3: Search filter is a correct case-insensitive substring match**
     - **Validates: Requirements 7.2, 7.3**
     - Extract `applySearchFilter` as a pure exported function from `src/utils/libraryFilters.ts`
