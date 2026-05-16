@@ -1354,3 +1354,170 @@ export function PreferencesDialog({ isOpen, onClose, onApply, initialTab, target
 }
 
 export default PreferencesDialog;
+
+// ─── PreferencesDialogContent (for standalone OS window) ─────────────────────
+
+interface PreferencesDialogContentProps {
+  initialTab?: Tab;
+  targetSettingId?: string;
+  onClose: () => void;
+  onApply?: () => void | Promise<void>;
+  isWindowed?: boolean;
+}
+
+/**
+ * Standalone content component for the Preferences window.
+ * Renders the same UI as PreferencesDialog but without the modal overlay/backdrop,
+ * suitable for rendering inside a separate OS window.
+ */
+export function PreferencesDialogContent({ initialTab, targetSettingId, onClose, onApply, isWindowed }: PreferencesDialogContentProps) {
+  const { t, i18n } = useTranslation();
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab ?? 'general');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
+
+  const [pendingLang, setPendingLang] = useState<LanguageCode>(i18n.language as LanguageCode || 'en');
+  const originalLangRef = useRef<LanguageCode>(i18n.language as LanguageCode || 'en');
+
+  const { width } = useViewportSize();
+  const isCollapsed = width < MODAL_BREAKPOINTS.COLLAPSE_SIDEBAR;
+  const isStacked = width < MODAL_BREAKPOINTS.STACK_LAYOUT;
+
+  const handleLanguageChange = useCallback((newLang: LanguageCode) => {
+    setPendingLang(newLang);
+    i18n.changeLanguage(newLang);
+  }, [i18n]);
+
+  const handleClose = useCallback(() => {
+    if (pendingLang !== originalLangRef.current) {
+      i18n.changeLanguage(originalLangRef.current);
+    }
+    onClose();
+  }, [onClose, pendingLang, i18n]);
+
+  const handleApply = useCallback(async () => {
+    if (pendingLang !== originalLangRef.current) {
+      saveLanguagePreference(pendingLang);
+      originalLangRef.current = pendingLang;
+    }
+    await onApply?.();
+  }, [onApply, pendingLang]);
+
+  const handleNavigateToSetting = useCallback((tab: Tab, settingId: string) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setPendingScrollId(settingId);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingScrollId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-setting-id="${pendingScrollId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.transition = 'background 0.2s';
+        el.style.background = 'rgba(67,67,213,0.08)';
+        setTimeout(() => { el.style.background = ''; }, 1200);
+      }
+      setPendingScrollId(null);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [pendingScrollId]);
+
+  useEffect(() => {
+    if (!targetSettingId) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-setting-id="${targetSettingId}"]`);
+      if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+        (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [targetSettingId]);
+
+  const tabContent: Record<Tab, React.ReactNode> = {
+    'general': <GeneralTab pendingLang={pendingLang} onLanguageChange={handleLanguageChange} />,
+    'ai-engine': <AIEngineTab />,
+    'typography': <TypographyTab />,
+    'privacy': <PrivacyTab />,
+    'about': <AboutTab />,
+  };
+
+  const isSearching = searchQuery.trim().length > 0;
+
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: isStacked ? 'column' : 'row',
+      overflow: 'hidden',
+      background: '#ffffff',
+      borderRadius: isWindowed ? 0 : '0.75rem',
+    }}>
+      {isStacked ? (
+        <HorizontalTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      ) : isCollapsed ? (
+        <CollapsedSidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+      ) : (
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} isSearching={isSearching} onClearSearch={() => setSearchQuery('')} />
+      )}
+      <section style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#ffffff', minWidth: 0 }}>
+        {/* Content header */}
+        <header
+          data-tauri-drag-region={isWindowed ? true : undefined}
+          style={{
+            height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0 2rem', borderBottom: '1px solid rgba(199,196,215,0.08)', flexShrink: 0,
+            cursor: isWindowed ? 'default' : undefined,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
+              {isSearching ? t('settings.search.results') : {
+                general: t('settings.general.sectionTitle'),
+                'ai-engine': t('settings.aiEngine.sectionTitle'),
+                typography: t('settings.tabs.typography'),
+                privacy: t('settings.privacy.sectionTitle'),
+                about: t('settings.about.title')
+              }[activeTab]}
+            </h2>
+            {!isSearching && activeTab === 'ai-engine' && (
+              <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('settings.aiEngine.active')}</span>
+            )}
+            {!isSearching && activeTab === 'privacy' && (
+              <span style={{ background: 'rgba(67,67,213,0.1)', color: '#4343d5', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>{t('settings.privacy.sectionTitle')}</span>
+            )}
+            {isSearching && (
+              <span style={{ color: '#a1a1aa', fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.search.itemsFound', { count: 4 })}</span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ position: 'relative' }}>
+              <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#4343d5', fontSize: '14px', fontWeight: 700 }}>search</span>
+              <input
+                type="text"
+                placeholder={t('settings.search.placeholder')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  fontSize: '0.75rem', background: '#f3f4f5', border: 'none', borderRadius: '9999px',
+                  padding: '0.5rem 1rem 0.5rem 2.25rem', width: '256px', fontWeight: 500, outline: 'none',
+                  transition: 'all 0.2s', fontFamily: 'inherit',
+                }}
+              />
+            </div>
+            <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a1a1aa', display: 'flex', padding: '4px' }}>
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </header>
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', height: '100%', minWidth: 0 }}>
+          {isSearching ? <SearchResultsTab query={searchQuery} onNavigate={handleNavigateToSetting} /> : tabContent[activeTab]}
+        </div>
+        <DialogFooter onClose={handleClose} onApply={handleApply} />
+      </section>
+    </div>
+  );
+}

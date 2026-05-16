@@ -128,7 +128,7 @@ The implementation follows an incremental approach: project setup → core edito
     - Test manual save with keyboard shortcut
     - _Requirements: 2.1, 2.2, 2.5_
 
-- [ ] 5. Checkpoint - Core editor functionality
+- [x] 5. Checkpoint - Core editor functionality
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 6. Implement document creation and loading

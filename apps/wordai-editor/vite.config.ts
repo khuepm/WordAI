@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { resolve } from "path";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -18,7 +19,19 @@ export default defineConfig(async () => ({
       : {
           // When running in browser (pnpm dev without Tauri), use mock
           "@tauri-apps/api/core": path.resolve(__dirname, "src/mocks/tauri.ts"),
+          "@tauri-apps/api/webviewWindow": path.resolve(__dirname, "src/mocks/tauriWebviewWindow.ts"),
+          "@tauri-apps/api/window": path.resolve(__dirname, "src/mocks/tauriWindow.ts"),
+          "@tauri-apps/api/event": path.resolve(__dirname, "src/mocks/tauriEvent.ts"),
         },
+  },
+
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+        preferences: resolve(__dirname, "preferences.html"),
+      },
+    },
   },
 
   test: {

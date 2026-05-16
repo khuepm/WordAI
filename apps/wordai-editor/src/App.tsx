@@ -14,8 +14,8 @@ import { NegotiationPanel } from './components/NegotiationPanel';
 import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
-import { PreferencesDialog } from './components/PreferencesDialog';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
+import { openPreferencesWindow } from './services/preferencesWindow';
 import { Tooltip } from './components/Tooltip';
 import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
@@ -118,11 +118,8 @@ function App() {
     return stored ? Number(stored) : DEFAULT_FONT_SIZE;
   });
 
-  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
-  const [preferencesInitialTab, setPreferencesInitialTab] = useState<Tab | undefined>(undefined);
-  const [preferencesTargetSettingId, setPreferencesTargetSettingId] = useState<string | undefined>(undefined);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
   const [storagePath, setStoragePath] = useState('');
   const [startupError, setStartupError] = useState<string | null>(null);
@@ -168,9 +165,7 @@ function App() {
 
   const handleQuickSearchSelect = useCallback((entry: SettingEntry) => {
     setIsQuickSearchOpen(false);
-    setPreferencesInitialTab(entry.tab as Tab);
-    setPreferencesTargetSettingId(entry.id);
-    setIsPreferencesOpen(true);
+    void openPreferencesWindow({ tab: entry.tab as Tab, settingId: entry.id });
   }, []);
 
   const refreshPreferences = useCallback(async () => {
@@ -181,6 +176,17 @@ function App() {
       setPreferences(defaultPreferences);
     }
   }, []);
+
+  // Listen for preferences-updated event from the Preferences window
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    import('@tauri-apps/api/event').then(({ listen }) => {
+      listen('preferences-updated', () => {
+        refreshPreferences();
+      }).then((fn) => { unlisten = fn; });
+    }).catch(() => { /* ignore in non-Tauri env */ });
+    return () => { unlisten?.(); };
+  }, [refreshPreferences]);
 
   const {
     document,
@@ -448,7 +454,7 @@ function App() {
         hasUnsavedChanges={syncView.isDirty}
         onNew={handleNew}
         onSave={openRenderDrawer}
-        onOpenPreferences={() => setIsPreferencesOpen(true)}
+        onOpenPreferences={() => void openPreferencesWindow()}
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
         onRename={handleRename}
@@ -499,7 +505,7 @@ function App() {
             </button >
             <button
               data-testid="ai-service-preferences-button"
-              onClick={() => setIsPreferencesOpen(true)}
+              onClick={() => void openPreferencesWindow()}
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 color: '#d1d5db',
@@ -655,7 +661,7 @@ function App() {
         </Tooltip>
         <Tooltip text={t('sidebar.settings')}>
           <button
-            onClick={() => setIsPreferencesOpen(true)}
+            onClick={() => void openPreferencesWindow()}
             style={{ padding: '0.75rem', background: 'none', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', color: '#5a5a5a', opacity: 0.7, display: 'flex' }}
           >
             <span className="material-symbols-outlined">tune</span>
@@ -726,13 +732,6 @@ function App() {
         />
       </div>
 
-      <PreferencesDialog
-        isOpen={isPreferencesOpen}
-        onClose={() => { setIsPreferencesOpen(false); setPreferencesTargetSettingId(undefined); }}
-        onApply={refreshPreferences}
-        initialTab={preferencesInitialTab}
-        targetSettingId={preferencesTargetSettingId}
-      />
       <QuickSearchPopup
         isOpen={isQuickSearchOpen}
         onClose={() => setIsQuickSearchOpen(false)}
