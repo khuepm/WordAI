@@ -47,7 +47,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 - [~] 2. Checkpoint — Đảm bảo tất cả tests pass
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
-- [ ] 3. M2 — Multi-slot layout, add/discard actions
+- [x] 3. M2 — Multi-slot layout, add/discard actions
   - [x] 3.1 Implement layout đa cột trong `PrismCanvas`
     - Sử dụng CSS Grid với `gridTemplateColumns: repeat(N, 1fr)` dựa trên số slot active
     - Thêm CSS transition cho layout shift (< 50ms)
@@ -67,12 +67,12 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Nút Discard (disabled cho slot 0), nút Promote, nút Pin
     - _Requirements: 2.1, 2.5, 2.6, 7.6_
 
-  - [~] 3.4 Wire PrismCanvas vào App.tsx thay thế EditorCanvas
+  - [x] 3.4 Wire PrismCanvas vào App.tsx thay thế EditorCanvas
     - Import PrismCanvas và thay thế `<EditorCanvas .../>` bằng `<PrismCanvas .../>`
     - Truyền tất cả props hiện có + auraSuggestion (null ban đầu)
     - _Requirements: 1.1_
 
-  - [~] 3.5 Viết unit tests cho PrismToolbar và PrismVariantPane
+  - [x] 3.5 Viết unit tests cho PrismToolbar và PrismVariantPane
     - Test nút "+ Variant" disabled khi 3 slot active
     - Test discard variant ở slot 1/2 → slot thành null
     - Test discard variant ở slot 0 → không thay đổi

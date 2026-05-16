@@ -7,7 +7,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 import { invoke } from '@tauri-apps/api/core';
-import EditorCanvas from './components/EditorCanvas';
+import { PrismCanvas } from './components/prism/PrismCanvas';
 import { EditorStatusBar } from './components/EditorStatusBar';
 import { AuraSpherePanel } from './components/AuraSpherePanel';
 import { NegotiationPanel } from './components/NegotiationPanel';
@@ -712,7 +712,7 @@ function App() {
           position: 'relative',
         }}>
           <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            <EditorCanvas
+            <PrismCanvas
               document={document}
               onDocumentChange={handleDocumentChange}
               onAITrigger={handleAITrigger}
@@ -724,6 +724,7 @@ function App() {
               onOpenVersionHistory={openVersionHistory}
               fontSize={fontSize}
               onFontSizeChange={handleFontSizeChange}
+              auraSuggestion={null}
             />
             <AuraSpherePanel
               isOpen={isAIPanelOpen}
