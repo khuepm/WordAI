@@ -62,7 +62,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Policies trong defaults mà không có trong user config → giữ nguyên
     - _Requirements: 6.5_
 
-- [ ] 3. Implement NotificationDispatcher Service
+- [x] 3. Implement NotificationDispatcher Service
   - [x] 3.1 Tạo `src/services/notificationDispatcher.ts`
     - State: `activeNotifications: Map<string, ActiveNotification>`, `log: ActiveNotification[]`
     - Implement `dispatch(event)`:
@@ -86,20 +86,20 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Dismiss khi state thay đổi (new notification cùng policy replaces old)
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [~] 3.4 Implement channel subscription
+  - [x] 3.4 Implement channel subscription
     - `getChannelNotifications(channel)`: trả về active notifications sorted by priority
     - `subscribeChannel(channel, listener)`: notify khi channel state thay đổi
     - `dismiss(notificationId)`: manual dismiss
     - `dismissChannel(channel)`: dismiss all trong channel
     - _Requirements: 2.7, 2.8, 2.9_
 
-  - [~] 3.5 Implement notification log
+  - [x] 3.5 Implement notification log
     - Ring buffer max 200 entries
     - Lưu tất cả dispatched notifications (kể cả dismissed)
     - `getLog()`: trả về log entries
     - _Requirements: 5.6, 8.6_
 
-  - [~] 3.6 Implement trigger matching
+  - [x] 3.6 Implement trigger matching
     - `onChange`: match khi event.trigger === 'onChange'
     - `onThreshold`: match khi value passes threshold (operator + value)
     - `onError`: match khi event.trigger === 'onError'
