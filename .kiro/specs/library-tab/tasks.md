@@ -63,13 +63,13 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - _Requirements: 7.1, 7.5_
 
 - [x] 5. Create `LibraryFilterChips` component
-  - [~] 5.1 Implement `LibraryFilterChips` in `src/components/LibraryFilterChips.tsx`
+  - [x] 5.1 Implement `LibraryFilterChips` in `src/components/LibraryFilterChips.tsx`
     - Accept props: `activeFilter: 'all' | 'documents' | 'ai-ready'`, `onChange`
     - Render three `<button>` chips: "All" (`t('library.filters.all')`), "Documents" (`t('library.filters.documents')`), "AI-ready" (`t('library.filters.aiReady')`)
     - Apply active visual style (primary color background and border) to the chip matching `activeFilter`
     - Use inline styles with CSS variables
     - _Requirements: 8.1, 8.4, 8.5_
-  - [~] 5.2 Write unit tests for `LibraryFilterChips` in `src/components/LibraryFilterChips.test.tsx`
+  - [x] 5.2 Write unit tests for `LibraryFilterChips` in `src/components/LibraryFilterChips.test.tsx`
     - Test that the "All" chip has active style when `activeFilter='all'`
     - Test that clicking "Documents" calls `onChange('documents')`
     - Test that clicking "AI-ready" calls `onChange('ai-ready')`
@@ -112,11 +112,11 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Test that `hasError=true` shows the error message
     - _Requirements: 4.1, 4.5, 4.6, 9.1_
 
-- [ ] 8. Checkpoint — Ensure all tests pass
+- [x] 8. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Create `LibraryView` component
-  - [~] 9.1 Implement `LibraryView` in `src/components/LibraryView.tsx` — data fetching and local state
+  - [ ] 9.1 Implement `LibraryView` in `src/components/LibraryView.tsx` — data fetching and local state
     - Accept props: `onOpenDocument: (doc: Document) => void`, `onTabChange: (tab: 'editor' | 'library') => void`, `currentDocumentId: string | null`
     - On mount, invoke `list_intents` IPC and store results in local state; show loading indicator while pending (Req 2.4); show error state with retry button on failure (Req 2.5)
     - Manage local state: `intents`, `isLoading`, `loadError`, `searchQuery`, `activeFilter`, `cardLoadingId`, `cardErrorId`, `isImporting`, `importError`, `importWarnings`, `deleteTargetId`, `isDeleting`, `deleteError`, `conflictState`
@@ -127,15 +127,15 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Auto-focus the `LibrarySearchBar` on mount via `autoFocus` prop (Req 10.4)
     - Apply ARIA landmark roles: `role="main"` on the view root, `role="search"` on the search region, `role="region"` on the grid area
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 7.2, 7.3, 8.6, 10.4, 10.5_
-  - [~] 9.2 Implement card open flow in `LibraryView`
+  - [ ] 9.2 Implement card open flow in `LibraryView`
     - On card click, set `cardLoadingId` to the card's `id`, invoke `get_intent`, convert result via `auraIntentToDocument`, call `onOpenDocument(doc)` and `onTabChange('editor')`, store `id` in `localStorage` under `wordai_last_intent_id`
     - On `get_intent` failure, set `cardErrorId` and display inline error on the card; do not navigate
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
-  - [~] 9.3 Implement new document flow in `LibraryView`
+  - [ ] 9.3 Implement new document flow in `LibraryView`
     - Render a "New Document" button (`t('library.newDocument')`) always visible
     - On click, create an in-memory `Document` with `crypto.randomUUID()`, `title: 'Untitled Intent'`, empty content, `version: 1`, call `onOpenDocument(doc)` and `onTabChange('editor')`
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
-  - [~] 9.4 Implement import (Open File) flow in `LibraryView`
+  - [ ] 9.4 Implement import (Open File) flow in `LibraryView`
     - Render an "Open File" button (`t('library.openFile')`) with `aria-label={t('library.openFileAriaLabel')}`; disable it while `isImporting` is true
     - Call `importFile({ onConflict, onOpenIntent })` from `exportService.ts`
     - Wire `onConflict` to store a `ConflictState` (with `resolve` function) in local state, which renders `ReplaceConfirmationDialog`
@@ -143,13 +143,13 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - On `status: 'error'`, set `importError`; on `status: 'opened'` with warnings, set `importWarnings`
     - Show a non-blocking warning notification when `importWarnings` is non-empty (Req 6.5)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9_
-  - [~] 9.5 Implement delete flow in `LibraryView`
+  - [ ] 9.5 Implement delete flow in `LibraryView`
     - On delete button click on a card, set `deleteTargetId` to show `ConfirmationDialog` with title `t('library.delete.confirmTitle')`, message `t('library.delete.confirmMessage', { name })`, `isDangerous=true`
     - On confirm, invoke `delete_intent` IPC; on success, remove the card from `intents` state without a full reload; if the deleted id matches `currentDocumentId`, call `onOpenDocument` with a new blank document
     - On `delete_intent` failure, set `deleteError` and display error message; retain the card
     - On cancel, clear `deleteTargetId` without invoking IPC
     - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
-  - [~] 9.6 Implement `LibraryView` layout and grid
+  - [ ] 9.6 Implement `LibraryView` layout and grid
     - Render the Document_Grid as a CSS grid with `repeat(auto-fill, minmax(240px, 1fr))` for responsive 1–3 column layout
     - Render `LibrarySearchBar`, `LibraryFilterChips`, and the grid of `LibraryCard` components
     - Render `LibraryEmptyState` with `reason='no-documents'` when `intents` is empty after load, or `reason='no-results'` when the filtered list is empty but `intents` is not
@@ -160,14 +160,14 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Modify `TopNavBar` to support tab switching
-  - [~] 11.1 Add `activeTab` and `onTabChange` props to `TopNavBar` and convert nav links to buttons
+  - [ ] 11.1 Add `activeTab` and `onTabChange` props to `TopNavBar` and convert nav links to buttons
     - Add `activeTab?: 'editor' | 'library'` and `onTabChange?: (tab: 'editor' | 'library') => void` to `TopNavBarProps`
     - Replace the three `<a>` nav links with `<button>` elements
     - "Drafts" and "Archive" buttons call `onTabChange?.('editor')`; "Library" button calls `onTabChange?.('library')`
     - Apply active style (bold weight, primary color, underline) to the button matching `activeTab`; apply inactive style to others
     - Default `activeTab` to `'editor'` when prop is not provided (backward-compatible)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
-  - [~] 11.2 Write unit tests for `TopNavBar` tab switching in `src/components/TopNavBar.test.tsx`
+  - [ ] 11.2 Write unit tests for `TopNavBar` tab switching in `src/components/TopNavBar.test.tsx`
     - Test that `activeTab='editor'` applies active style to "Drafts" and inactive style to "Library"
     - Test that `activeTab='library'` applies active style to "Library" and inactive style to "Drafts"
     - Test that clicking "Library" calls `onTabChange('library')`
@@ -175,71 +175,71 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - _Requirements: 1.3, 1.4_
 
 - [ ] 12. Modify `App.tsx` to wire `activeTab` and render `LibraryView`
-  - [~] 12.1 Destructure `activeTab` and `setActiveTab` from `useAppState()` and wire to `TopNavBar`
+  - [ ] 12.1 Destructure `activeTab` and `setActiveTab` from `useAppState()` and wire to `TopNavBar`
     - Destructure `activeTab` and `setActiveTab` from `useAppState()`
     - Pass `activeTab={activeTab}` and `onTabChange={setActiveTab}` to `<TopNavBar>`
     - _Requirements: 1.1, 1.2_
-  - [~] 12.2 Add `handleOpenDocumentFromLibrary` and conditionally render `LibraryView` vs editor stack
+  - [ ] 12.2 Add `handleOpenDocumentFromLibrary` and conditionally render `LibraryView` vs editor stack
     - Implement `handleOpenDocumentFromLibrary(doc: Document)`: normalize content with `ensureBlockValue`, call `setDocument`, call `auraBrainManager.initializeSyncedBaseline`, store id in `localStorage`, call `setActiveTab('editor')`
     - Replace the unconditional editor stack render with a conditional: when `activeTab === 'library'` render `<LibraryView onOpenDocument={handleOpenDocumentFromLibrary} onTabChange={setActiveTab} currentDocumentId={document?.id ?? null} />`; otherwise render the existing editor stack
     - Keep the `<aside>` sidebar outside the conditional so it remains visible in both views (Req 1.5)
     - _Requirements: 1.1, 1.2, 1.5, 3.3, 3.4, 4.2, 4.3, 4.4_
 
 - [ ] 13. Add i18n translation keys
-  - [~] 13.1 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/vi.json`
+  - [ ] 13.1 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/vi.json`
     - Add the complete `library` object with all keys listed in the design document (Vietnamese values)
     - Add `confirmationDialog.ariaLabel` key
     - _Requirements: 10.5_
-  - [~] 13.2 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/en.json`
+  - [ ] 13.2 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/en.json`
     - Add the complete `library` object with all keys listed in the design document (English values)
     - Add `confirmationDialog.ariaLabel` key
     - _Requirements: 10.5_
 
 - [ ] 14. Write property-based tests for the 8 correctness properties
-  - [~] 14.1 Write property test for Property 1 (document list sorted by recency) in `src/components/LibraryView.property.test.tsx`
+  - [ ] 14.1 Write property test for Property 1 (document list sorted by recency) in `src/components/LibraryView.property.test.tsx`
     - **Property 1: Document list renders cards sorted by recency**
     - **Validates: Requirements 2.2**
     - For any non-empty array of `AuraIntentSummary` records, mock `list_intents` to return them, render `LibraryView`, assert card count equals array length and cards appear in descending `updated_at` order
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), ...), { numRuns: 100 })`
-  - [~] 14.2 Write property test for Property 2 (open document switches to editor tab) in `src/components/LibraryView.property.test.tsx`
+  - [ ] 14.2 Write property test for Property 2 (open document switches to editor tab) in `src/components/LibraryView.property.test.tsx`
     - **Property 2: Opening a document from the library always switches to the editor tab**
     - **Validates: Requirements 4.2, 4.3, 4.4**
     - For any valid `AuraIntentDocument`, mock `get_intent` to return it, click the corresponding card, assert `onTabChange` was called with `'editor'` and `localStorage` contains the document's `id` under `wordai_last_intent_id`
     - Use `fc.assert(fc.property(arbitraryAuraIntentDocument(), ...), { numRuns: 100 })`
-  - [~] 14.3 Write property test for Property 3 (search filter correctness) in `src/utils/libraryFilters.property.test.ts`
+  - [ ] 14.3 Write property test for Property 3 (search filter correctness) in `src/utils/libraryFilters.property.test.ts`
     - **Property 3: Search filter is a correct case-insensitive substring match**
     - **Validates: Requirements 7.2, 7.3**
     - Extract `applySearchFilter` as a pure exported function from `src/utils/libraryFilters.ts`
     - For any array of `AuraIntentSummary` and any query string, assert the filtered set equals the subset whose `intent_name` contains the query as a case-insensitive substring; assert empty query returns all
     - Use `fc.assert(fc.property(fc.array(...), fc.string(), ...), { numRuns: 100 })`
-  - [~] 14.4 Write property test for Property 4 (search + filter chip composition) in `src/utils/libraryFilters.property.test.ts`
+  - [ ] 14.4 Write property test for Property 4 (search + filter chip composition) in `src/utils/libraryFilters.property.test.ts`
     - **Property 4: Search and filter chip composition is idempotent and correct**
     - **Validates: Requirements 8.2, 8.3, 8.6**
     - Extract `applyFilters(intents, query, filter)` as a pure exported function from `src/utils/libraryFilters.ts`
     - For any array, query, and filter value, assert applying filters twice produces the same result (idempotence) and all results satisfy both predicates
     - Use `fc.assert(fc.property(fc.array(...), fc.string(), fc.constantFrom('all', 'documents', 'ai-ready'), ...), { numRuns: 100 })`
-  - [~] 14.5 Write property test for Property 5 (successful import opens editor) in `src/components/LibraryView.property.test.tsx`
+  - [ ] 14.5 Write property test for Property 5 (successful import opens editor) in `src/components/LibraryView.property.test.tsx`
     - **Property 5: Successful import always opens the document in the editor**
     - **Validates: Requirements 6.2, 6.3, 6.4**
     - For any `AuraIntentDocument` returned by a successful import, mock `importFile` to call `onOpenIntent` with the document, assert `onTabChange` was called with `'editor'`
     - Use `fc.assert(fc.property(arbitraryAuraIntentDocument(), ...), { numRuns: 100 })`
-  - [~] 14.6 Write property test for Property 6 (delete calls correct id and removes card) in `src/components/LibraryView.property.test.tsx`
+  - [ ] 14.6 Write property test for Property 6 (delete calls correct id and removes card) in `src/components/LibraryView.property.test.tsx`
     - **Property 6: Delete confirmation calls delete_intent with the correct id and removes the card**
     - **Validates: Requirements 9.3, 9.4**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, confirm, assert `delete_intent` was called exactly once with the target `id`, assert the card is no longer in the rendered output
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), fc.nat(), ...), { numRuns: 100 })`
-  - [~] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
+  - [ ] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
     - **Property 7: Cancelling any destructive action never persists changes**
     - **Validates: Requirements 6.9, 9.5**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, cancel, assert `delete_intent` was never called and the card is still present in the grid
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), fc.nat(), ...), { numRuns: 100 })`
-  - [~] 14.8 Write property test for Property 8 (LibraryCard renders all metadata) — already covered in task 7.2
+  - [ ] 14.8 Write property test for Property 8 (LibraryCard renders all metadata) — already covered in task 7.2
     - This property is implemented as part of task 7.2 (`LibraryCard.property.test.tsx`)
     - Verify the test file exists and covers `intent_name`, timestamp, and `version` for any `AuraIntentSummary`
     - **Property 8: Library_Card always renders all required metadata fields**
     - **Validates: Requirements 2.6**
 
-- [~] 15. Final checkpoint — Ensure all tests pass
+- [ ] 15. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
