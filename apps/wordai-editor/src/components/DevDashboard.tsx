@@ -14,7 +14,7 @@
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.12
  */
 
-import { useState, useCallback, useEffect, useSyncExternalStore, useRef } from 'react';
+import { useState, useCallback, useEffect, useSyncExternalStore, useRef, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { notificationRegistry } from '../services/notificationRegistry';
 import { notificationDispatcher } from '../services/notificationDispatcher';
@@ -278,6 +278,182 @@ const EVENT_TYPES = [
 
 const PREF_TABS = ['general', 'aiEngine', 'typography', 'privacy'] as const;
 
+// ─── Source Key Suggestions ─────────────────────────────────────────────────────
+
+/** All known source keys (exact + wildcard patterns) for the combobox suggestions */
+const SOURCE_KEY_SUGGESTIONS = [
+  // Exact event keys
+  'sync.start',
+  'sync.success',
+  'sync.error',
+  'document.dirty',
+  'autoSync.tick',
+  'autoSync.skip',
+  'autoSync.countdown',
+  'export.start',
+  'export.complete',
+  'export.error',
+  'ai.response',
+  'ai.error',
+  'ai.unavailable',
+  // Preference change events
+  'preference.changed',
+  'preference.changed.general.theme',
+  'preference.changed.general.autoSyncInterval',
+  'preference.changed.general.autoSyncEnabled',
+  'preference.changed.general.language',
+  'preference.changed.aiEngine.model',
+  'preference.changed.aiEngine.creativity',
+  'preference.changed.typography.fontFamily',
+  'preference.changed.typography.fontSize',
+  'preference.changed.privacy.localProcessingOnly',
+  // Wildcard patterns
+  'preference.*',
+  'sync.*',
+  'export.*',
+  'ai.*',
+  'autoSync.*',
+  // Preference keys (for onChange/onThreshold triggers)
+  'general.autoSyncInterval',
+  'general.autoSyncEnabled',
+  'general.focusMode',
+  'aiEngine.creativity',
+  'aiEngine.contextWindowTokens',
+  'typography.fontSize',
+  'privacy.localProcessingOnly',
+];
+
+// ─── SourceKeyCombobox ──────────────────────────────────────────────────────────
+
+const comboboxWrapperStyle: CSSProperties = {
+  position: 'relative',
+  display: 'inline-block',
+};
+
+const comboboxDropdownStyle: CSSProperties = {
+  position: 'absolute',
+  top: '100%',
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  maxHeight: '200px',
+  overflowY: 'auto',
+  background: 'var(--md-sys-color-surface, #fefbff)',
+  border: '1px solid var(--md-sys-color-outline-variant, #c9c5d0)',
+  borderRadius: '0.375rem',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  marginTop: '2px',
+};
+
+const comboboxItemStyle: CSSProperties = {
+  padding: '0.35rem 0.5rem',
+  fontSize: '0.75rem',
+  cursor: 'pointer',
+  borderBottom: '1px solid rgba(0,0,0,0.04)',
+  transition: 'background 0.1s',
+};
+
+const comboboxItemActiveStyle: CSSProperties = {
+  ...comboboxItemStyle,
+  background: 'var(--md-sys-color-primary-container, #e8def8)',
+};
+
+interface SourceKeyComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  width?: string;
+  placeholder?: string;
+  'data-testid'?: string;
+}
+
+function SourceKeyCombobox({ value, onChange, width = '180px', placeholder, ...props }: SourceKeyComboboxProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = SOURCE_KEY_SUGGESTIONS.filter((key) =>
+    key.toLowerCase().includes(value.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = useCallback((key: string) => {
+    onChange(key);
+    setIsOpen(false);
+    setHighlightIndex(-1);
+  }, [onChange]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!isOpen && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      setIsOpen(true);
+      e.preventDefault();
+      return;
+    }
+    if (!isOpen) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.min(i + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIndex >= 0 && highlightIndex < filtered.length) {
+        handleSelect(filtered[highlightIndex]);
+      } else {
+        setIsOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setHighlightIndex(-1);
+    }
+  }, [isOpen, filtered, highlightIndex, handleSelect]);
+
+  return (
+    <div ref={wrapperRef} style={{ ...comboboxWrapperStyle, width }}>
+      <input
+        ref={inputRef}
+        style={{ ...inputStyle, width: '100%' }}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setIsOpen(true); setHighlightIndex(-1); }}
+        onFocus={() => setIsOpen(true)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder ?? 'Search source key...'}
+        data-testid={props['data-testid']}
+        autoComplete="off"
+      />
+      {isOpen && filtered.length > 0 && (
+        <div style={comboboxDropdownStyle}>
+          {filtered.map((key, idx) => (
+            <div
+              key={key}
+              style={idx === highlightIndex ? comboboxItemActiveStyle : comboboxItemStyle}
+              onMouseEnter={() => setHighlightIndex(idx)}
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(key); }}
+            >
+              <code style={{ fontSize: '0.7rem' }}>{key}</code>
+              {key.includes('*') && (
+                <span style={{ marginLeft: '0.5rem', fontSize: '0.6rem', opacity: 0.5 }}>wildcard</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
 export function DevDashboard({ isOpen, onClose, isWindowed }: DevDashboardProps) {
@@ -440,6 +616,8 @@ function PolicyTable() {
     (cb) => notificationRegistry.subscribe(cb),
     () => notificationRegistry.getSnapshot()
   );
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [collapsedBundles, setCollapsedBundles] = useState<Set<string>>(new Set());
 
   const handleFieldChange = useCallback(
     (policyId: string, field: keyof NotificationPolicy, value: unknown) => {
@@ -452,102 +630,439 @@ function PolicyTable() {
     notificationRegistry.overridePolicy(policyId, { silent: !currentSilent });
   }, []);
 
+  const handleRemovePolicy = useCallback((policyId: string) => {
+    notificationRegistry.removePolicy(policyId);
+  }, []);
+
+  const toggleBundle = useCallback((bundle: string) => {
+    setCollapsedBundles((prev) => {
+      const next = new Set(prev);
+      if (next.has(bundle)) next.delete(bundle);
+      else next.add(bundle);
+      return next;
+    });
+  }, []);
+
+  // Group policies by bundle
+  const bundleGroups = useMemo(() => {
+    const groups: Record<string, typeof policies> = {};
+    for (const policy of policies) {
+      const bundle = policy.bundle || 'ungrouped';
+      if (!groups[bundle]) groups[bundle] = [];
+      groups[bundle].push(policy);
+    }
+    return groups;
+  }, [policies]);
+
+  const bundleColors: Record<string, string> = {
+    sync: '#4343d5',
+    dirty: '#d97706',
+    export: '#059669',
+    ai: '#7c3aed',
+    preferences: '#0891b2',
+    ungrouped: '#6b7280',
+  };
+
   return (
     <div data-testid="dev-dashboard-content-policies">
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Source Key</th>
-            <th style={thStyle}>Channel</th>
-            <th style={thStyle}>Format</th>
-            <th style={thStyle}>Priority</th>
-            <th style={thStyle}>Silent</th>
-            <th style={thStyle}>Trigger</th>
-          </tr>
-        </thead>
-        <tbody>
-          {policies.map((policy) => (
-            <tr key={policy.id}>
-              <td style={tdStyle}>
-                <code style={{ fontSize: '0.7rem' }}>{policy.id}</code>
-              </td>
-              <td style={tdStyle}>
-                <input
-                  style={{ ...inputStyle, width: '140px' }}
-                  value={policy.sourceKey}
-                  onChange={(e) => handleFieldChange(policy.id, 'sourceKey', e.target.value)}
-                  data-testid={`policy-sourceKey-${policy.id}`}
-                />
-              </td>
-              <td style={tdStyle}>
-                <select
-                  style={selectStyle}
-                  value={policy.channel}
-                  onChange={(e) => handleFieldChange(policy.id, 'channel', e.target.value)}
-                  data-testid={`policy-channel-${policy.id}`}
-                >
-                  {CHANNELS.map((ch) => (
-                    <option key={ch} value={ch}>{ch}</option>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
+          {policies.length} policies · {Object.keys(bundleGroups).length} bundles
+        </span>
+        <button
+          style={btnPrimaryStyle}
+          onClick={() => setShowAddForm(true)}
+          data-testid="add-policy-btn"
+        >
+          ➕ Add Policy
+        </button>
+      </div>
+
+      {showAddForm && (
+        <AddPolicyForm
+          onAdd={() => setShowAddForm(false)}
+          onCancel={() => setShowAddForm(false)}
+        />
+      )}
+
+      {Object.entries(bundleGroups).map(([bundle, bundlePolicies]) => {
+        const isCollapsed = collapsedBundles.has(bundle);
+        const color = bundleColors[bundle] || '#6b7280';
+        const allSilent = bundlePolicies.every((p) => p.silent);
+
+        return (
+          <div key={bundle} style={{ marginBottom: '1rem' }}>
+            {/* Bundle header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                background: `${color}10`,
+                borderLeft: `3px solid ${color}`,
+                borderRadius: '0.25rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+              onClick={() => toggleBundle(bundle)}
+              data-testid={`bundle-header-${bundle}`}
+            >
+              <span style={{ fontSize: '0.75rem', transition: 'transform 0.15s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>▼</span>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {bundle}
+              </span>
+              <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>
+                ({bundlePolicies.length} {bundlePolicies.length === 1 ? 'policy' : 'policies'})
+              </span>
+              {allSilent && (
+                <span style={{ fontSize: '0.65rem', background: 'var(--md-sys-color-error-container, #f9dedc)', padding: '1px 6px', borderRadius: '4px' }}>
+                  🔇 all silent
+                </span>
+              )}
+            </div>
+
+            {/* Bundle policies table */}
+            {!isCollapsed && (
+              <table style={{ ...tableStyle, marginTop: '0.25rem' }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>ID</th>
+                    <th style={thStyle}>Source Key</th>
+                    <th style={thStyle}>Channel</th>
+                    <th style={thStyle}>Format</th>
+                    <th style={thStyle}>Priority</th>
+                    <th style={thStyle}>Silent</th>
+                    <th style={thStyle}>Trigger</th>
+                    <th style={thStyle}>Template</th>
+                    <th style={thStyle}>Duration</th>
+                    <th style={{ ...thStyle, width: '40px' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bundlePolicies.map((policy) => (
+                    <tr key={policy.id}>
+                      <td style={tdStyle}>
+                        <code style={{ fontSize: '0.7rem' }}>{policy.id}</code>
+                      </td>
+                      <td style={tdStyle}>
+                        <SourceKeyCombobox
+                          value={policy.sourceKey}
+                          onChange={(val) => handleFieldChange(policy.id, 'sourceKey', val)}
+                          width="160px"
+                          data-testid={`policy-sourceKey-${policy.id}`}
+                        />
+                      </td>
+                      <td style={tdStyle}>
+                        <select
+                          style={selectStyle}
+                          value={policy.channel}
+                          onChange={(e) => handleFieldChange(policy.id, 'channel', e.target.value)}
+                          data-testid={`policy-channel-${policy.id}`}
+                        >
+                          {CHANNELS.map((ch) => (
+                            <option key={ch} value={ch}>{ch}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td style={tdStyle}>
+                        <select
+                          style={selectStyle}
+                          value={policy.format}
+                          onChange={(e) => handleFieldChange(policy.id, 'format', e.target.value)}
+                          data-testid={`policy-format-${policy.id}`}
+                        >
+                          {FORMATS.map((f) => (
+                            <option key={f} value={f}>{f}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td style={tdStyle}>
+                        <select
+                          style={selectStyle}
+                          value={policy.priority}
+                          onChange={(e) => handleFieldChange(policy.id, 'priority', e.target.value)}
+                          data-testid={`policy-priority-${policy.id}`}
+                        >
+                          {PRIORITIES.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td style={tdStyle}>
+                        <button
+                          style={{
+                            ...btnStyle,
+                            padding: '0.2rem 0.6rem',
+                            fontSize: '0.7rem',
+                            background: policy.silent
+                              ? 'var(--md-sys-color-error-container, #f9dedc)'
+                              : 'var(--md-sys-color-primary-container, #e8def8)',
+                          }}
+                          onClick={() => handleSilentToggle(policy.id, policy.silent)}
+                          data-testid={`policy-silent-${policy.id}`}
+                        >
+                          {policy.silent ? '🔇 Silent' : '🔊 Active'}
+                        </button>
+                      </td>
+                      <td style={tdStyle}>
+                        <select
+                          style={selectStyle}
+                          value={policy.trigger}
+                          onChange={(e) => handleFieldChange(policy.id, 'trigger', e.target.value)}
+                          data-testid={`policy-trigger-${policy.id}`}
+                        >
+                          {TRIGGERS.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td style={tdStyle}>
+                        <input
+                          style={{ ...inputStyle, width: '160px' }}
+                          value={policy.template ?? ''}
+                          onChange={(e) => handleFieldChange(policy.id, 'template', e.target.value)}
+                          placeholder="Template..."
+                          data-testid={`policy-template-${policy.id}`}
+                        />
+                      </td>
+                      <td style={tdStyle}>
+                        <input
+                          style={{ ...inputStyle, width: '60px' }}
+                          type="number"
+                          value={policy.duration ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            handleFieldChange(policy.id, 'duration', val === '' ? null : Number(val));
+                          }}
+                          placeholder="∞"
+                          data-testid={`policy-duration-${policy.id}`}
+                        />
+                      </td>
+                      <td style={tdStyle}>
+                        <button
+                          style={{
+                            ...btnStyle,
+                            padding: '0.2rem 0.4rem',
+                            fontSize: '0.75rem',
+                            background: 'transparent',
+                            color: 'var(--md-sys-color-error, #b3261e)',
+                          }}
+                          onClick={() => handleRemovePolicy(policy.id)}
+                          title="Remove policy"
+                          data-testid={`policy-remove-${policy.id}`}
+                        >
+                          🗑
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                </select>
-              </td>
-              <td style={tdStyle}>
-                <select
-                  style={selectStyle}
-                  value={policy.format}
-                  onChange={(e) => handleFieldChange(policy.id, 'format', e.target.value)}
-                  data-testid={`policy-format-${policy.id}`}
-                >
-                  {FORMATS.map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
-              </td>
-              <td style={tdStyle}>
-                <select
-                  style={selectStyle}
-                  value={policy.priority}
-                  onChange={(e) => handleFieldChange(policy.id, 'priority', e.target.value)}
-                  data-testid={`policy-priority-${policy.id}`}
-                >
-                  {PRIORITIES.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </td>
-              <td style={tdStyle}>
-                <button
-                  style={{
-                    ...btnStyle,
-                    padding: '0.2rem 0.6rem',
-                    fontSize: '0.7rem',
-                    background: policy.silent
-                      ? 'var(--md-sys-color-error-container, #f9dedc)'
-                      : 'var(--md-sys-color-primary-container, #e8def8)',
-                  }}
-                  onClick={() => handleSilentToggle(policy.id, policy.silent)}
-                  data-testid={`policy-silent-${policy.id}`}
-                >
-                  {policy.silent ? '🔇 Silent' : '🔊 Active'}
-                </button>
-              </td>
-              <td style={tdStyle}>
-                <select
-                  style={selectStyle}
-                  value={policy.trigger}
-                  onChange={(e) => handleFieldChange(policy.id, 'trigger', e.target.value)}
-                  data-testid={`policy-trigger-${policy.id}`}
-                >
-                  {TRIGGERS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                </tbody>
+              </table>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Add Policy Form ────────────────────────────────────────────────────────────
+
+const addFormStyle: CSSProperties = {
+  padding: '1rem',
+  marginBottom: '1rem',
+  borderRadius: '0.75rem',
+  background: 'var(--md-sys-color-surface-container, #f0f0f4)',
+  border: '1px solid var(--md-sys-color-outline-variant, #c9c5d0)',
+};
+
+const formRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: '0.75rem',
+  marginBottom: '0.75rem',
+  flexWrap: 'wrap',
+  alignItems: 'flex-end',
+};
+
+const formFieldStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.25rem',
+};
+
+const formLabelStyle: CSSProperties = {
+  fontSize: '0.7rem',
+  fontWeight: 700,
+  color: 'var(--md-sys-color-on-surface-variant, #49454f)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+};
+
+interface AddPolicyFormProps {
+  onAdd: () => void;
+  onCancel: () => void;
+}
+
+function AddPolicyForm({ onAdd, onCancel }: AddPolicyFormProps) {
+  const [sourceKey, setSourceKey] = useState('');
+  const [bundle, setBundle] = useState('');
+  const [channel, setChannel] = useState<string>('toast');
+  const [format, setFormat] = useState<string>('message');
+  const [priority, setPriority] = useState<string>('medium');
+  const [trigger, setTrigger] = useState<string>('onEvent');
+  const [template, setTemplate] = useState('');
+  const [duration, setDuration] = useState<string>('3000');
+  const [silent, setSilent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = useCallback(() => {
+    // Validate required fields
+    if (!sourceKey.trim()) { setError('Source Key is required'); return; }
+    if (!template.trim()) { setError('Template is required'); return; }
+
+    // Auto-generate ID from sourceKey + channel + random suffix
+    const base = sourceKey.trim().replace(/[.*]/g, '').replace(/\s+/g, '-').toLowerCase();
+    const generatedId = `${base}-${channel}-${Math.random().toString(36).slice(2, 6)}`;
+
+    const newPolicy: NotificationPolicy = {
+      id: generatedId,
+      bundle: bundle.trim() || undefined,
+      sourceKey: sourceKey.trim(),
+      channel: channel as NotificationPolicy['channel'],
+      format: format as NotificationPolicy['format'],
+      priority: priority as NotificationPolicy['priority'],
+      trigger: trigger as NotificationPolicy['trigger'],
+      duration: duration.trim() === '' ? null : Number(duration),
+      silent,
+      template: template.trim(),
+      description: `Custom policy: ${generatedId}`,
+    };
+
+    notificationRegistry.addPolicy(newPolicy);
+    setError(null);
+    onAdd();
+  }, [sourceKey, bundle, channel, format, priority, trigger, template, duration, silent, onAdd]);
+
+  return (
+    <div style={addFormStyle} data-testid="add-policy-form">
+      <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', fontWeight: 700 }}>
+        ➕ New Notification Policy
+      </h4>
+
+      {error && (
+        <p style={{ color: 'var(--md-sys-color-error, #b3261e)', fontSize: '0.75rem', margin: '0 0 0.5rem' }}>
+          ⚠ {error}
+        </p>
+      )}
+
+      <div style={formRowStyle}>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Bundle</label>
+          <input
+            style={{ ...inputStyle, width: '120px' }}
+            value={bundle}
+            onChange={(e) => setBundle(e.target.value)}
+            placeholder="sync, export, ai..."
+            list="bundle-suggestions"
+            data-testid="add-policy-bundle"
+          />
+          <datalist id="bundle-suggestions">
+            <option value="sync" />
+            <option value="dirty" />
+            <option value="export" />
+            <option value="ai" />
+            <option value="preferences" />
+          </datalist>
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Source Key *</label>
+          <SourceKeyCombobox
+            value={sourceKey}
+            onChange={setSourceKey}
+            width="220px"
+            placeholder="sync.error, preference.*, export.complete"
+            data-testid="add-policy-sourceKey"
+          />
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Channel</label>
+          <select style={selectStyle} value={channel} onChange={(e) => setChannel(e.target.value)} data-testid="add-policy-channel">
+            {CHANNELS.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
+          </select>
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Format</label>
+          <select style={selectStyle} value={format} onChange={(e) => setFormat(e.target.value)} data-testid="add-policy-format">
+            {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div style={formRowStyle}>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Priority</label>
+          <select style={selectStyle} value={priority} onChange={(e) => setPriority(e.target.value)} data-testid="add-policy-priority">
+            {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Trigger</label>
+          <select style={selectStyle} value={trigger} onChange={(e) => setTrigger(e.target.value)} data-testid="add-policy-trigger">
+            {TRIGGERS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Duration (ms)</label>
+          <input
+            style={{ ...inputStyle, width: '80px' }}
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="null = persistent"
+            data-testid="add-policy-duration"
+          />
+        </div>
+        <div style={formFieldStyle}>
+          <label style={formLabelStyle}>Silent</label>
+          <button
+            style={{
+              ...btnStyle,
+              padding: '0.3rem 0.6rem',
+              fontSize: '0.7rem',
+              background: silent
+                ? 'var(--md-sys-color-error-container, #f9dedc)'
+                : 'var(--md-sys-color-primary-container, #e8def8)',
+            }}
+            onClick={() => setSilent(!silent)}
+            data-testid="add-policy-silent"
+          >
+            {silent ? '🔇 Silent' : '🔊 Active'}
+          </button>
+        </div>
+      </div>
+
+      <div style={formRowStyle}>
+        <div style={{ ...formFieldStyle, flex: 1 }}>
+          <label style={formLabelStyle}>Template * <span style={{ fontWeight: 400, textTransform: 'none' }}>(use {'{variable}'} for dynamic values)</span></label>
+          <input
+            style={{ ...inputStyle, width: '100%' }}
+            value={template}
+            onChange={(e) => setTemplate(e.target.value)}
+            placeholder="Sync failed: {error}"
+            data-testid="add-policy-template"
+          />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <button style={btnPrimaryStyle} onClick={handleSubmit} data-testid="add-policy-submit">
+          Create Policy
+        </button>
+        <button style={btnSecondaryStyle} onClick={onCancel} data-testid="add-policy-cancel">
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
