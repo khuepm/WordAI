@@ -312,7 +312,15 @@
     "success": "Xuất thành công: {{path}}",
     "error": "Xuất thất bại: {{message}}",
     "formatNotSupported": "Định dạng xuất \"{{format}}\" không được hỗ trợ.",
-    "failed": "Xuất thất bại."
+    "failed": "Xuất thất bại.",
+    "progress": {
+      "title": "Đang xuất tài liệu...",
+      "cancel": "Hủy",
+      "stage": {
+        "buildingStructure": "Đang xây dựng cấu trúc tài liệu...",
+        "writingFile": "Đang ghi file DOCX..."
+      }
+    }
   },
   "import": {
     "title": "Nhập Tài liệu",
@@ -322,6 +330,22 @@
       "update": "Cập nhật Ý niệm",
       "createNew": "Tạo Ý niệm mới",
       "cancel": "Hủy"
+    },
+    "sizeWarning": {
+      "title": "Phát hiện file lớn",
+      "message": "File này có kích thước {{size}} và có thể mất khoảng {{seconds}} giây để nhập.",
+      "confirm": "Tiếp tục",
+      "cancel": "Hủy"
+    },
+    "progress": {
+      "title": "Đang nhập tài liệu...",
+      "cancel": "Hủy",
+      "stage": {
+        "readingFile": "Đang đọc file...",
+        "parsingDocument": "Đang phân tích tài liệu...",
+        "convertingBlocks": "Đang chuyển đổi blocks...",
+        "savingToAuraBrain": "Đang lưu vào AuraBrain..."
+      }
     },
     "unsupportedElements": "Phát hiện thành phần không hỗ trợ: {{elements}}"
   },

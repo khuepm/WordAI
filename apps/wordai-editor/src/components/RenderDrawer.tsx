@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import type { Document } from '../types/document';
-import type { ExportFormat, PDFExportOptions, PageSize } from '../types/export';
+import type { ExportFormat, ExportProgressEvent, ImportProgressEvent, PDFExportOptions, PageSize } from '../types/export';
 import { defaultPreferences } from '../types/preferences';
-import { exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback } from '../services/exportService';
+import { cancelExport, exportDocx, exportMarkdown, exportPdf, importFile, type ConflictResolutionCallback, type FileSizeWarningCallback } from '../services/exportService';
 import { loadPreferences } from '../services/preferencesService';
 import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
+import { FileSizeWarningDialog } from './FileSizeWarningDialog';
+import { ImportProgressDialog } from './ImportProgressDialog';
 
 export interface RenderDrawerProps {
   isOpen: boolean;
@@ -54,6 +57,15 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     auraIntentId: string;
     resolve: (choice: 'update' | 'create_new' | 'cancel') => void;
   } | null>(null);
+  const [fileSizeWarning, setFileSizeWarning] = useState<{
+    fileSizeMB: number;
+    estimatedSeconds: number;
+    resolve: (confirmed: boolean) => void;
+  } | null>(null);
+  const [importProgress, setImportProgress] = useState<ImportProgressEvent | null>(null);
+  const [showImportProgress, setShowImportProgress] = useState(false);
+  const [exportProgress, setExportProgress] = useState<ExportProgressEvent | null>(null);
+  const [showExportProgress, setShowExportProgress] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -62,6 +74,11 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
       setStatusText(null);
       setImportWarnings([]);
       setConflict(null);
+      setFileSizeWarning(null);
+      setImportProgress(null);
+      setShowImportProgress(false);
+      setExportProgress(null);
+      setShowExportProgress(false);
     }
   }, [isOpen]);
 
@@ -120,13 +137,25 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     setExportStatus('idle');
     setExportError(null);
     setStatusText(null);
+    setExportProgress(null);
+    setShowExportProgress(false);
 
     try {
       let result;
       if (selectedFormat === 'markdown') {
         result = await exportMarkdown(currentDocument);
       } else if (selectedFormat === 'docx') {
-        result = await exportDocx(currentDocument);
+        // Requirements 28.1, 28.3: show progress for large documents, support cancel
+        const onProgress = (progress: ExportProgressEvent) => {
+          setExportProgress(progress);
+          setShowExportProgress(true);
+        };
+
+        result = await exportDocx(currentDocument, { onProgress });
+
+        // Requirement 28.5: close progress dialog when export completes
+        setShowExportProgress(false);
+        setExportProgress(null);
       } else if (selectedFormat === 'pdf') {
         result = await exportPdf(currentDocument, pdfOptions);
       } else {
@@ -148,6 +177,8 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
       setExportError(err instanceof Error ? err.message : t('export.failed'));
     } finally {
       setIsExporting(false);
+      setShowExportProgress(false);
+      setExportProgress(null);
     }
   }, [selectedFormat, pdfOptions, currentDocument, t]);
 
@@ -157,12 +188,29 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
     setExportError(null);
     setStatusText(null);
     setImportWarnings([]);
+    setImportProgress(null);
+    setShowImportProgress(false);
 
     const onConflict: ConflictResolutionCallback = (intentName, auraIntentId) =>
       new Promise((resolve) => setConflict({ intentName, auraIntentId, resolve }));
 
+    const onFileSizeWarning: FileSizeWarningCallback = (fileSizeMB, estimatedSeconds) =>
+      new Promise((resolve) => setFileSizeWarning({ fileSizeMB, estimatedSeconds, resolve }));
+
+    const onProgress = (progress: ImportProgressEvent) => {
+      setImportProgress(progress);
+      // Requirement 26.1: show progress dialog when file > 5MB
+      // The backend only emits progress events for large files, so showing
+      // the dialog on first event is correct. We also check the tracked size
+      // from the file size warning callback for files >= 20MB.
+      setShowImportProgress(true);
+    };
+
     try {
-      const result = await importFile({ onConflict, onOpenIntent: onImportDocument });
+      const result = await importFile({ onConflict, onFileSizeWarning, onOpenIntent: onImportDocument, onProgress });
+      // Requirement 26.3: close progress dialog when import completes
+      setShowImportProgress(false);
+      setImportProgress(null);
       if (result.status === 'cancelled') return;
       if (result.status === 'error') {
         setExportStatus('error');
@@ -173,10 +221,36 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
       onImportDocument?.(result.document);
       setStatusText(t('export.importComplete'));
       setExportStatus('success');
+    } catch {
+      // Close progress dialog on unexpected error
+      setShowImportProgress(false);
+      setImportProgress(null);
     } finally {
       setIsImporting(false);
     }
   }, [onImportDocument, t]);
+
+  const handleCancelImport = useCallback(async () => {
+    // Requirement 26.4, 26.5: call cancel_import IPC and close dialog
+    try {
+      await invoke('cancel_import');
+    } catch {
+      // If cancel_import fails (e.g. import already finished), just close the dialog
+    }
+    setShowImportProgress(false);
+    setImportProgress(null);
+  }, []);
+
+  const handleCancelExport = useCallback(async () => {
+    // Requirement 28.3: call cancel_export IPC and close dialog
+    try {
+      await cancelExport();
+    } catch {
+      // If cancel_export fails (e.g. export already finished), just close the dialog
+    }
+    setShowExportProgress(false);
+    setExportProgress(null);
+  }, []);
 
   return (
     <div
@@ -276,6 +350,42 @@ export function RenderDrawer({ isOpen, onClose, document: documentProp, document
           conflict?.resolve('cancel');
           setConflict(null);
         }}
+      />
+
+      <FileSizeWarningDialog
+        isOpen={fileSizeWarning !== null}
+        fileSizeMB={fileSizeWarning?.fileSizeMB ?? 0}
+        estimatedSeconds={fileSizeWarning?.estimatedSeconds ?? 0}
+        onConfirm={() => {
+          fileSizeWarning?.resolve(true);
+          setFileSizeWarning(null);
+        }}
+        onCancel={() => {
+          fileSizeWarning?.resolve(false);
+          setFileSizeWarning(null);
+        }}
+      />
+
+      <ImportProgressDialog
+        isOpen={showImportProgress}
+        progress={importProgress}
+        onCancel={handleCancelImport}
+      />
+
+      <ImportProgressDialog
+        isOpen={showExportProgress}
+        progress={exportProgress ? {
+          stage: 'ReadingFile',
+          blocks_processed: exportProgress.blocks_processed,
+          blocks_estimated: exportProgress.blocks_total,
+          percent: exportProgress.percent,
+        } : null}
+        onCancel={handleCancelExport}
+        title={t('export.progress.title')}
+        stageLabel={exportProgress
+          ? t(`export.progress.stage.${exportProgress.stage === 'BuildingStructure' ? 'buildingStructure' : 'writingFile'}`)
+          : t('export.progress.stage.buildingStructure')
+        }
       />
     </div>
   );

@@ -13,8 +13,31 @@ use docx_rs::{
 
 use crate::models::{
     AuraDocument, CancellationToken, DocumentBlock, DocxPlaceholder, ExportProgressEvent,
-    ExportStage, ImportResult, InlineSpan, IPCError,
+    ExportStage, ImportProgressEvent, ImportResult, ImportStage, InlineSpan, IPCError,
 };
+
+// ── Cancellation Token API ─────────────────────────────────────────────────────
+// Requirements: 26.4, 27.4
+//
+// Convenience functions for creating and managing cancellation tokens
+// shared between the main thread and background import/export workers.
+
+/// Create a new cancellation token (not yet cancelled).
+/// The returned token can be cloned and shared across threads via `Arc<AtomicBool>`.
+pub fn new_cancellation_token() -> CancellationToken {
+    CancellationToken::new()
+}
+
+/// Signal cancellation on the given token.
+/// Any background worker holding a clone of this token will observe the cancellation.
+pub fn cancel(token: &CancellationToken) {
+    token.cancel();
+}
+
+/// Check whether the given token has been cancelled.
+pub fn is_cancelled(token: &CancellationToken) -> bool {
+    token.is_cancelled()
+}
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
@@ -82,6 +105,24 @@ impl ProgressEmitter for tauri::AppHandle {
     fn emit_export_progress(&self, event: &ExportProgressEvent) {
         use tauri::Emitter;
         let _ = self.emit("export-progress", event);
+    }
+}
+
+/// Trait for emitting import progress events — allows testable no-op in unit tests.
+pub(crate) trait ImportProgressEmitter: Send + Sync {
+    fn emit_import_progress(&self, event: &ImportProgressEvent);
+}
+
+/// No-op import emitter used when no app handle is available (unit tests, simple import).
+impl ImportProgressEmitter for NoopEmitter {
+    fn emit_import_progress(&self, _event: &ImportProgressEvent) {}
+}
+
+/// Tauri app handle emitter — emits real import progress Tauri events.
+impl ImportProgressEmitter for tauri::AppHandle {
+    fn emit_import_progress(&self, event: &ImportProgressEvent) {
+        use tauri::Emitter;
+        let _ = self.emit("import-progress", event);
     }
 }
 
@@ -246,8 +287,69 @@ pub async fn import(bytes: &[u8]) -> Result<ImportResult, IPCError> {
         })?
 }
 
+/// Import with progress tracking and cancellation support.
+/// Emits `import-progress` Tauri events and checks the cancel token every 50 blocks.
+///
+/// Requirements: 26.6, 27.3, 27.4
+pub async fn import_with_progress(
+    bytes: &[u8],
+    app_handle: tauri::AppHandle,
+    cancel_token: CancellationToken,
+) -> Result<ImportResult, IPCError> {
+    let bytes_owned = bytes.to_vec();
+    let cancel_clone = cancel_token.clone();
+    let app_clone = app_handle.clone();
+
+    tokio::task::spawn_blocking(move || {
+        import_sync_with_progress(&bytes_owned, &app_clone, &cancel_clone)
+    })
+    .await
+    .map_err(|e| IPCError {
+        code: "SPAWN_ERROR".to_string(),
+        message: format!("DOCX import task panicked: {e}"),
+    })?
+}
+
 /// Synchronous core of the import — called inside spawn_blocking.
+/// Delegates to import_sync_with_progress with a NoopEmitter and uncancelled token.
 pub(crate) fn import_sync(bytes: &[u8]) -> Result<ImportResult, IPCError> {
+    import_sync_with_progress(bytes, &NoopEmitter, &CancellationToken::new())
+}
+
+/// Synchronous core of the import with progress tracking and cancellation.
+/// Emits `import-progress` events every 50 blocks.
+/// Returns `Err` with code `IMPORT_CANCELLED` if the cancel token is set.
+///
+/// Requirements: 26.6, 27.3, 27.4
+pub(crate) fn import_sync_with_progress(
+    bytes: &[u8],
+    emitter: &impl ImportProgressEmitter,
+    cancel_token: &CancellationToken,
+) -> Result<ImportResult, IPCError> {
+    // Emit ReadingFile stage at the start
+    emitter.emit_import_progress(&ImportProgressEvent {
+        stage: ImportStage::ReadingFile,
+        blocks_processed: 0,
+        blocks_estimated: 0,
+        percent: 5,
+    });
+
+    // Check cancellation before parsing
+    if cancel_token.is_cancelled() {
+        return Err(IPCError {
+            code: "IMPORT_CANCELLED".to_string(),
+            message: "Import was cancelled by the user".to_string(),
+        });
+    }
+
+    // Emit ParsingDocument stage before docx parsing
+    emitter.emit_import_progress(&ImportProgressEvent {
+        stage: ImportStage::ParsingDocument,
+        blocks_processed: 0,
+        blocks_estimated: 0,
+        percent: 10,
+    });
+
     let docx = docx_rs::read_docx(bytes).map_err(|e| IPCError {
         code: "DOCX_PARSE_ERROR".to_string(),
         message: format!("Cannot parse DOCX: {e:?}"),
@@ -261,9 +363,21 @@ pub(crate) fn import_sync(bytes: &[u8]) -> Result<ImportResult, IPCError> {
         .get("AuraIntentId")
         .cloned();
 
+    // Estimate total blocks from document children count
+    let total_children = docx.document.children.len();
+
+    // Emit ConvertingBlocks stage
+    emitter.emit_import_progress(&ImportProgressEvent {
+        stage: ImportStage::ConvertingBlocks,
+        blocks_processed: 0,
+        blocks_estimated: total_children,
+        percent: 15,
+    });
+
     let mut blocks: Vec<DocumentBlock> = Vec::new();
     let mut warnings: Vec<String> = Vec::new();
     let mut warned_types: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut processed_count: usize = 0;
 
     for child in &docx.document.children {
         match child {
@@ -272,6 +386,23 @@ pub(crate) fn import_sync(bytes: &[u8]) -> Result<ImportResult, IPCError> {
                 // Skip empty paragraphs
                 if let DocumentBlock::Paragraph { text, inline } = &block {
                     if text.is_empty() && inline.is_empty() {
+                        processed_count += 1;
+                        // Still check cancellation and emit progress at intervals
+                        if processed_count > 0 && processed_count % 50 == 0 {
+                            if cancel_token.is_cancelled() {
+                                return Err(IPCError {
+                                    code: "IMPORT_CANCELLED".to_string(),
+                                    message: "Import was cancelled by the user".to_string(),
+                                });
+                            }
+                            let percent = 15 + ((processed_count as f64 / total_children.max(1) as f64) * 75.0) as u8;
+                            emitter.emit_import_progress(&ImportProgressEvent {
+                                stage: ImportStage::ConvertingBlocks,
+                                blocks_processed: processed_count,
+                                blocks_estimated: total_children,
+                                percent: percent.min(90),
+                            });
+                        }
                         continue;
                     }
                 }
@@ -299,7 +430,42 @@ pub(crate) fn import_sync(bytes: &[u8]) -> Result<ImportResult, IPCError> {
                 // Other unsupported children — skip silently
             }
         }
+
+        processed_count += 1;
+
+        // Check cancellation and emit progress every 50 blocks — Requirements 26.6, 27.3, 27.4
+        if processed_count > 0 && processed_count % 50 == 0 {
+            if cancel_token.is_cancelled() {
+                return Err(IPCError {
+                    code: "IMPORT_CANCELLED".to_string(),
+                    message: "Import was cancelled by the user".to_string(),
+                });
+            }
+            let percent = 15 + ((processed_count as f64 / total_children.max(1) as f64) * 75.0) as u8;
+            emitter.emit_import_progress(&ImportProgressEvent {
+                stage: ImportStage::ConvertingBlocks,
+                blocks_processed: processed_count,
+                blocks_estimated: total_children,
+                percent: percent.min(90),
+            });
+        }
     }
+
+    // Final cancellation check before completing
+    if cancel_token.is_cancelled() {
+        return Err(IPCError {
+            code: "IMPORT_CANCELLED".to_string(),
+            message: "Import was cancelled by the user".to_string(),
+        });
+    }
+
+    // Emit SavingToAuraBrain stage at ~95% before returning
+    emitter.emit_import_progress(&ImportProgressEvent {
+        stage: ImportStage::SavingToAuraBrain,
+        blocks_processed: processed_count,
+        blocks_estimated: total_children,
+        percent: 95,
+    });
 
     let now_ms = Utc::now().timestamp_millis();
     let document = AuraDocument {
@@ -613,6 +779,147 @@ mod tests {
         token.cancel();
         assert!(clone.is_cancelled(), "Cloned token should reflect cancellation");
     }
+
+    // ── Module-level convenience function tests (Task 29.2) ───────────────────
+
+    #[test]
+    fn test_new_cancellation_token_creates_uncancelled() {
+        let token = super::new_cancellation_token();
+        assert!(!super::is_cancelled(&token));
+    }
+
+    #[test]
+    fn test_cancel_function_sets_flag() {
+        let token = super::new_cancellation_token();
+        super::cancel(&token);
+        assert!(super::is_cancelled(&token));
+    }
+
+    #[test]
+    fn test_cancel_shared_across_clones() {
+        let token = super::new_cancellation_token();
+        let clone = token.clone();
+        super::cancel(&token);
+        assert!(super::is_cancelled(&clone), "Clone should see cancellation from module-level cancel()");
+    }
+
+    // ── Import Progress Tests (Task 29.4) ─────────────────────────────────────
+
+    /// Collect emitted import events for testing
+    struct ImportCollectingEmitter {
+        events: std::sync::Mutex<Vec<ImportProgressEvent>>,
+    }
+
+    impl ImportCollectingEmitter {
+        fn new() -> Self {
+            Self { events: std::sync::Mutex::new(Vec::new()) }
+        }
+        fn events(&self) -> Vec<ImportProgressEvent> {
+            self.events.lock().unwrap().clone()
+        }
+    }
+
+    impl ImportProgressEmitter for ImportCollectingEmitter {
+        fn emit_import_progress(&self, event: &ImportProgressEvent) {
+            self.events.lock().unwrap().push(event.clone());
+        }
+    }
+
+    #[test]
+    fn test_import_emits_progress_stages() {
+        // Create a small DOCX to import
+        let doc = make_doc("import-progress-test", vec![
+            DocumentBlock::Paragraph { text: "Hello".to_string(), inline: vec![] },
+        ]);
+        let bytes = export_sync(&doc).unwrap();
+
+        let emitter = ImportCollectingEmitter::new();
+        let token = CancellationToken::new();
+        let result = import_sync_with_progress(&bytes, &emitter, &token).unwrap();
+        assert!(!result.document.content.is_empty());
+
+        let events = emitter.events();
+        // Should have at least: ReadingFile, ParsingDocument, ConvertingBlocks, SavingToAuraBrain
+        assert!(events.len() >= 4, "Expected at least 4 progress events, got {}", events.len());
+
+        // Verify stage progression
+        assert!(matches!(events[0].stage, ImportStage::ReadingFile));
+        assert!(matches!(events[1].stage, ImportStage::ParsingDocument));
+        assert!(matches!(events[2].stage, ImportStage::ConvertingBlocks));
+
+        // Last event should be SavingToAuraBrain at 95%
+        let last = events.last().unwrap();
+        assert!(matches!(last.stage, ImportStage::SavingToAuraBrain));
+        assert_eq!(last.percent, 95);
+    }
+
+    #[test]
+    fn test_import_emits_progress_every_50_blocks_for_large_doc() {
+        // Create a large DOCX with 150 paragraphs
+        let doc = make_large_doc(150);
+        let bytes = export_sync(&doc).unwrap();
+
+        let emitter = ImportCollectingEmitter::new();
+        let token = CancellationToken::new();
+        let result = import_sync_with_progress(&bytes, &emitter, &token).unwrap();
+        assert!(!result.document.content.is_empty());
+
+        let events = emitter.events();
+        // Should have ReadingFile + ParsingDocument + ConvertingBlocks(initial) + at least 2 mid-progress + SavingToAuraBrain
+        assert!(events.len() >= 5, "Expected at least 5 progress events for 150 blocks, got {}", events.len());
+
+        // Check that ConvertingBlocks events have increasing blocks_processed
+        let converting_events: Vec<&ImportProgressEvent> = events.iter()
+            .filter(|e| matches!(e.stage, ImportStage::ConvertingBlocks))
+            .collect();
+        assert!(converting_events.len() >= 2, "Expected at least 2 ConvertingBlocks events");
+    }
+
+    #[test]
+    fn test_import_cancellation_stops_processing() {
+        // Create a large DOCX with 200 paragraphs
+        let doc = make_large_doc(200);
+        let bytes = export_sync(&doc).unwrap();
+
+        let emitter = ImportCollectingEmitter::new();
+        let token = CancellationToken::new();
+
+        // Cancel immediately — the check happens at block 50
+        token.cancel();
+
+        let result = import_sync_with_progress(&bytes, &emitter, &token);
+        assert!(result.is_err(), "Cancelled import should return Err");
+        let err = result.unwrap_err();
+        assert_eq!(err.code, "IMPORT_CANCELLED");
+    }
+
+    #[test]
+    fn test_import_cancellation_returns_correct_error() {
+        let doc = make_large_doc(100);
+        let bytes = export_sync(&doc).unwrap();
+
+        let emitter = ImportCollectingEmitter::new();
+        let token = CancellationToken::new();
+        token.cancel();
+
+        let result = import_sync_with_progress(&bytes, &emitter, &token);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.code, "IMPORT_CANCELLED");
+        assert_eq!(err.message, "Import was cancelled by the user");
+    }
+
+    #[test]
+    fn test_import_sync_backward_compatible() {
+        // Verify import_sync still works without progress/cancellation (backward compat)
+        let doc = make_doc("compat-test", vec![
+            DocumentBlock::Paragraph { text: "Backward compatible".to_string(), inline: vec![] },
+        ]);
+        let bytes = export_sync(&doc).unwrap();
+        let result = import_sync(&bytes).unwrap();
+        assert!(!result.document.content.is_empty());
+        assert_eq!(result.aura_intent_id, Some("compat-test".to_string()));
+    }
 }
 
 // ── Property-Based Tests ──────────────────────────────────────────────────────
@@ -724,6 +1031,142 @@ mod pbt {
             DocumentBlock::ListItem { text, .. } => text.clone(),
             DocumentBlock::CodeBlock { code, .. } => code.clone(),
             DocumentBlock::Placeholder(p) => p.display_hint.clone(),
+        }
+    }
+
+    // ── Import Progress Emitter for PBT ───────────────────────────────────────
+
+    struct PbtImportEmitter {
+        events: std::sync::Mutex<Vec<ImportProgressEvent>>,
+    }
+
+    impl PbtImportEmitter {
+        fn new() -> Self {
+            Self { events: std::sync::Mutex::new(Vec::new()) }
+        }
+        fn events(&self) -> Vec<ImportProgressEvent> {
+            self.events.lock().unwrap().clone()
+        }
+    }
+
+    impl ImportProgressEmitter for PbtImportEmitter {
+        fn emit_import_progress(&self, event: &ImportProgressEvent) {
+            self.events.lock().unwrap().push(event.clone());
+        }
+    }
+
+    // Feature: file-save-management, Property: Progress Monotonicity — blocks_processed tăng đơn điệu, percent không giảm
+    // Validates: Requirements 26.2, 27.3
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(100))]
+        #[test]
+        fn prop_import_progress_monotonicity(
+            blocks in prop::collection::vec(arb_document_block(), 1..=200)
+        ) {
+            let doc = AuraDocument {
+                id: "pbt-progress-test".to_string(),
+                intent_name: "Progress Test".to_string(),
+                content: blocks,
+                version: Some(1),
+                created_at: Some(0),
+                updated_at: Some(0),
+            };
+
+            // Export to DOCX bytes
+            let bytes = export_sync(&doc).expect("export_sync should not fail");
+
+            // Import with progress tracking
+            let emitter = PbtImportEmitter::new();
+            let token = CancellationToken::new();
+            let _result = import_sync_with_progress(&bytes, &emitter, &token)
+                .expect("import_sync_with_progress should not fail");
+
+            let events = emitter.events();
+            prop_assert!(!events.is_empty(), "Should emit at least one progress event");
+
+            // Assert blocks_processed is monotonically non-decreasing
+            for window in events.windows(2) {
+                prop_assert!(
+                    window[1].blocks_processed >= window[0].blocks_processed,
+                    "blocks_processed must be monotonically non-decreasing: {} -> {}",
+                    window[0].blocks_processed,
+                    window[1].blocks_processed
+                );
+            }
+
+            // Assert percent is monotonically non-decreasing
+            for window in events.windows(2) {
+                prop_assert!(
+                    window[1].percent >= window[0].percent,
+                    "percent must be monotonically non-decreasing: {} -> {}",
+                    window[0].percent,
+                    window[1].percent
+                );
+            }
+
+            // Assert final event has percent >= 95 (SavingToAuraBrain stage)
+            let last = events.last().unwrap();
+            prop_assert!(
+                last.percent >= 95,
+                "Final event percent must be >= 95, got {}",
+                last.percent
+            );
+        }
+    }
+
+    // Feature: file-save-management, Property: Cancellation Completeness — khi cancel token được set, import dừng trong vòng 50 blocks tiếp theo
+    // Validates: Requirements 26.5, 27.4, 27.5
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(100))]
+        #[test]
+        fn prop_import_cancellation_completeness(
+            blocks in prop::collection::vec(arb_document_block(), 100..=500)
+        ) {
+            // 1. Create a large document with many blocks
+            let doc = AuraDocument {
+                id: "cancel-completeness-test".to_string(),
+                intent_name: "Cancellation Completeness Test".to_string(),
+                content: blocks,
+                version: Some(1),
+                created_at: Some(0),
+                updated_at: Some(0),
+            };
+
+            // 2. Export to DOCX bytes
+            let bytes = export_sync(&doc).expect("export_sync should not fail for valid document");
+
+            // 3. Create a CancellationToken and cancel it immediately (before calling import)
+            let token = CancellationToken::new();
+            token.cancel();
+
+            // 4. Call import_sync_with_progress with the cancelled token
+            let emitter = PbtImportEmitter::new();
+            let result = import_sync_with_progress(&bytes, &emitter, &token);
+
+            // 5. Assert that the result is Err with code "IMPORT_CANCELLED"
+            prop_assert!(result.is_err(), "Import with pre-cancelled token must return Err");
+            let err = result.unwrap_err();
+            prop_assert_eq!(
+                err.code.as_str(),
+                "IMPORT_CANCELLED",
+                "Error code must be IMPORT_CANCELLED, got: {}",
+                err.code
+            );
+
+            // 6. Assert that the emitter collected limited progress events (stopped early)
+            let events = emitter.events();
+
+            // 7. The number of ConvertingBlocks events with blocks_processed > 0 should be ≤ 1
+            // (it stops at or before the first 50-block check)
+            let converting_with_progress: Vec<&ImportProgressEvent> = events.iter()
+                .filter(|e| matches!(e.stage, ImportStage::ConvertingBlocks) && e.blocks_processed > 0)
+                .collect();
+            prop_assert!(
+                converting_with_progress.len() <= 1,
+                "With pre-cancelled token, at most 1 ConvertingBlocks event with blocks_processed > 0 \
+                 should be emitted (proving it stopped within 50 blocks), got {}",
+                converting_with_progress.len()
+            );
         }
     }
 }

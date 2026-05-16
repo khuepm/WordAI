@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
+  cancelExport,
   exportDocx,
   exportMarkdown,
   exportPdf,
@@ -13,9 +15,14 @@ import type {
   AuraImportResult,
 } from "../types/auraDocument";
 import type { Document } from "../types/document";
+import type { ExportProgressEvent, ImportProgressEvent } from "../types/export";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
+}));
+
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
@@ -36,6 +43,7 @@ vi.mock("./auraBrainManager", () => ({
 const mockInvoke = vi.mocked(invoke);
 const mockOpen = vi.mocked(open);
 const mockSave = vi.mocked(save);
+const mockListen = vi.mocked(listen);
 const mockSyncDocument = vi.mocked(syncDocument);
 let randomUUIDSpy: ReturnType<typeof vi.spyOn>;
 const NEW_IMPORT_ID = "00000000-0000-4000-8000-000000000001";
@@ -78,6 +86,8 @@ describe("exportService", () => {
     randomUUIDSpy = vi
       .spyOn(crypto, "randomUUID")
       .mockReturnValue(NEW_IMPORT_ID);
+    // Default: listen resolves with a no-op unlisten function
+    mockListen.mockResolvedValue(() => {});
   });
 
   afterEach(() => {
@@ -200,9 +210,10 @@ describe("exportService", () => {
       warnings: ["table"],
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
-    mockInvoke.mockImplementationOnce(async (cmd) => {
-      expect(cmd).toBe("import_file");
-      return importResult;
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB — small file, no warning
+      if (cmd === "import_file") return importResult;
+      return null;
     });
 
     const onOpenIntent = vi.fn();
@@ -226,6 +237,7 @@ describe("exportService", () => {
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
     mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB
       if (cmd === "import_file") return importResult;
       if (cmd === "get_intent")
         return makeAuraDocument({
@@ -258,6 +270,7 @@ describe("exportService", () => {
     };
     mockOpen.mockResolvedValueOnce("/tmp/import.md");
     mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === "get_file_size") return 1024 * 1024; // 1MB
       if (cmd === "import_file") return importResult;
       if (cmd === "get_intent")
         return makeAuraDocument({
@@ -276,5 +289,443 @@ describe("exportService", () => {
       expect.objectContaining({ id: NEW_IMPORT_ID }),
       "import",
     );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // File Size Validation (Requirements 25.1 – 25.7)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe("file size validation", () => {
+    it("rejects file > 100MB and does not call import_file (Req 25.3)", async () => {
+      mockOpen.mockResolvedValueOnce("/tmp/huge.docx");
+      // 150MB in bytes
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 150 * 1024 * 1024;
+        return null;
+      });
+
+      const result = await importFile();
+
+      expect(result.status).toBe("error");
+      if (result.status === "error") {
+        expect(result.message).toContain("100 MB");
+      }
+      // import_file should never be called
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        "import_file",
+        expect.anything(),
+      );
+    });
+
+    it("shows warning dialog for file between 20-100MB (Req 25.2)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/medium.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(true);
+      await importFile({ onFileSizeWarning });
+
+      expect(onFileSizeWarning).toHaveBeenCalledWith(
+        expect.closeTo(50, 0.1), // fileSizeMB ≈ 50
+        Math.ceil(50 / 5), // estimatedSeconds = 10
+      );
+    });
+
+    it("does not call import_file when user cancels warning dialog (Req 25.4)", async () => {
+      mockOpen.mockResolvedValueOnce("/tmp/medium.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(false);
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("cancelled");
+      expect(mockInvoke).not.toHaveBeenCalledWith(
+        "import_file",
+        expect.anything(),
+      );
+    });
+
+    it("calls import_file when user confirms warning dialog (Req 25.2)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/medium.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 50 * 1024 * 1024; // 50MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn().mockResolvedValue(true);
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("opened");
+      expect(mockInvoke).toHaveBeenCalledWith("import_file", { path: "/tmp/medium.md" });
+    });
+
+    it("does not show warning for file < 20MB (Req 25.1)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/small.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 5 * 1024 * 1024; // 5MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onFileSizeWarning = vi.fn();
+      const result = await importFile({ onFileSizeWarning });
+
+      expect(result.status).toBe("opened");
+      expect(onFileSizeWarning).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Import Progress Listener (Requirement 26.6)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe("import progress listener", () => {
+    it("sets up listen('import-progress') when onProgress is provided (Req 26.6)", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024; // 1MB
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      await importFile({ onProgress });
+
+      expect(mockListen).toHaveBeenCalledWith(
+        "import-progress",
+        expect.any(Function),
+      );
+    });
+
+    it("does not set up listener when onProgress is not provided", async () => {
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/file.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      await importFile({});
+
+      expect(mockListen).not.toHaveBeenCalled();
+    });
+
+    it("calls onProgress with event payload when progress events are received (Req 26.6)", async () => {
+      const progressEvent: ImportProgressEvent = {
+        stage: "ParsingDocument",
+        blocks_processed: 50,
+        blocks_estimated: 200,
+        percent: 25,
+      };
+
+      // Capture the handler passed to listen so we can invoke it
+      let capturedHandler: ((event: { payload: ImportProgressEvent }) => void) | null = null;
+      mockListen.mockImplementation(async (_event, handler) => {
+        capturedHandler = handler as (event: { payload: ImportProgressEvent }) => void;
+        return () => {};
+      });
+
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") {
+          // Simulate progress event during import
+          capturedHandler?.({ payload: progressEvent });
+          return importResult;
+        }
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      await importFile({ onProgress });
+
+      expect(onProgress).toHaveBeenCalledWith(progressEvent);
+    });
+
+    it("calls unlisten after successful import (Req 26.6)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/file.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      await importFile({ onProgress });
+
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("calls unlisten when import_file IPC throws an error (Req 26.6)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+
+      mockOpen.mockResolvedValueOnce("/tmp/corrupt.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") throw new Error("parse error");
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      const result = await importFile({ onProgress });
+
+      expect(result.status).toBe("error");
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("calls unlisten when user cancels conflict resolution (Req 26.6)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: "intent-1",
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/file.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") return importResult;
+        if (cmd === "get_intent")
+          return makeAuraDocument({ id: "intent-1", intent_name: "Existing" });
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      const onConflict = vi.fn().mockResolvedValue("cancel");
+      const result = await importFile({ onProgress, onConflict });
+
+      expect(result.status).toBe("cancelled");
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("proceeds without progress tracking if listen() throws (Req 26.6)", async () => {
+      mockListen.mockRejectedValue(new Error("event system unavailable"));
+
+      const importResult: AuraImportResult = {
+        document: makeAuraDocument(),
+        aura_intent_id: null,
+        warnings: [],
+      };
+      mockOpen.mockResolvedValueOnce("/tmp/file.md");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "get_file_size") return 1024 * 1024;
+        if (cmd === "import_file") return importResult;
+        return null;
+      });
+
+      const onProgress = vi.fn();
+      const result = await importFile({ onProgress });
+
+      // Import should still succeed even if listen fails
+      expect(result.status).toBe("opened");
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Export Progress Listener (Requirements 28.1, 28.2, 28.3)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe("export progress listener", () => {
+    /**
+     * Creates a document whose content produces > 500 AuraDocumentBlocks
+     * when converted via documentToAuraIntent (each line separated by blank
+     * line becomes a paragraph block).
+     */
+    function makeLargeDocument(): Document {
+      // 501 paragraphs separated by blank lines → 501 blocks
+      const lines = Array.from({ length: 501 }, (_, i) => `Paragraph ${i + 1}`).join("\n\n");
+      return makeDocument({ content: lines });
+    }
+
+    /** Creates a small document (< 500 blocks). */
+    function makeSmallDocument(): Document {
+      return makeDocument({ content: "# Title\n\nBody paragraph" });
+    }
+
+    it("sets up listen('export-progress') for document > 500 blocks (Req 28.1)", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(mockListen).toHaveBeenCalledWith(
+        "export-progress",
+        expect.any(Function),
+      );
+    });
+
+    it("does NOT set up progress listener for document ≤ 500 blocks", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/small.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeSmallDocument(), { onProgress });
+
+      expect(mockListen).not.toHaveBeenCalledWith(
+        "export-progress",
+        expect.any(Function),
+      );
+    });
+
+    it("cancel export calls invoke('cancel_export') (Req 28.3)", async () => {
+      mockInvoke.mockResolvedValue(undefined);
+
+      await cancelExport();
+
+      expect(mockInvoke).toHaveBeenCalledWith("cancel_export");
+    });
+
+    it("calls unlisten after export completes successfully (Req 28.1)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("calls unlisten when export errors (Req 28.1)", async () => {
+      const mockUnlisten = vi.fn();
+      mockListen.mockResolvedValue(mockUnlisten);
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockRejectedValueOnce(new Error("export failed"));
+
+      const onProgress = vi.fn();
+      const result = await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(result.status).toBe("error");
+      expect(mockUnlisten).toHaveBeenCalled();
+    });
+
+    it("forwards progress event payload to onProgress callback (Req 28.2)", async () => {
+      const progressEvent: ExportProgressEvent = {
+        stage: "BuildingStructure",
+        blocks_processed: 100,
+        blocks_total: 600,
+        percent: 17,
+      };
+
+      // Capture the handler passed to listen so we can invoke it
+      let capturedHandler: ((event: { payload: ExportProgressEvent }) => void) | null = null;
+      mockListen.mockImplementation(async (_event, handler) => {
+        capturedHandler = handler as (event: { payload: ExportProgressEvent }) => void;
+        return () => {};
+      });
+
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "export_docx") {
+          // Simulate progress event during export
+          capturedHandler?.({ payload: progressEvent });
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const onProgress = vi.fn();
+      await exportDocx(makeLargeDocument(), { onProgress });
+
+      expect(onProgress).toHaveBeenCalledWith(progressEvent);
+    });
+
+    it("does not set up listener when onProgress is not provided (large doc)", async () => {
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      await exportDocx(makeLargeDocument());
+
+      expect(mockListen).not.toHaveBeenCalled();
+    });
+
+    it("cancel export during active export invokes cancel_export which triggers temp file cleanup (Req 28.4)", async () => {
+      // Simulate a large document export that is in progress
+      let resolveExport: (() => void) | null = null;
+      const exportPromise = new Promise<void>((resolve) => {
+        resolveExport = resolve;
+      });
+
+      mockListen.mockResolvedValue(() => {});
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+
+      // export_docx will hang until we resolve it, simulating an in-progress export
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "export_docx") {
+          await exportPromise;
+          throw new Error("ExportCancelled");
+        }
+        if (cmd === "cancel_export") return undefined;
+        return undefined;
+      });
+
+      const onProgress = vi.fn();
+      const exportResultPromise = exportDocx(makeLargeDocument(), { onProgress });
+
+      // Simulate user cancelling the export while it's in progress
+      await cancelExport();
+
+      // Verify cancel_export was invoked (backend will delete temp file)
+      expect(mockInvoke).toHaveBeenCalledWith("cancel_export");
+
+      // Resolve the export (simulating backend returning cancellation error)
+      resolveExport!();
+      const result = await exportResultPromise;
+
+      // Export should return error status when cancelled
+      expect(result.status).toBe("error");
+      if (result.status === "error") {
+        expect(result.message).toContain("Cancelled");
+      }
+    });
   });
 });

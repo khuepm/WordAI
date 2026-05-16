@@ -312,7 +312,15 @@
     "success": "Export complete: {{path}}",
     "error": "Export failed: {{message}}",
     "formatNotSupported": "Export format \"{{format}}\" is not supported.",
-    "failed": "Export failed."
+    "failed": "Export failed.",
+    "progress": {
+      "title": "Exporting document...",
+      "cancel": "Cancel",
+      "stage": {
+        "buildingStructure": "Building document structure...",
+        "writingFile": "Writing DOCX file..."
+      }
+    }
   },
   "import": {
     "title": "Import Document",
@@ -322,6 +330,22 @@
       "update": "Update Intent",
       "createNew": "Create New Intent",
       "cancel": "Cancel"
+    },
+    "sizeWarning": {
+      "title": "Large file detected",
+      "message": "This file is {{size}} and may take approximately {{seconds}} seconds to import.",
+      "confirm": "Continue",
+      "cancel": "Cancel"
+    },
+    "progress": {
+      "title": "Importing document...",
+      "cancel": "Cancel",
+      "stage": {
+        "readingFile": "Reading file...",
+        "parsingDocument": "Parsing document...",
+        "convertingBlocks": "Converting blocks...",
+        "savingToAuraBrain": "Saving to AuraBrain..."
+      }
     },
     "unsupportedElements": "Unsupported elements found: {{elements}}"
   },
@@ -389,7 +413,8 @@
     "quotaExceeded": {
       "title": "AI quota exceeded",
       "description": "You've reached your monthly AI usage limit. Your quota will reset on {{date}}.",
-      "hint": "Upgrade your plan for higher limits and priority access."
+      "hint": "Upgrade your plan for higher limits and priority access.",
+      "nextCycle": "the next billing cycle"
     },
     "suspended": {
       "title": "Account suspended",

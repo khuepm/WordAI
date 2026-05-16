@@ -11,6 +11,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   open as openDialog,
   save as saveDialog,
@@ -19,7 +20,7 @@ import type {
   AuraImportResult,
   AuraIntentDocument,
 } from "../types/auraDocument";
-import type { PDFExportOptions } from "../types/export";
+import type { ExportDocxOptions, ExportProgressEvent, ImportProgressEvent, PDFExportOptions } from "../types/export";
 import type { Document } from "../types/document";
 import {
   auraIntentToDocument,
@@ -54,10 +55,23 @@ export type ConflictResolutionCallback = (
 ) => Promise<"update" | "create_new" | "cancel">;
 
 /**
- * Options for importFile — allows the caller to inject conflict resolution UI
- * and an optional callback to open the imported intent in the editor.
+ * Callback invoked when the selected file is between 20-100MB.
+ * The caller (UI layer) must present a FileSizeWarningDialog and resolve
+ * with the user's choice: true to proceed, false to cancel.
  *
- * Requirements: 8.4, 8.8
+ * Requirements: 25.2, 25.4
+ */
+export type FileSizeWarningCallback = (
+  fileSizeMB: number,
+  estimatedSeconds: number,
+) => Promise<boolean>;
+
+/**
+ * Options for importFile — allows the caller to inject conflict resolution UI,
+ * file size warning UI, and an optional callback to open the imported intent
+ * in the editor.
+ *
+ * Requirements: 8.4, 8.8, 25.1, 25.2, 26.6
  */
 export interface ImportOptions {
   /**
@@ -66,11 +80,23 @@ export interface ImportOptions {
    */
   onConflict?: ConflictResolutionCallback;
   /**
+   * Called when the selected file is between 20-100MB. Must return true to
+   * proceed with import or false to cancel.
+   * Requirements: 25.2, 25.4
+   */
+  onFileSizeWarning?: FileSizeWarningCallback;
+  /**
    * Called after a successful "Cập nhật Intent" so the editor can open the
    * updated intent and clear the Unsaved_Indicator.
    * Requirements: 8.8
    */
   onOpenIntent?: (document: Document) => void;
+  /**
+   * Called when import progress events are received from the Rust backend.
+   * The backend emits `import-progress` events during large file imports.
+   * Requirements: 26.6
+   */
+  onProgress?: (progress: ImportProgressEvent) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -212,16 +238,27 @@ export async function exportMarkdown(
 
 // ---------------------------------------------------------------------------
 // Export to DOCX
-// Requirements: 7.1, 7.5
+// Requirements: 7.1, 7.5, 28.1, 28.2, 28.3
 // ---------------------------------------------------------------------------
+
+/** Threshold (in blocks) above which export progress tracking is enabled. */
+const EXPORT_PROGRESS_THRESHOLD = 500;
 
 /**
  * Opens a Native_File_Dialog for the user to choose a save path, then calls
  * the IPC command `export_docx` (runs in a Background_Worker on the Rust side).
  *
+ * For documents with > 500 blocks, sets up a listener for `export-progress`
+ * events and forwards them to the optional `onProgress` callback. Supports
+ * cancellation via `invoke('cancel_export')`.
+ *
  * Does NOT modify AuraBrain state or the Dirty_Bit after export.
  */
-export async function exportDocx(document: Document): Promise<ExportResult> {
+export async function exportDocx(
+  document: Document,
+  options: ExportDocxOptions = {},
+): Promise<ExportResult> {
+  const { onProgress, onCancel } = options;
   const defaultPath = await getDefaultExportPath();
   const filename = titleToFilename(document.title) + '.docx';
   const suggestedPath = defaultPath ? `${defaultPath}/${filename}` : filename;
@@ -237,8 +274,40 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
   try {
     const path = ensureExtension(selectedPath, "docx");
     const { value: auraDocument } = documentToAuraIntent(document);
-    await invoke("export_docx", { path, document: auraDocument });
-    return { status: "success", path };
+
+    // ── Set up progress listener for large documents (Requirements 28.1, 28.2, 28.3) ──
+    let unlisten: UnlistenFn | null = null;
+    const isLargeDocument = auraDocument.content.length > EXPORT_PROGRESS_THRESHOLD;
+
+    if (isLargeDocument && onProgress) {
+      try {
+        unlisten = await listen<ExportProgressEvent>(
+          "export-progress",
+          (event) => {
+            onProgress(event.payload);
+          },
+        );
+      } catch {
+        // If listen fails (e.g. in test environment), proceed without progress tracking
+        unlisten = null;
+      }
+    }
+
+    // Expose cancel capability to caller
+    if (isLargeDocument && onCancel) {
+      onCancel();
+    }
+
+    try {
+      await invoke("export_docx", { path, document: auraDocument });
+      return { status: "success", path };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { status: "error", message };
+    } finally {
+      // Always clean up the listener
+      unlisten?.();
+    }
   } catch (err) {
     return {
       status: "error",
@@ -247,6 +316,19 @@ export async function exportDocx(document: Document): Promise<ExportResult> {
   }
 
   // Requirement 7.5: AuraBrain state is NOT changed here.
+}
+
+// ---------------------------------------------------------------------------
+// Cancel Export
+// Requirements: 28.3, 28.4
+// ---------------------------------------------------------------------------
+
+/**
+ * Cancels the currently running DOCX export by invoking the Rust `cancel_export`
+ * command. The export worker will stop within 50 blocks and delete any temp file.
+ */
+export async function cancelExport(): Promise<void> {
+  await invoke("cancel_export");
 }
 
 // ---------------------------------------------------------------------------
@@ -313,6 +395,10 @@ export async function exportPdf(
  *
  * Flow:
  *  1. Open file dialog (Req 8.1)
+ *  1b. Check file size via `get_file_size` (Req 25.1, 25.7)
+ *      - > 100MB → error, return early (Req 25.3)
+ *      - 20-100MB → show FileSizeWarningDialog, wait for confirmation (Req 25.2)
+ *      - < 20MB → proceed normally
  *  2. Call IPC `import_file` — throws on parse error (Req 8.9)
  *  3. Surface Unsupported_Element warnings (Req 8.10)
  *  4. If `auraIntentId` present → check AuraBrain for existing intent (Req 8.4)
@@ -328,7 +414,7 @@ export async function exportPdf(
 export async function importFile(
   options: ImportOptions = {},
 ): Promise<ImportFlowResult> {
-  const { onConflict, onOpenIntent } = options;
+  const { onConflict, onFileSizeWarning, onOpenIntent, onProgress } = options;
 
   const path = await openOpenDialog({
     filters: [{ name: "Supported Files", extensions: ["md", "docx"] }],
@@ -337,10 +423,62 @@ export async function importFile(
   // Requirement 8.1: user cancelled dialog — do nothing
   if (!path) return { status: "cancelled" };
 
+  // ── File size validation (Requirements 25.1 – 25.4, 25.7) ─────────────────
+  let fileSizeBytes: number;
+  try {
+    fileSizeBytes = await invoke<number>("get_file_size", { path });
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  const fileSizeMB = fileSizeBytes / (1024 * 1024);
+
+  // Requirement 25.3: file > 100MB — reject immediately
+  if (fileSizeMB > 100) {
+    return {
+      status: "error",
+      message: `File quá lớn (${fileSizeMB.toFixed(1)} MB). Giới hạn tối đa là 100 MB.`,
+    };
+  }
+
+  // Requirement 25.2: file 20-100MB — show warning dialog, wait for confirmation
+  if (fileSizeMB >= 20) {
+    const estimatedSeconds = Math.ceil(fileSizeMB / 5);
+    if (onFileSizeWarning) {
+      const confirmed = await onFileSizeWarning(fileSizeMB, estimatedSeconds);
+      // Requirement 25.4: user cancelled — do not read file
+      if (!confirmed) return { status: "cancelled" };
+    }
+  }
+
+  // ── Set up progress listener (Requirement 26.6) ────────────────────────────
+  // Listen to `import-progress` events emitted by the Rust backend during import.
+  // The listener is cleaned up (unlisten) when import completes, errors, or is cancelled.
+  let unlisten: UnlistenFn | null = null;
+  if (onProgress) {
+    try {
+      unlisten = await listen<ImportProgressEvent>(
+        "import-progress",
+        (event) => {
+          onProgress(event.payload);
+        },
+      );
+    } catch {
+      // If listen fails (e.g. in test environment), proceed without progress tracking
+      unlisten = null;
+    }
+  }
+
+  // ── Proceed with import ────────────────────────────────────────────────────
   let result: AuraImportResult;
   try {
     result = await invoke<AuraImportResult>("import_file", { path });
   } catch (err) {
+    // Unlisten on error
+    unlisten?.();
     return {
       status: "error",
       message: err instanceof Error ? err.message : String(err),
@@ -380,7 +518,10 @@ export async function importFile(
           )
         : "create_new"; // safe default when no UI callback is provided
 
-      if (choice === "cancel") return { status: "cancelled" };
+      if (choice === "cancel") {
+        unlisten?.();
+        return { status: "cancelled" };
+      }
 
       if (choice === "update") {
         // Requirement 8.5: keep original id and created_at, bump version
@@ -393,6 +534,8 @@ export async function importFile(
         await syncDocument(updatedDoc, "import");
         // Requirement 8.8: open the intent in the editor, clear Unsaved_Indicator
         onOpenIntent?.(updatedDoc);
+        // Unlisten after successful import
+        unlisten?.();
         return {
           status: "opened",
           document: updatedDoc,
@@ -412,5 +555,7 @@ export async function importFile(
   };
   await syncDocument(newDoc, "import");
   onOpenIntent?.(newDoc);
+  // Unlisten after successful import
+  unlisten?.();
   return { status: "opened", document: newDoc, warnings: result.warnings };
 }

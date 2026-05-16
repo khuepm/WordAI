@@ -28,6 +28,21 @@ impl ExportCancelState {
     }
 }
 
+// ── Import Cancellation State ─────────────────────────────────────────────────
+// Requirements: 26.4, 26.5
+
+/// Managed state holding the current import cancellation token.
+/// Replaced each time a new import starts; cleared when import completes.
+pub struct ImportCancelState {
+    pub token: std::sync::Mutex<Option<CancellationToken>>,
+}
+
+impl ImportCancelState {
+    pub fn new() -> Self {
+        Self { token: std::sync::Mutex::new(None) }
+    }
+}
+
 // ── IPC Commands ──────────────────────────────────────────────────────────────
 
 /// Save a document to the given file path.
@@ -166,6 +181,8 @@ async fn export_markdown(path: String, document: AuraDocument) -> Result<(), IPC
 /// Export an AuraDocument to a DOCX file at the given path.
 /// Calls docx_exporter::export (runs in spawn_blocking) and writes bytes to disk.
 /// For large documents, emits `export-progress` events and supports cancellation.
+/// Uses a temp file strategy: writes to `path.tmp` first, then renames atomically.
+/// If cancelled during write, the temp file is deleted — no invalid file is left behind.
 /// Requirements: 6.3, 7.2, 7.3, 28.1, 28.2, 28.3, 28.4
 #[tauri::command]
 async fn export_docx(
@@ -181,6 +198,7 @@ async fn export_docx(
         *guard = Some(token.clone());
     }
 
+    let token_for_write = token.clone();
     let result = docx_exporter::export_with_progress(&document, app, token).await;
 
     // Clear the token after export completes (success or failure)
@@ -191,13 +209,52 @@ async fn export_docx(
 
     let bytes = result?;
 
-    // If cancelled before write, the error was already returned above.
-    // Write the bytes to disk.
-    tokio::fs::write(&path, &bytes)
-        .await
-        .map_err(|e| IPCError {
+    // Write to a temp file first, then rename atomically.
+    // This ensures no invalid/partial DOCX is left at the target path.
+    // Requirements: 28.4
+    let temp_path = format!("{}.tmp", &path);
+
+    // Check cancellation before writing — user may have cancelled after build completed
+    if token_for_write.is_cancelled() {
+        return Err(IPCError {
+            code: "EXPORT_CANCELLED".to_string(),
+            message: "Export was cancelled by the user".to_string(),
+        });
+    }
+
+    // Write bytes to temp file
+    if let Err(e) = tokio::fs::write(&temp_path, &bytes).await {
+        // Clean up temp file on write error
+        let _ = tokio::fs::remove_file(&temp_path).await;
+        return Err(IPCError {
             code: "FILE_WRITE_ERROR".to_string(),
             message: format!("Cannot write DOCX file '{}': {}", path, e),
+        });
+    }
+
+    // Check cancellation again after write — delete temp file if cancelled
+    // Requirements: 28.4
+    if token_for_write.is_cancelled() {
+        let _ = tokio::fs::remove_file(&temp_path).await;
+        return Err(IPCError {
+            code: "EXPORT_CANCELLED".to_string(),
+            message: "Export was cancelled by the user".to_string(),
+        });
+    }
+
+    // Rename temp file to final path (atomic on most filesystems)
+    tokio::fs::rename(&temp_path, &path)
+        .await
+        .map_err(|e| {
+            // Clean up temp file if rename fails
+            let temp_path_clone = temp_path.clone();
+            tokio::spawn(async move {
+                let _ = tokio::fs::remove_file(&temp_path_clone).await;
+            });
+            IPCError {
+                code: "FILE_WRITE_ERROR".to_string(),
+                message: format!("Cannot finalize DOCX file '{}': {}", path, e),
+            }
         })
 }
 
@@ -215,11 +272,30 @@ async fn cancel_export(
     Ok(())
 }
 
+/// Cancel the currently running file import.
+/// Sets the cancellation token; the import worker will stop within 50 blocks.
+/// Requirements: 26.4, 26.5
+#[tauri::command]
+async fn cancel_import(
+    cancel_state: tauri::State<'_, ImportCancelState>,
+) -> Result<(), IPCError> {
+    let guard = cancel_state.token.lock().unwrap();
+    if let Some(token) = guard.as_ref() {
+        token.cancel();
+    }
+    Ok(())
+}
+
 /// Import a file (.md or .docx) and return the parsed document with optional Aura_Tag.
 /// Detects format from file extension.
-/// Requirements: 8.1, 8.2, 8.3, 8.9
+/// For .docx files, creates a cancellation token and emits import-progress events.
+/// Requirements: 8.1, 8.2, 8.3, 8.9, 26.4, 27.4
 #[tauri::command]
-async fn import_file(path: String) -> Result<models::ImportResult, IPCError> {
+async fn import_file(
+    app: tauri::AppHandle,
+    path: String,
+    cancel_state: tauri::State<'_, ImportCancelState>,
+) -> Result<models::ImportResult, IPCError> {
     use std::path::Path;
 
     let ext = Path::new(&path)
@@ -249,7 +325,23 @@ async fn import_file(path: String) -> Result<models::ImportResult, IPCError> {
                     code: "FILE_READ_ERROR".to_string(),
                     message: format!("Cannot read DOCX file '{}': {}", path, e),
                 })?;
-            docx_exporter::import(&bytes).await
+
+            // Create a new cancellation token for this import
+            let token = CancellationToken::new();
+            {
+                let mut guard = cancel_state.token.lock().unwrap();
+                *guard = Some(token.clone());
+            }
+
+            let result = docx_exporter::import_with_progress(&bytes, app, token).await;
+
+            // Clear the token after import completes (success or failure)
+            {
+                let mut guard = cancel_state.token.lock().unwrap();
+                *guard = None;
+            }
+
+            result
         }
         _ => Err(IPCError {
             code: "UNSUPPORTED_FORMAT".to_string(),
@@ -317,6 +409,17 @@ async fn reveal_in_file_manager(
         })
 }
 
+/// Return the file size in bytes using metadata (does not read file content).
+/// Requirements: 25.1, 25.7
+#[tauri::command]
+async fn get_file_size(path: String) -> Result<u64, IPCError> {
+    let metadata = std::fs::metadata(&path).map_err(|e| IPCError {
+        code: "FILE_METADATA_ERROR".to_string(),
+        message: format!("Cannot read file metadata for '{}': {}", path, e),
+    })?;
+    Ok(metadata.len())
+}
+
 /// Return the AuraBrain storage directory path used by SqliteStore.
 /// Requirements: file-save-management 12.1, 12.2, 19.4
 #[tauri::command]
@@ -347,6 +450,8 @@ pub fn run() {
                 )) as Box<dyn std::error::Error>
             })?;
             app.manage(store);
+            app.manage(ExportCancelState::new());
+            app.manage(ImportCancelState::new());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -366,9 +471,12 @@ pub fn run() {
             list_intents,
             export_markdown,
             export_docx,
+            cancel_export,
             import_file,
+            cancel_import,
             reveal_in_file_manager,
             get_aurabrain_storage_path,
+            get_file_size,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
