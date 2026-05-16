@@ -27,6 +27,8 @@ import type { Preferences } from '../types/preferences';
 export interface DevDashboardProps {
   isOpen: boolean;
   onClose: () => void;
+  /** When true, renders without overlay/backdrop (used in standalone OS window) */
+  isWindowed?: boolean;
 }
 
 type DashboardTab = 'policies' | 'log' | 'simulator' | 'preferences' | 'actions';
@@ -278,7 +280,7 @@ const PREF_TABS = ['general', 'aiEngine', 'typography', 'privacy'] as const;
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
-export function DevDashboard({ isOpen, onClose }: DevDashboardProps) {
+export function DevDashboard({ isOpen, onClose, isWindowed }: DevDashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('policies');
 
   const handleOverlayClick = useCallback(
@@ -291,6 +293,67 @@ export function DevDashboard({ isOpen, onClose }: DevDashboardProps) {
   );
 
   if (!isOpen) return null;
+
+  // In windowed mode, render without overlay — fills the entire window
+  if (isWindowed) {
+    return (
+      <div
+        data-testid="dev-dashboard-panel"
+        style={{
+          width: '100%',
+          height: '100%',
+          background: 'var(--md-sys-color-surface, #fefbff)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <header data-tauri-drag-region style={headerStyle}>
+          <h2 style={titleStyle}>Notification Dev Dashboard</h2>
+          <button
+            data-testid="dev-dashboard-close"
+            style={closeBtnStyle}
+            onClick={onClose}
+            aria-label="Close Dev Dashboard"
+            title="Close"
+          >
+            ✕
+          </button>
+        </header>
+
+        <nav style={tabBarStyle} aria-label="Dashboard sections">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const tabStyle: CSSProperties = {
+              ...tabBtnBaseStyle,
+              background: isActive
+                ? 'var(--md-sys-color-primary-container, #e8def8)'
+                : 'transparent',
+              color: isActive
+                ? 'var(--md-sys-color-on-primary-container, #21005d)'
+                : 'var(--md-sys-color-on-surface-variant, #49454f)',
+            };
+            return (
+              <button
+                key={tab.id}
+                data-testid={`dev-dashboard-tab-${tab.id}`}
+                style={tabStyle}
+                onClick={() => setActiveTab(tab.id)}
+                aria-selected={isActive}
+                role="tab"
+              >
+                <span aria-hidden="true">{tab.icon}</span> {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div style={contentAreaStyle} role="tabpanel" aria-label={`${activeTab} panel`}>
+          <TabContent tab={activeTab} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

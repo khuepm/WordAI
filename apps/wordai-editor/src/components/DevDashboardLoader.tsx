@@ -1,11 +1,10 @@
 /**
- * DevDashboardLoader - Loader component for the Dev Dashboard.
+ * DevDashboardLoader - Opens the Dev Dashboard in a separate OS window.
  *
  * Handles:
  * - `import.meta.env.DEV` guard (renders nothing in production)
- * - Keyboard shortcut listener: Ctrl+Shift+Alt+D (Windows/Linux) / Cmd+Shift+Option+D (macOS)
- * - React.lazy + Suspense wrapper for code splitting
- * - Open/close state management
+ * - Keyboard shortcut listener: Cmd+D (macOS) / Ctrl+Alt+D (Windows/Linux)
+ * - Opens a new native OS window via Tauri WebviewWindow API
  *
  * This component should be placed near the root of the app (e.g., in App.tsx).
  * In production builds, the entire component tree-shakes away because of the
@@ -15,42 +14,42 @@
  * Requirements: 5.1, 5.2, 5.3, 5.12
  */
 
-import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect } from 'react';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
-// Lazy-load the DevDashboard only when needed (code splitting)
-const DevDashboard = lazy(() => import('./DevDashboard'));
+const DEV_DASHBOARD_WINDOW_LABEL = 'dev-dashboard';
 
-// ─── Loading Fallback ───────────────────────────────────────────────────────────
+async function openDevDashboardWindow(): Promise<void> {
+  // Check if window already exists
+  const existing = await WebviewWindow.getByLabel(DEV_DASHBOARD_WINDOW_LABEL);
+  if (existing) {
+    await existing.setFocus();
+    return;
+  }
 
-const loadingStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: 99999,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'rgba(0, 0, 0, 0.6)',
-  backdropFilter: 'blur(4px)',
-  WebkitBackdropFilter: 'blur(4px)',
-  fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
-  color: '#fff',
-  fontSize: '0.875rem',
-};
+  const dashWindow = new WebviewWindow(DEV_DASHBOARD_WINDOW_LABEL, {
+    url: 'devdashboard.html',
+    title: 'Dev Dashboard — Notification System',
+    width: 1100,
+    height: 700,
+    minWidth: 600,
+    minHeight: 400,
+    center: true,
+    resizable: true,
+    decorations: true,
+    focus: true,
+  });
 
-function LoadingFallback() {
-  return (
-    <div style={loadingStyle} data-testid="dev-dashboard-loading">
-      Loading Dev Dashboard…
-    </div>
-  );
+  dashWindow.once('tauri://error', (e) => {
+    console.error('Failed to create dev dashboard window:', e);
+  });
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 /**
- * DevDashboardLoader renders the Dev Dashboard only in development mode.
- * It listens for the keyboard shortcut and lazily loads the dashboard component.
+ * DevDashboardLoader listens for the keyboard shortcut and opens the
+ * Dev Dashboard in a separate OS window. Renders nothing to the DOM.
  */
 export function DevDashboardLoader() {
   // Guard: render nothing in production
@@ -58,30 +57,25 @@ export function DevDashboardLoader() {
     return null;
   }
 
-  return <DevDashboardLoaderInner />;
+  return <DevDashboardShortcutListener />;
 }
 
 /**
- * Inner component that handles state and keyboard shortcut.
+ * Inner component that handles the keyboard shortcut.
  * Separated to keep the DEV guard at the top level without hooks.
  */
-function DevDashboardLoaderInner() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClose = useCallback(() => setIsOpen(false), []);
-
-  // Keyboard shortcut: Ctrl+Shift+Alt+D (Windows/Linux) / Cmd+Shift+Option+D (macOS)
+function DevDashboardShortcutListener() {
+  // Keyboard shortcut: Cmd+D (macOS) / Ctrl+Alt+D (Windows/Linux)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isShortcut =
-        e.shiftKey &&
-        e.altKey &&
-        e.key.toLowerCase() === 'd' &&
-        (e.ctrlKey || e.metaKey);
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isShortcut = isMac
+        ? e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey && e.key.toLowerCase() === 'd'
+        : e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && e.key.toLowerCase() === 'd';
 
       if (isShortcut) {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        void openDevDashboardWindow();
       }
     };
 
@@ -89,28 +83,8 @@ function DevDashboardLoaderInner() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Close on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <DevDashboard isOpen={isOpen} onClose={handleClose} />
-    </Suspense>
-  );
+  // This component renders nothing — it only listens for the shortcut
+  return null;
 }
 
 export default DevDashboardLoader;

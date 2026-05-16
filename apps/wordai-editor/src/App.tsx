@@ -15,6 +15,7 @@ import { RenderDrawer } from './components/RenderDrawer';
 import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
+import { DevDashboardLoader } from './components/DevDashboardLoader';
 import { openPreferencesWindow } from './services/preferencesWindow';
 import { LibraryView } from './components/LibraryView';
 import { Tooltip } from './components/Tooltip';
@@ -769,6 +770,7 @@ function App() {
         onClose={() => setIsQuickSearchOpen(false)}
         onSelect={handleQuickSearchSelect}
       />
+      <DevDashboardLoader />
     </div >
   );
 }

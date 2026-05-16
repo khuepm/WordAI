@@ -1,7 +1,7 @@
 {
   "identifier": "default",
-  "description": "Capability for the main window and preferences window",
-  "windows": ["main", "preferences"],
+  "description": "Capability for the main window, preferences window, and dev dashboard",
+  "windows": ["main", "preferences", "dev-dashboard"],
   "permissions": [
     "core:default",
     "opener:default",
