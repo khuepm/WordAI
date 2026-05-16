@@ -185,12 +185,12 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Keep the `<aside>` sidebar outside the conditional so it remains visible in both views (Req 1.5)
     - _Requirements: 1.1, 1.2, 1.5, 3.3, 3.4, 4.2, 4.3, 4.4_
 
-- [ ] 13. Add i18n translation keys
-  - [~] 13.1 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/vi.json`
+- [x] 13. Add i18n translation keys
+  - [x] 13.1 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/vi.json`
     - Add the complete `library` object with all keys listed in the design document (Vietnamese values)
     - Add `confirmationDialog.ariaLabel` key
     - _Requirements: 10.5_
-  - [~] 13.2 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/en.json`
+  - [x] 13.2 Add all new `library.*` and `confirmationDialog.*` keys to `src/i18n/locales/en.json`
     - Add the complete `library` object with all keys listed in the design document (English values)
     - Add `confirmationDialog.ariaLabel` key
     - _Requirements: 10.5_
