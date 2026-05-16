@@ -37,7 +37,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 1.2, 6.8_
 
 - [ ] 2. Implement NotificationRegistry Service
-  - [~] 2.1 Tạo `src/services/notificationRegistry.ts`
+  - [x] 2.1 Tạo `src/services/notificationRegistry.ts`
     - State: `policies: NotificationPolicy[]`, `overrides: Map<string, Partial<NotificationPolicy>>`, `initialized: boolean`
     - Implement `initialize()`: load config via IPC → validate → merge với defaults
     - Implement `getAllPolicies()`: trả về merged policies (defaults + user + overrides)
