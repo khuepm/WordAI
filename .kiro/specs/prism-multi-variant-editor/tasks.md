@@ -6,7 +6,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
 
 ## Tasks
 
-- [-] 1. M1 — Foundation: Types, usePrismState, skeleton PrismCanvas
+- [x] 1. M1 — Foundation: Types, usePrismState, skeleton PrismCanvas
   - [x] 1.1 Cài đặt dependencies mới
     - Chạy `npm install @codemirror/view @codemirror/state @codemirror/lang-markdown @codemirror/lang-html @codemirror/lang-json zod` trong `apps/wordai-editor`
     - _Requirements: (infrastructure)_
@@ -19,7 +19,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Định nghĩa `AuraBundle`, `AuraVariantEntry`, `AuraSphereSuggestion` interfaces
     - _Requirements: 1.2, 1.3, 5.6, 8.5_
 
-  - [ ] 1.3 Tạo `usePrismState` hook tại `src/components/prism/usePrismState.ts`
+  - [x] 1.3 Tạo `usePrismState` hook tại `src/components/prism/usePrismState.ts`
     - Khởi tạo state với slot 0 chứa variant chính từ initialContent, slot 1-2 null
     - Implement `addVariant`: clone slot 0 content vào slot trống có index thấp nhất
     - Implement `discardVariant`: set slot thành null (từ chối nếu slotIndex === 0)
@@ -36,7 +36,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - **Property 10: Add Variant Lowest-Index Placement** — addVariant đặt variant vào slot trống có index thấp nhất
     - **Validates: Requirements 1.4**
 
-  - [ ] 1.6 Tạo skeleton `PrismCanvas` tại `src/components/prism/PrismCanvas.tsx`
+  - [x] 1.6 Tạo skeleton `PrismCanvas` tại `src/components/prism/PrismCanvas.tsx`
     - Nhận props tương thích với EditorCanvasProps hiện tại + auraSuggestion
     - Gọi `usePrismState` với document.id và document.content
     - Render 1 `EditorCanvas` (slot 0) bọc trong layout container
