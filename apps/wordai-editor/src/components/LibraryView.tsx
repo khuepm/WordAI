@@ -13,12 +13,15 @@ import { invoke } from '@tauri-apps/api/core';
 import type { AuraIntentDocument, AuraIntentSummary } from '../types/auraDocument';
 import type { Document } from '../types/document';
 import { auraIntentToDocument } from '../services/auraDocumentAdapter';
+import { importFile } from '../services/exportService';
 import { applyFilters } from '../utils/libraryFilters';
 import type { LibraryFilter } from '../utils/libraryFilters';
 import { LibrarySearchBar } from './LibrarySearchBar';
 import { LibraryFilterChips } from './LibraryFilterChips';
 import { LibraryEmptyState } from './LibraryEmptyState';
 import { LibraryCard } from './LibraryCard';
+import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
+import { ConfirmationDialog } from './ConfirmationDialog';
 
 // ─── ConflictState ────────────────────────────────────────────────────────────
 
@@ -133,13 +136,56 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
     }
   }, []);
 
-  const handleCardDelete = useCallback((_id: string) => {
-    // Wired in sub-task 9.5 — will set deleteTargetId to show ConfirmationDialog
+  const handleCardDelete = useCallback((id: string) => {
+    setDeleteTargetId(id);
+    setDeleteError(null);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    const id = deleteTargetId;
+    if (!id || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await invoke('delete_intent', { id });
+      // Remove the card from local state without a full reload
+      setIntents((prev) => prev.filter((s) => s.id !== id));
+      setDeleteTargetId(null);
+      // If the deleted document is the one currently open, open a new blank document
+      if (id === currentDocumentIdRef.current) {
+        const blankDoc = {
+          id: crypto.randomUUID(),
+          title: 'Untitled Intent',
+          content: '',
+          metadata: { wordCount: 0, readingTime: 0, status: 'draft' as const, tags: [] },
+          version: 1,
+          lastModified: new Date(),
+        };
+        onOpenDocumentRef.current(blankDoc);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setDeleteError(message);
+      setDeleteTargetId(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteTargetId, isDeleting]);
+
+  const handleDeleteCancel = useCallback(() => {
     setDeleteTargetId(null);
   }, []);
 
   const handleCreateNew = useCallback(() => {
-    // Wired in sub-task 9.3 — will create in-memory doc and call onOpenDocumentRef.current
+    const doc: Document = {
+      id: crypto.randomUUID(),
+      title: 'Untitled Intent',
+      content: '',
+      metadata: { wordCount: 0, readingTime: 0, status: 'draft', tags: [] },
+      version: 1,
+      lastModified: new Date(),
+    };
+    onOpenDocumentRef.current(doc);
+    onTabChangeRef.current('editor');
   }, []);
 
   const handleClearSearch = useCallback(() => {
@@ -147,19 +193,33 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
     setSearchQuery('');
   }, []);
 
-  // Expose setters via no-op references so they are considered "used" by TS/ESLint.
-  // These will be called in sub-tasks 9.4 and 9.5.
-  const _futureSetters = {
-    setIsImporting,
-    setImportError,
-    setImportWarnings,
-    setDeleteTargetId,
-    setIsDeleting,
-    setDeleteError,
-    setConflictState,
-  };
-  // Prevent tree-shaking of the reference (never actually called here)
-  void _futureSetters;
+  // ── Import (Open File) flow — Req 5.1–5.6, 6.1–6.9 ─────────────────────
+
+  const handleOpenFile = useCallback(async () => {
+    setIsImporting(true);
+    setImportError(null);
+    setImportWarnings([]);
+
+    const result = await importFile({
+      onConflict: (intentName, auraIntentId) =>
+        new Promise<'update' | 'create_new' | 'cancel'>((resolve) => {
+          setConflictState({ intentName, auraIntentId, resolve });
+        }),
+      onOpenIntent: (doc) => {
+        onOpenDocumentRef.current(doc);
+        onTabChangeRef.current('editor');
+      },
+    });
+
+    setIsImporting(false);
+    setConflictState(null);
+
+    if (result.status === 'error') {
+      setImportError(result.message);
+    } else if (result.status === 'opened' && result.warnings.length > 0) {
+      setImportWarnings(result.warnings);
+    }
+  }, []);
 
   // ── Render: loading state (Req 2.4) ─────────────────────────────────────
 
@@ -333,6 +393,7 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
             <button
               type="button"
               data-testid="library-open-file-button"
+              onClick={() => void handleOpenFile()}
               disabled={isImporting}
               aria-label={t('library.openFileAriaLabel')}
               style={{
@@ -481,13 +542,29 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
         )}
       </div>
 
-      {/*
-        The following state values are declared here for completeness (per the design spec)
-        and will be actively used in sub-tasks 9.2, 9.4, and 9.5:
-          - deleteTargetId, isDeleting, conflictState
-        They are referenced below to satisfy TypeScript's noUnusedLocals check.
-      */}
-      {deleteTargetId !== undefined && isDeleting !== undefined && conflictState !== undefined && null}
+      {/* ── ReplaceConfirmationDialog for import conflict (Req 6.6) ── */}
+      <ReplaceConfirmationDialog
+        isOpen={conflictState !== null}
+        intentName={conflictState?.intentName ?? ''}
+        auraIntentId={conflictState?.auraIntentId ?? ''}
+        onUpdateIntent={() => conflictState?.resolve('update')}
+        onCreateNew={() => conflictState?.resolve('create_new')}
+        onCancel={() => conflictState?.resolve('cancel')}
+      />
+
+      {/* ── ConfirmationDialog for delete (Req 9.2, 9.5) ── */}
+      <ConfirmationDialog
+        isOpen={deleteTargetId !== null}
+        title={t('library.delete.confirmTitle')}
+        message={t('library.delete.confirmMessage', {
+          name: intents.find((s) => s.id === deleteTargetId)?.intent_name ?? '',
+        })}
+        confirmLabel={t('library.delete.confirmButton')}
+        cancelLabel={t('library.delete.cancelButton')}
+        isDangerous
+        onConfirm={() => void handleDeleteConfirm()}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }
