@@ -15,6 +15,7 @@ const defaultProps = {
   message: 'Are you sure you want to delete this document?',
   confirmLabel: 'Delete',
   cancelLabel: 'Cancel',
+  isDangerous: false as boolean | undefined,
   onConfirm: vi.fn(),
   onCancel: vi.fn(),
 };
