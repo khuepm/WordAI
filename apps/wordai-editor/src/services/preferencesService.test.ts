@@ -5,15 +5,25 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { loadPreferences, savePreferences, resetPreferences, validateAutoSyncInterval } from './preferencesService';
-import { defaultPreferences } from '../types/preferences';
+import { defaultPreferences, type Preferences } from '../types/preferences';
 
 // Mock Tauri IPC
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
+// Mock notificationDispatcher
+vi.mock('./notificationDispatcher', () => ({
+  notificationDispatcher: {
+    dispatch: vi.fn(),
+  },
+}));
+
 import { invoke } from '@tauri-apps/api/core';
+import { notificationDispatcher } from './notificationDispatcher';
+
 const mockInvoke = vi.mocked(invoke);
+const mockDispatch = vi.mocked(notificationDispatcher.dispatch);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -46,7 +56,9 @@ describe('loadPreferences', () => {
 
 describe('savePreferences', () => {
   it('calls invoke with save_preferences and correct args', async () => {
-    mockInvoke.mockResolvedValueOnce(null);
+    // First call: loadPreferences, second call: save_preferences
+    mockInvoke.mockResolvedValueOnce(defaultPreferences); // load
+    mockInvoke.mockResolvedValueOnce(null); // save
 
     await savePreferences('user1', defaultPreferences);
 
@@ -54,6 +66,102 @@ describe('savePreferences', () => {
       userId: 'user1',
       preferences: defaultPreferences,
     });
+  });
+
+  it('emits preference.changed for each changed value', async () => {
+    const oldPrefs = { ...defaultPreferences };
+    const newPrefs: Preferences = {
+      ...defaultPreferences,
+      general: {
+        ...defaultPreferences.general,
+        theme: 'dark',
+        autoSyncInterval: 15,
+      },
+    };
+
+    mockInvoke.mockResolvedValueOnce(oldPrefs); // load
+    mockInvoke.mockResolvedValueOnce(null); // save
+
+    await savePreferences('user1', newPrefs);
+
+    // Should dispatch for theme change
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceKey: 'preference.changed.general.theme',
+        trigger: 'onChange',
+        data: expect.objectContaining({
+          key: 'general.theme',
+          oldValue: 'system',
+          newValue: 'dark',
+          label: 'Theme',
+        }),
+      })
+    );
+
+    // Should dispatch for autoSyncInterval change
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceKey: 'preference.changed.general.autoSyncInterval',
+        trigger: 'onChange',
+        data: expect.objectContaining({
+          key: 'general.autoSyncInterval',
+          oldValue: 30,
+          newValue: 15,
+          label: 'Auto Sync Interval',
+        }),
+      })
+    );
+  });
+
+  it('does not emit preference.changed when no values changed', async () => {
+    mockInvoke.mockResolvedValueOnce(defaultPreferences); // load
+    mockInvoke.mockResolvedValueOnce(null); // save
+
+    await savePreferences('user1', defaultPreferences);
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('emits preference.changed for ai-engine tab with correct mapped key', async () => {
+    const newPrefs: Preferences = {
+      ...defaultPreferences,
+      aiEngine: {
+        ...defaultPreferences.aiEngine,
+        creativity: 50,
+      },
+    };
+
+    mockInvoke.mockResolvedValueOnce(defaultPreferences); // load
+    mockInvoke.mockResolvedValueOnce(null); // save
+
+    await savePreferences('user1', newPrefs);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceKey: 'preference.changed.ai-engine.creativity',
+        trigger: 'onChange',
+        data: expect.objectContaining({
+          key: 'ai-engine.creativity',
+          oldValue: 75,
+          newValue: 50,
+          label: 'Creativity',
+        }),
+      })
+    );
+  });
+
+  it('still saves successfully when loadPreferences fails', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('load failed')); // load fails
+    mockInvoke.mockResolvedValueOnce(null); // save succeeds
+
+    await savePreferences('user1', defaultPreferences);
+
+    expect(mockInvoke).toHaveBeenCalledWith('save_preferences', {
+      userId: 'user1',
+      preferences: defaultPreferences,
+    });
+    // No dispatch since we couldn't load old preferences
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
 

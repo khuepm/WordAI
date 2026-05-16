@@ -153,14 +153,14 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 6.6_
 
 - [ ] 6. Tích hợp Event Emitters vào Existing Services
-  - [-] 6.1 Cập nhật `auraBrainManager.ts`
+  - [x] 6.1 Cập nhật `auraBrainManager.ts`
     - Emit `sync.start` khi bắt đầu sync
     - Emit `sync.success` khi sync thành công (kèm version, timestamp)
     - Emit `sync.error` khi sync thất bại (kèm error message)
     - Emit `document.dirty` khi dirty state thay đổi
     - _Requirements: 7.3_
 
-  - [~] 6.2 Cập nhật `preferencesService.ts`
+  - [x] 6.2 Cập nhật `preferencesService.ts`
     - Emit `preference.changed` khi savePreferences thành công
     - Payload: `{ key, oldValue, newValue, label }`
     - _Requirements: 7.4_
