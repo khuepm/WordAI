@@ -27,6 +27,7 @@ import {
   documentToAuraIntent,
 } from "./auraDocumentAdapter";
 import { syncDocument } from "./auraBrainManager";
+import { notificationDispatcher } from "./notificationDispatcher";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -220,15 +221,42 @@ export async function exportMarkdown(
   // Requirement 6.7: user cancelled — do nothing
   if (!selectedPath) return { status: "cancelled" };
 
+  // Emit export.start notification
+  notificationDispatcher.dispatch({
+    sourceKey: 'export.start',
+    trigger: 'onEvent',
+    data: { format: 'md' },
+    timestamp: Date.now(),
+  });
+
   try {
     const path = ensureExtension(selectedPath, "md");
     const { value: auraDocument } = documentToAuraIntent(document);
     await invoke("export_markdown", { path, document: auraDocument });
+
+    // Emit export.complete notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'export.complete',
+      trigger: 'onEvent',
+      data: { path, format: 'md' },
+      timestamp: Date.now(),
+    });
+
     return { status: "success", path };
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+
+    // Emit export.error notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'export.error',
+      trigger: 'onEvent',
+      data: { error: message, format: 'md' },
+      timestamp: Date.now(),
+    });
+
     return {
       status: "error",
-      message: err instanceof Error ? err.message : String(err),
+      message,
     };
   }
 
@@ -271,6 +299,14 @@ export async function exportDocx(
   // User cancelled — do nothing
   if (!selectedPath) return { status: "cancelled" };
 
+  // Emit export.start notification
+  notificationDispatcher.dispatch({
+    sourceKey: 'export.start',
+    trigger: 'onEvent',
+    data: { format: 'docx' },
+    timestamp: Date.now(),
+  });
+
   try {
     const path = ensureExtension(selectedPath, "docx");
     const { value: auraDocument } = documentToAuraIntent(document);
@@ -300,18 +336,46 @@ export async function exportDocx(
 
     try {
       await invoke("export_docx", { path, document: auraDocument });
+
+      // Emit export.complete notification
+      notificationDispatcher.dispatch({
+        sourceKey: 'export.complete',
+        trigger: 'onEvent',
+        data: { path, format: 'docx' },
+        timestamp: Date.now(),
+      });
+
       return { status: "success", path };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+
+      // Emit export.error notification
+      notificationDispatcher.dispatch({
+        sourceKey: 'export.error',
+        trigger: 'onEvent',
+        data: { error: message, format: 'docx' },
+        timestamp: Date.now(),
+      });
+
       return { status: "error", message };
     } finally {
       // Always clean up the listener
       unlisten?.();
     }
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+
+    // Emit export.error notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'export.error',
+      trigger: 'onEvent',
+      data: { error: message, format: 'docx' },
+      timestamp: Date.now(),
+    });
+
     return {
       status: "error",
-      message: err instanceof Error ? err.message : String(err),
+      message,
     };
   }
 
@@ -360,6 +424,14 @@ export async function exportPdf(
 
   if (!selectedPath) return { status: "cancelled" };
 
+  // Emit export.start notification
+  notificationDispatcher.dispatch({
+    sourceKey: 'export.start',
+    trigger: 'onEvent',
+    data: { format: 'pdf' },
+    timestamp: Date.now(),
+  });
+
   try {
     const path = ensureExtension(selectedPath, "pdf");
     await invoke("export_to_pdf", {
@@ -374,11 +446,30 @@ export async function exportPdf(
         font_size: pdfOptions.fontSize,
       },
     });
+
+    // Emit export.complete notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'export.complete',
+      trigger: 'onEvent',
+      data: { path, format: 'pdf' },
+      timestamp: Date.now(),
+    });
+
     return { status: "success", path };
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+
+    // Emit export.error notification
+    notificationDispatcher.dispatch({
+      sourceKey: 'export.error',
+      trigger: 'onEvent',
+      data: { error: message, format: 'pdf' },
+      timestamp: Date.now(),
+    });
+
     return {
       status: "error",
-      message: err instanceof Error ? err.message : String(err),
+      message,
     };
   }
 }

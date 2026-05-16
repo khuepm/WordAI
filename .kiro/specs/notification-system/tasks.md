@@ -170,7 +170,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Emit `autoSync.skip` khi skip do clean/syncing
     - _Requirements: 7.5_
 
-  - [~] 6.4 Cập nhật `exportService.ts`
+  - [-] 6.4 Cập nhật `exportService.ts`
     - Emit `export.start` khi bắt đầu export
     - Emit `export.complete` khi export thành công (kèm path, format)
     - Emit `export.error` khi export thất bại (kèm error)
