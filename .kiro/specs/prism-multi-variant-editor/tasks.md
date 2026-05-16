@@ -93,15 +93,15 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Throw ParseError nếu gặp cấu trúc không parse được
     - _Requirements: 4.5, 4.7_
 
-  - [~] 5.3 Viết property test cho round-trip text preservation
+  - [x] 5.3 Viết property test cho round-trip text preservation
     - **Property 1: Round-trip Text Preservation** — blockToMarkdown → markdownToBlock bảo toàn toàn bộ plain text
     - **Validates: Requirements 4.4, 4.5, 4.6**
 
-  - [~] 5.4 Viết property test cho parse error state preservation
+  - [x] 5.4 Viết property test cho parse error state preservation
     - **Property 8: Parse Error State Preservation** — invalid markdown → giữ nguyên blockContent cũ
     - **Validates: Requirements 4.7, 10.2**
 
-  - [~] 5.5 Tạo `PrismCodeView` tại `src/components/prism/PrismCodeView.tsx`
+  - [x] 5.5 Tạo `PrismCodeView` tại `src/components/prism/PrismCodeView.tsx`
     - Mount CodeMirror 6 với language mode phù hợp (markdown/xml/html/json)
     - Lazy load — chỉ mount khi user mở Code view
     - Emit onChange với debounce 500ms nội bộ
@@ -126,7 +126,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Giữ scroll position riêng cho từng sub-tab
     - _Requirements: 3.1, 3.6_
 
-  - [~] 5.9 Viết unit tests cho blockToMarkdown và markdownToBlock
+  - [x] 5.9 Viết unit tests cho blockToMarkdown và markdownToBlock
     - Test từng block type: heading h1-h6, paragraph, ordered/unordered list, quote, todo, code block
     - Test unsupported block type → fenced code block JSON
     - Test empty input → []
