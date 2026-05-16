@@ -136,7 +136,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [ ] 7. M4 — .aura bundle: schema (zod), auraBundleService load/save, sub-tab .aura
-  - [~] 7.1 Tạo `auraSchema` tại `src/utils/auraSchema.ts`
+  - [x] 7.1 Tạo `auraSchema` tại `src/utils/auraSchema.ts`
     - Định nghĩa zod schema cho AuraBundle v1 với tất cả trường bắt buộc
     - Validate: $schema URL, version === 1, intentId không rỗng, lastModified ISO 8601
     - Validate: promotedVariantId match variant.id nếu không null
@@ -155,7 +155,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - **Property 6: AuraBundle Schema Validity** — sau mọi mutation, bundle luôn pass auraSchema validation
     - **Validates: Requirements 5.2, 5.4, 5.5, 5.6**
 
-  - [~] 7.4 Tạo `intentSourceService` tại `src/services/intentSourceService.ts`
+  - [x] 7.4 Tạo `intentSourceService` tại `src/services/intentSourceService.ts`
     - Implement `detectSource(intent)`: kiểm tra sourcePath extension trước, rồi bundle
     - Case-insensitive extension matching
     - Không bao giờ throw — fallback sang kind 'markdown'
