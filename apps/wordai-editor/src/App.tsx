@@ -16,6 +16,7 @@ import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
 import { openPreferencesWindow } from './services/preferencesWindow';
+import { LibraryView } from './components/LibraryView';
 import { Tooltip } from './components/Tooltip';
 import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
@@ -355,6 +356,14 @@ function App() {
     localStorage.setItem(LAST_INTENT_KEY, normalized.id);
   }, [setDocument]);
 
+  const handleOpenDocumentFromLibrary = useCallback((doc: Document) => {
+    const normalized = { ...doc, content: ensureBlockValue(doc.content) };
+    setDocument(normalized, '', true);
+    void auraBrainManager.initializeSyncedBaseline(normalized);
+    localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+    setActiveTab('editor');
+  }, [setDocument, setActiveTab]);
+
   useAutoSync({
     document,
     autoSyncEnabled: preferences.general.autoSyncEnabled,
@@ -674,67 +683,85 @@ function App() {
       </aside>
 
       {/* Main content */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        overflow: 'hidden',
-        paddingTop: 'var(--topnav-height)',
-        paddingLeft: 'var(--left-sidebar-width)',
-        paddingRight: isAIPanelOpen ? 'var(--right-panel-width)' : '0',
-        transition: 'padding-right var(--transition-normal)',
-        position: 'relative',
-      }}>
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <EditorCanvas
-            document={document}
-            onDocumentChange={handleDocumentChange}
-            onAITrigger={handleAITrigger}
-            isAIPanelOpen={isAIPanelOpen}
-            saveError={syncView.syncError ? { code: 'SYNC_ERROR', message: syncView.syncError } : null}
-            hasUnsavedChanges={syncView.isDirty}
-            onManualSave={handleManualSync}
-            onOpenExport={openRenderDrawer}
-            onOpenVersionHistory={openVersionHistory}
-            fontSize={fontSize}
-            onFontSizeChange={handleFontSizeChange}
-          />
-          <AuraSpherePanel
-            isOpen={isAIPanelOpen}
-            onClose={closeAIPanel}
-            selection={aiSelection}
-            documentId={document.id}
-            documentContext={aiContext}
-            onSuggestionSelect={handleSuggestionSelect}
-          />
-          <NegotiationPanel
-            isOpen={isNegotiationOpen}
-            suggestion={selectedSuggestion}
-            onAccept={handleNegotiationAccept}
-            onReject={closeNegotiation}
-            onClose={closeNegotiation}
-          />
-          <RenderDrawer
-            isOpen={isRenderDrawerOpen}
-            onClose={closeRenderDrawer}
-            document={document}
-            onImportDocument={handleImportedDocument}
-          />
-          <VersionHistory
-            isOpen={isVersionHistoryOpen}
-            onClose={closeVersionHistory}
-            documentId={document.id}
-            onRestore={handleVersionRestore}
+      {activeTab === 'library' ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden',
+          paddingTop: 'var(--topnav-height)',
+          paddingLeft: 'var(--left-sidebar-width)',
+          position: 'relative',
+        }}>
+          <LibraryView
+            onOpenDocument={handleOpenDocumentFromLibrary}
+            onTabChange={setActiveTab}
+            currentDocumentId={document?.id ?? null}
           />
         </div>
-        {/* Editor Status Bar — fixed at bottom of editor area (Req 13.1) */}
-        <EditorStatusBar
-          isSyncing={syncView.isSyncing}
-          isDirty={syncView.isDirty}
-          lastSyncedAt={syncView.lastSyncedAt}
-          storagePath={storagePath}
-        />
-      </div>
+      ) : (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden',
+          paddingTop: 'var(--topnav-height)',
+          paddingLeft: 'var(--left-sidebar-width)',
+          paddingRight: isAIPanelOpen ? 'var(--right-panel-width)' : '0',
+          transition: 'padding-right var(--transition-normal)',
+          position: 'relative',
+        }}>
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <EditorCanvas
+              document={document}
+              onDocumentChange={handleDocumentChange}
+              onAITrigger={handleAITrigger}
+              isAIPanelOpen={isAIPanelOpen}
+              saveError={syncView.syncError ? { code: 'SYNC_ERROR', message: syncView.syncError } : null}
+              hasUnsavedChanges={syncView.isDirty}
+              onManualSave={handleManualSync}
+              onOpenExport={openRenderDrawer}
+              onOpenVersionHistory={openVersionHistory}
+              fontSize={fontSize}
+              onFontSizeChange={handleFontSizeChange}
+            />
+            <AuraSpherePanel
+              isOpen={isAIPanelOpen}
+              onClose={closeAIPanel}
+              selection={aiSelection}
+              documentId={document.id}
+              documentContext={aiContext}
+              onSuggestionSelect={handleSuggestionSelect}
+            />
+            <NegotiationPanel
+              isOpen={isNegotiationOpen}
+              suggestion={selectedSuggestion}
+              onAccept={handleNegotiationAccept}
+              onReject={closeNegotiation}
+              onClose={closeNegotiation}
+            />
+            <RenderDrawer
+              isOpen={isRenderDrawerOpen}
+              onClose={closeRenderDrawer}
+              document={document}
+              onImportDocument={handleImportedDocument}
+            />
+            <VersionHistory
+              isOpen={isVersionHistoryOpen}
+              onClose={closeVersionHistory}
+              documentId={document.id}
+              onRestore={handleVersionRestore}
+            />
+          </div>
+          {/* Editor Status Bar — fixed at bottom of editor area (Req 13.1) */}
+          <EditorStatusBar
+            isSyncing={syncView.isSyncing}
+            isDirty={syncView.isDirty}
+            lastSyncedAt={syncView.lastSyncedAt}
+            storagePath={storagePath}
+          />
+        </div>
+      )}
 
       <QuickSearchPopup
         isOpen={isQuickSearchOpen}

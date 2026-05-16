@@ -174,12 +174,12 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Test that clicking "Drafts" calls `onTabChange('editor')`
     - _Requirements: 1.3, 1.4_
 
-- [ ] 12. Modify `App.tsx` to wire `activeTab` and render `LibraryView`
+- [x] 12. Modify `App.tsx` to wire `activeTab` and render `LibraryView`
   - [x] 12.1 Destructure `activeTab` and `setActiveTab` from `useAppState()` and wire to `TopNavBar`
     - Destructure `activeTab` and `setActiveTab` from `useAppState()`
     - Pass `activeTab={activeTab}` and `onTabChange={setActiveTab}` to `<TopNavBar>`
     - _Requirements: 1.1, 1.2_
-  - [~] 12.2 Add `handleOpenDocumentFromLibrary` and conditionally render `LibraryView` vs editor stack
+  - [x] 12.2 Add `handleOpenDocumentFromLibrary` and conditionally render `LibraryView` vs editor stack
     - Implement `handleOpenDocumentFromLibrary(doc: Document)`: normalize content with `ensureBlockValue`, call `setDocument`, call `auraBrainManager.initializeSyncedBaseline`, store id in `localStorage`, call `setActiveTab('editor')`
     - Replace the unconditional editor stack render with a conditional: when `activeTab === 'library'` render `<LibraryView onOpenDocument={handleOpenDocumentFromLibrary} onTabChange={setActiveTab} currentDocumentId={document?.id ?? null} />`; otherwise render the existing editor stack
     - Keep the `<aside>` sidebar outside the conditional so it remains visible in both views (Req 1.5)
