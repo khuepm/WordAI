@@ -36,7 +36,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Dùng cho IDE autocompletion khi edit config
     - _Requirements: 1.2, 6.8_
 
-- [ ] 2. Implement NotificationRegistry Service
+- [x] 2. Implement NotificationRegistry Service
   - [x] 2.1 Tạo `src/services/notificationRegistry.ts`
     - State: `policies: NotificationPolicy[]`, `overrides: Map<string, Partial<NotificationPolicy>>`, `initialized: boolean`
     - Implement `initialize()`: load config via IPC → validate → merge với defaults
@@ -56,14 +56,14 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - Notify listeners khi policies thay đổi (load, override, reset)
     - _Requirements: 1.10_
 
-  - [~] 2.4 Implement config merge logic
+  - [x] 2.4 Implement config merge logic
     - User policies override default policies cùng `id`
     - Policies trong user config mà không có trong defaults → giữ nguyên
     - Policies trong defaults mà không có trong user config → giữ nguyên
     - _Requirements: 6.5_
 
 - [ ] 3. Implement NotificationDispatcher Service
-  - [~] 3.1 Tạo `src/services/notificationDispatcher.ts`
+  - [x] 3.1 Tạo `src/services/notificationDispatcher.ts`
     - State: `activeNotifications: Map<string, ActiveNotification>`, `log: ActiveNotification[]`
     - Implement `dispatch(event)`:
       1. Lookup policies từ registry
