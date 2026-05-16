@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RenderDrawer } from './RenderDrawer';
-import { exportMarkdown, exportPdf } from '../services/exportService';
+import { exportMarkdown, exportPdf, exportDocx, cancelExport } from '../services/exportService';
 
 // ─── Tauri mock ───────────────────────────────────────────────────────────────
 
@@ -21,6 +21,7 @@ vi.mock('../services/exportService', () => ({
   exportMarkdown: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.md' }),
   exportPdf: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.pdf' }),
   exportDocx: vi.fn().mockResolvedValue({ status: 'success', path: '/path/to/file.docx' }),
+  cancelExport: vi.fn().mockResolvedValue(undefined),
   importFile: vi.fn().mockResolvedValue({ status: 'cancelled' }),
 }));
 
@@ -471,6 +472,120 @@ describe('RenderDrawer - ImportProgressDialog integration', () => {
     // Error should be displayed
     await waitFor(() => {
       expect(screen.getByTestId('export-error')).toHaveTextContent('Parse failed');
+    });
+  });
+});
+
+// ─── Export Progress Dialog integration (Req 28.1, 28.3, 28.4) ───────────────
+
+import type { ExportResult } from '../services/exportService';
+import type { ExportDocxOptions, ExportProgressEvent } from '../types/export';
+
+describe('RenderDrawer - ExportProgressDialog integration', () => {
+  it('shows progress dialog when exporting document > 500 blocks (Req 28.1)', async () => {
+    // Mock exportDocx to simulate progress events (large document triggers onProgress)
+    const deferred = { resolve: null as ((value: ExportResult) => void) | null };
+
+    vi.mocked(exportDocx).mockImplementation(async (_doc, options?: ExportDocxOptions) => {
+      // Simulate the service calling onProgress for a large document (> 500 blocks)
+      const progressEvent: ExportProgressEvent = {
+        stage: 'BuildingStructure',
+        blocks_processed: 100,
+        blocks_total: 600,
+        percent: 17,
+      };
+      options?.onProgress?.(progressEvent);
+
+      // Keep the export pending so we can observe the dialog
+      return new Promise<ExportResult>((resolve) => {
+        deferred.resolve = resolve;
+      });
+    });
+
+    const user = userEvent.setup();
+    render(<RenderDrawer {...defaultProps} />);
+
+    // Select DOCX format and click export
+    await user.click(screen.getByTestId('format-option-docx'));
+    await user.click(screen.getByTestId('export-button'));
+
+    // Progress dialog should be visible (reuses ImportProgressDialog)
+    await waitFor(() => {
+      expect(screen.getByTestId('import-progress-dialog')).toBeInTheDocument();
+    });
+
+    // Verify progress data is displayed
+    expect(screen.getByTestId('percent-label')).toHaveTextContent('17%');
+    expect(screen.getByTestId('block-count')).toHaveTextContent('100 / ~600 blocks');
+
+    // Resolve the export to clean up
+    deferred.resolve?.({ status: 'success', path: '/tmp/exported.docx' });
+  });
+
+  it('does NOT show progress dialog when exporting document ≤ 500 blocks (Req 28.1)', async () => {
+    // Mock exportDocx to NOT call onProgress (simulating small document behavior)
+    vi.mocked(exportDocx).mockImplementation(async (_doc, _options?: ExportDocxOptions) => {
+      // For small documents (≤ 500 blocks), the service does NOT call onProgress
+      // because it doesn't set up the event listener
+      return { status: 'success', path: '/tmp/small.docx' };
+    });
+
+    const user = userEvent.setup();
+    render(<RenderDrawer {...defaultProps} />);
+
+    // Select DOCX format and click export
+    await user.click(screen.getByTestId('format-option-docx'));
+    await user.click(screen.getByTestId('export-button'));
+
+    // Wait for export to complete
+    await waitFor(() => {
+      expect(screen.getByTestId('export-success')).toBeInTheDocument();
+    });
+
+    // Progress dialog should never have appeared
+    expect(screen.queryByTestId('import-progress-dialog')).not.toBeInTheDocument();
+  });
+
+  it('calls cancelExport and closes dialog when Cancel is clicked (Req 28.3, 28.4)', async () => {
+    // Mock exportDocx to simulate progress events and keep export pending
+    vi.mocked(exportDocx).mockImplementation(async (_doc, options?: ExportDocxOptions) => {
+      // Simulate progress event to show dialog
+      options?.onProgress?.({
+        stage: 'BuildingStructure',
+        blocks_processed: 50,
+        blocks_total: 700,
+        percent: 7,
+      });
+
+      // Keep export pending (never resolves — simulates long-running export)
+      return new Promise<ExportResult>(() => { });
+    });
+
+    // cancelExport is already mocked via the module mock; ensure it resolves
+    mockInvoke.mockResolvedValue(undefined);
+
+    const user = userEvent.setup();
+    render(<RenderDrawer {...defaultProps} />);
+
+    // Select DOCX format and click export
+    await user.click(screen.getByTestId('format-option-docx'));
+    await user.click(screen.getByTestId('export-button'));
+
+    // Wait for progress dialog to appear
+    await waitFor(() => {
+      expect(screen.getByTestId('import-progress-dialog')).toBeInTheDocument();
+    });
+
+    // Click cancel button
+    await user.click(screen.getByTestId('btn-cancel-import'));
+
+    // cancelExport should have been called (which invokes 'cancel_export' IPC
+    // that triggers Rust-side temp file cleanup per Req 28.4)
+    expect(vi.mocked(cancelExport)).toHaveBeenCalled();
+
+    // Dialog should close after cancel
+    await waitFor(() => {
+      expect(screen.queryByTestId('import-progress-dialog')).not.toBeInTheDocument();
     });
   });
 });

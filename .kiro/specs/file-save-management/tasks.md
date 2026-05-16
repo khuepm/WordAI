@@ -620,7 +620,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Zero Vite build failures
     - _Requirements: 19.1_
 
-- [ ] 27. End-to-end tests and release smoke path
+- [~] 27. End-to-end tests and release smoke path
   - [x] 27.1 Full frontend test suite
     - Command: `cd apps/wordai-editor && npm test`
     - All existing tests pass
@@ -809,7 +809,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Khi cancel: gọi `cancel_export`
     - _Requirements: 28.1, 28.3_
 
-  - [~] 32.4 Viết unit tests cho export progress
+  - [x] 32.4 Viết unit tests cho export progress
     - Test: document > 500 blocks hiển thị progress dialog
     - Test: document ≤ 500 blocks không hiển thị progress dialog
     - Test: cancel export xóa file tạm thời

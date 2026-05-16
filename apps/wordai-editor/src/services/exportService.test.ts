@@ -687,5 +687,45 @@ describe("exportService", () => {
 
       expect(mockListen).not.toHaveBeenCalled();
     });
+
+    it("cancel export during active export invokes cancel_export which triggers temp file cleanup (Req 28.4)", async () => {
+      // Simulate a large document export that is in progress
+      let resolveExport: (() => void) | null = null;
+      const exportPromise = new Promise<void>((resolve) => {
+        resolveExport = resolve;
+      });
+
+      mockListen.mockResolvedValue(() => {});
+      mockSave.mockResolvedValueOnce("/tmp/large.docx");
+
+      // export_docx will hang until we resolve it, simulating an in-progress export
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === "export_docx") {
+          await exportPromise;
+          throw new Error("ExportCancelled");
+        }
+        if (cmd === "cancel_export") return undefined;
+        return undefined;
+      });
+
+      const onProgress = vi.fn();
+      const exportResultPromise = exportDocx(makeLargeDocument(), { onProgress });
+
+      // Simulate user cancelling the export while it's in progress
+      await cancelExport();
+
+      // Verify cancel_export was invoked (backend will delete temp file)
+      expect(mockInvoke).toHaveBeenCalledWith("cancel_export");
+
+      // Resolve the export (simulating backend returning cancellation error)
+      resolveExport!();
+      const result = await exportResultPromise;
+
+      // Export should return error status when cancelled
+      expect(result.status).toBe("error");
+      if (result.status === "error") {
+        expect(result.message).toContain("Cancelled");
+      }
+    });
   });
 });
