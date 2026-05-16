@@ -10,8 +10,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import type { AuraIntentSummary } from '../types/auraDocument';
+import type { AuraIntentDocument, AuraIntentSummary } from '../types/auraDocument';
 import type { Document } from '../types/document';
+import { auraIntentToDocument } from '../services/auraDocumentAdapter';
 import { applyFilters } from '../utils/libraryFilters';
 import type { LibraryFilter } from '../utils/libraryFilters';
 import { LibrarySearchBar } from './LibrarySearchBar';
@@ -115,10 +116,21 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
 
   // ── Stub handlers (wired in later sub-tasks) ─────────────────────────────
 
-  const handleCardOpen = useCallback((_id: string) => {
-    // Wired in sub-task 9.2 — will invoke get_intent and call onOpenDocumentRef.current
-    setCardLoadingId(null);
+  const handleCardOpen = useCallback(async (id: string) => {
+    setCardLoadingId(id);
     setCardErrorId(null);
+    try {
+      const result = await invoke<AuraIntentDocument>('get_intent', { id });
+      const doc = auraIntentToDocument(result).value;
+      localStorage.setItem('wordai_last_intent_id', doc.id);
+      onOpenDocumentRef.current(doc);
+      onTabChangeRef.current('editor');
+    } catch (err) {
+      void err;
+      setCardErrorId(id);
+    } finally {
+      setCardLoadingId(null);
+    }
   }, []);
 
   const handleCardDelete = useCallback((_id: string) => {

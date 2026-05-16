@@ -115,8 +115,8 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
 - [x] 8. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Create `LibraryView` component
-  - [ ] 9.1 Implement `LibraryView` in `src/components/LibraryView.tsx` — data fetching and local state
+- [~] 9. Create `LibraryView` component
+  - [x] 9.1 Implement `LibraryView` in `src/components/LibraryView.tsx` — data fetching and local state
     - Accept props: `onOpenDocument: (doc: Document) => void`, `onTabChange: (tab: 'editor' | 'library') => void`, `currentDocumentId: string | null`
     - On mount, invoke `list_intents` IPC and store results in local state; show loading indicator while pending (Req 2.4); show error state with retry button on failure (Req 2.5)
     - Manage local state: `intents`, `isLoading`, `loadError`, `searchQuery`, `activeFilter`, `cardLoadingId`, `cardErrorId`, `isImporting`, `importError`, `importWarnings`, `deleteTargetId`, `isDeleting`, `deleteError`, `conflictState`
@@ -127,7 +127,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Auto-focus the `LibrarySearchBar` on mount via `autoFocus` prop (Req 10.4)
     - Apply ARIA landmark roles: `role="main"` on the view root, `role="search"` on the search region, `role="region"` on the grid area
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 7.2, 7.3, 8.6, 10.4, 10.5_
-  - [ ] 9.2 Implement card open flow in `LibraryView`
+  - [x] 9.2 Implement card open flow in `LibraryView`
     - On card click, set `cardLoadingId` to the card's `id`, invoke `get_intent`, convert result via `auraIntentToDocument`, call `onOpenDocument(doc)` and `onTabChange('editor')`, store `id` in `localStorage` under `wordai_last_intent_id`
     - On `get_intent` failure, set `cardErrorId` and display inline error on the card; do not navigate
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
