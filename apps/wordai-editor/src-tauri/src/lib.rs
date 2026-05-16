@@ -4,6 +4,7 @@ pub mod document_store;
 pub mod file_manager;
 pub mod markdown_serializer;
 pub mod models;
+pub mod notification_policies;
 pub mod pdf_export;
 pub mod preferences_store;
 pub mod sqlite_store;
@@ -466,6 +467,7 @@ pub fn run() {
             preferences_store::load_preferences,
             preferences_store::save_preferences,
             preferences_store::reset_preferences,
+            notification_policies::load_notification_policies,
             sync_intent,
             get_intent,
             list_intents,

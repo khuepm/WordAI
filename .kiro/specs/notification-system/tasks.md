@@ -138,7 +138,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 3.1, 3.2, 3.7_
 
 - [ ] 5. Implement Tauri IPC cho Config File
-  - [~] 5.1 Thêm Rust command `load_notification_policies`
+  - [x] 5.1 Thêm Rust command `load_notification_policies`
     - Đọc file từ platform-specific path
     - Trả về JSON string hoặc null nếu file không tồn tại
     - _Requirements: 6.1, 6.6_
