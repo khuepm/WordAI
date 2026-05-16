@@ -382,6 +382,74 @@ describe('PrismVariantPane', () => {
       expect(screen.getByRole('tab', { name: 'Markdown' })).toHaveAttribute('aria-selected', 'false');
     });
   });
+
+  describe('.aura sub-tab content (Req 3.1, 3.2)', () => {
+    it('passes AuraBundle JSON to PrismCodeView when codeSubTab is aura and source is aura', () => {
+      const bundle = {
+        $schema: 'https://wordai.app/schemas/aura/v1.json' as const,
+        version: 1 as const,
+        intentId: 'intent-123',
+        canonical: 'markdown' as const,
+        markdown: '# Hello',
+        variants: [],
+        promotedVariantId: null,
+        lastModified: '2024-01-01T00:00:00.000Z',
+      };
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          codeSubTab="aura"
+          variant={createVariant({ source: { kind: 'aura', bundle } })}
+        />
+      );
+
+      const codeContent = screen.getByTestId('code-content');
+      expect(codeContent.textContent).toBe(JSON.stringify(bundle, null, 2));
+    });
+
+    it('passes empty JSON object when codeSubTab is aura but source is not aura', () => {
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          codeSubTab="aura"
+          variant={createVariant({ source: { kind: 'markdown' } })}
+        />
+      );
+
+      const codeContent = screen.getByTestId('code-content');
+      expect(codeContent.textContent).toBe('{}');
+    });
+
+    it('passes markdown content when codeSubTab is markdown even for aura source', () => {
+      const bundle = {
+        $schema: 'https://wordai.app/schemas/aura/v1.json' as const,
+        version: 1 as const,
+        intentId: 'intent-123',
+        canonical: 'markdown' as const,
+        markdown: '# Hello',
+        variants: [],
+        promotedVariantId: null,
+        lastModified: '2024-01-01T00:00:00.000Z',
+      };
+      render(
+        <PrismVariantPane
+          {...defaultProps}
+          viewMode="code"
+          codeSubTab="markdown"
+          variant={createVariant({
+            blockContent: JSON.stringify([{ type: 'paragraph', text: 'Hello' }]),
+            source: { kind: 'aura', bundle },
+          })}
+        />
+      );
+
+      // Should show markdown content, not the bundle JSON
+      const codeContent = screen.getByTestId('code-content');
+      expect(codeContent.textContent).toBe('# Mocked Markdown');
+    });
+  });
 });
 
 describe('getAvailableSubTabs', () => {

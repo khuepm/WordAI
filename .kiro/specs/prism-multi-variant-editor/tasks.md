@@ -151,7 +151,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Sử dụng Tauri fs API để đọc/ghi file
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.7_
 
-  - [~] 7.3 Viết property test cho AuraBundle schema validity
+  - [x] 7.3 Viết property test cho AuraBundle schema validity
     - **Property 6: AuraBundle Schema Validity** — sau mọi mutation, bundle luôn pass auraSchema validation
     - **Validates: Requirements 5.2, 5.4, 5.5, 5.6**
 
@@ -165,14 +165,14 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - **Property 7: Source Detection Determinism** — detectSource trả về kind tương ứng extension, không throw
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.6**
 
-  - [~] 7.6 Kết nối usePrismState với auraBundleService
+  - [x] 7.6 Kết nối usePrismState với auraBundleService
     - Load bundle khi init state (nếu có)
     - Save bundle sau mỗi thay đổi variant (debounce)
     - Implement retry logic: tối đa 3 lần retry khi save thất bại
     - Hiển thị toast notification khi save thất bại
     - _Requirements: 5.1, 10.5, 10.6, 10.7_
 
-  - [~] 7.7 Implement .aura sub-tab content trong PrismCodeView
+  - [x] 7.7 Implement .aura sub-tab content trong PrismCodeView
     - Hiển thị AuraBundle JSON (readonly) khi sub-tab .aura active
     - Sử dụng @codemirror/lang-json cho syntax highlighting
     - _Requirements: 3.1, 3.2_

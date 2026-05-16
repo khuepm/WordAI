@@ -422,11 +422,18 @@ export function PrismVariantPane({
           />
         ) : (
           <PrismCodeView
-            content={localMarkdown}
+            content={
+              codeSubTab === 'aura'
+                ? variant.source.kind === 'aura'
+                  ? JSON.stringify(variant.source.bundle, null, 2)
+                  : '{}'
+                : localMarkdown
+            }
             subTab={codeSubTab}
             readonly={false}
             onChange={handleCodeChange}
             fontSize={fontSize}
+            parseError={parseError}
           />
         )}
       </div>
