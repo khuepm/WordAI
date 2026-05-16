@@ -413,7 +413,8 @@
     "quotaExceeded": {
       "title": "Đã hết hạn mức AI",
       "description": "Bạn đã đạt giới hạn sử dụng AI hàng tháng. Hạn mức sẽ được đặt lại vào {{date}}.",
-      "hint": "Nâng cấp gói để có giới hạn cao hơn và quyền truy cập ưu tiên."
+      "hint": "Nâng cấp gói để có giới hạn cao hơn và quyền truy cập ưu tiên.",
+      "nextCycle": "kỳ thanh toán tiếp theo"
     },
     "suspended": {
       "title": "Tài khoản bị tạm khóa",

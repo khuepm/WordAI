@@ -11,57 +11,89 @@ import { LibraryFilterChips } from './LibraryFilterChips';
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
 // ---------------------------------------------------------------------------
-// Req 8.4 — Active visual style on the matching chip
+// Req 8.1 — All three chips are rendered
 // ---------------------------------------------------------------------------
-describe('Active chip style (Req 8.4)', () => {
-  it('applies active style (primary background) to the "All" chip when activeFilter="all"', () => {
-    render(
-      <LibraryFilterChips activeFilter="all" onChange={vi.fn()} />
-    );
+describe('Chip rendering (Req 8.1)', () => {
+  it('renders All, Documents, and AI-ready chips', () => {
+    render(<LibraryFilterChips activeFilter="all" onChange={vi.fn()} />);
 
-    const allBtn = screen.getByRole('button', { name: /all/i });
-    // aria-pressed reflects the active state
-    expect(allBtn).toHaveAttribute('aria-pressed', 'true');
-
-    const docsBtn = screen.getByRole('button', { name: /documents/i });
-    expect(docsBtn).toHaveAttribute('aria-pressed', 'false');
-
-    const aiBtn = screen.getByRole('button', { name: /ai-ready/i });
-    expect(aiBtn).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('applies active style to the "Documents" chip when activeFilter="documents"', () => {
-    render(
-      <LibraryFilterChips activeFilter="documents" onChange={vi.fn()} />
-    );
-
-    expect(screen.getByRole('button', { name: /documents/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /all/i })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('button', { name: /ai-ready/i })).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('applies active style to the "AI-ready" chip when activeFilter="ai-ready"', () => {
-    render(
-      <LibraryFilterChips activeFilter="ai-ready" onChange={vi.fn()} />
-    );
-
-    expect(screen.getByRole('button', { name: /ai-ready/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /all/i })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('button', { name: /documents/i })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText('All')).toBeInTheDocument();
+    expect(screen.getByText('Documents')).toBeInTheDocument();
+    expect(screen.getByText('AI-ready')).toBeInTheDocument();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Req 8.1, 8.2 — Clicking chips calls onChange with the correct filter value
+// Req 8.4 — Active chip has primary color background and border
 // ---------------------------------------------------------------------------
-describe('Chip click interactions (Req 8.1, 8.2)', () => {
+describe('Active chip style (Req 8.4)', () => {
+  it('marks the "All" chip as pressed when activeFilter is "all"', () => {
+    render(<LibraryFilterChips activeFilter="all" onChange={vi.fn()} />);
+
+    const allChip = screen.getByText('All').closest('button')!;
+    expect(allChip).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('marks the "Documents" chip as pressed when activeFilter is "documents"', () => {
+    render(<LibraryFilterChips activeFilter="documents" onChange={vi.fn()} />);
+
+    const docsChip = screen.getByText('Documents').closest('button')!;
+    expect(docsChip).toHaveAttribute('aria-pressed', 'true');
+
+    // Other chips should not be active
+    const allChip = screen.getByText('All').closest('button')!;
+    expect(allChip).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('marks the "AI-ready" chip as pressed when activeFilter is "ai-ready"', () => {
+    render(<LibraryFilterChips activeFilter="ai-ready" onChange={vi.fn()} />);
+
+    const aiChip = screen.getByText('AI-ready').closest('button')!;
+    expect(aiChip).toHaveAttribute('aria-pressed', 'true');
+
+    // Other chips should not be active
+    const allChip = screen.getByText('All').closest('button')!;
+    expect(allChip).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('applies primary background color to the active chip', () => {
+    render(<LibraryFilterChips activeFilter="all" onChange={vi.fn()} />);
+
+    const allChip = screen.getByText('All').closest('button')!;
+    expect(allChip.style.background).toContain('var(--md-sys-color-primary');
+  });
+
+  it('does NOT apply primary background to inactive chips', () => {
+    render(<LibraryFilterChips activeFilter="all" onChange={vi.fn()} />);
+
+    const docsChip = screen.getByText('Documents').closest('button')!;
+    expect(docsChip.style.background).toBe('transparent');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Req 8.2, 8.5 — Clicking a chip calls onChange with the correct filter value
+// ---------------------------------------------------------------------------
+describe('Chip click interactions (Req 8.2, 8.5)', () => {
+  it('calls onChange("all") when the "All" chip is clicked', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<LibraryFilterChips activeFilter="documents" onChange={onChange} />);
+
+    await user.click(screen.getByText('All'));
+
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(onChange).toHaveBeenCalledWith('all');
+  });
+
   it('calls onChange("documents") when the "Documents" chip is clicked', async () => {
     const onChange = vi.fn();
-    render(
-      <LibraryFilterChips activeFilter="all" onChange={onChange} />
-    );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: /documents/i }));
+    render(<LibraryFilterChips activeFilter="all" onChange={onChange} />);
+
+    await user.click(screen.getByText('Documents'));
 
     expect(onChange).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenCalledWith('documents');
@@ -69,40 +101,13 @@ describe('Chip click interactions (Req 8.1, 8.2)', () => {
 
   it('calls onChange("ai-ready") when the "AI-ready" chip is clicked', async () => {
     const onChange = vi.fn();
-    render(
-      <LibraryFilterChips activeFilter="all" onChange={onChange} />
-    );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: /ai-ready/i }));
+    render(<LibraryFilterChips activeFilter="all" onChange={onChange} />);
+
+    await user.click(screen.getByText('AI-ready'));
 
     expect(onChange).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenCalledWith('ai-ready');
-  });
-
-  it('calls onChange("all") when the "All" chip is clicked', async () => {
-    const onChange = vi.fn();
-    render(
-      <LibraryFilterChips activeFilter="documents" onChange={onChange} />
-    );
-
-    await userEvent.click(screen.getByRole('button', { name: /all/i }));
-
-    expect(onChange).toHaveBeenCalledOnce();
-    expect(onChange).toHaveBeenCalledWith('all');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Req 8.1 — All three chips are rendered
-// ---------------------------------------------------------------------------
-describe('Chip rendering (Req 8.1)', () => {
-  it('renders all three filter chips', () => {
-    render(
-      <LibraryFilterChips activeFilter="all" onChange={vi.fn()} />
-    );
-
-    expect(screen.getByRole('button', { name: /all/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /documents/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /ai-ready/i })).toBeInTheDocument();
   });
 });

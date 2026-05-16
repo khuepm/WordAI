@@ -48,14 +48,14 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - _Requirements: 9.2, 9.5_
 
 - [x] 4. Create `LibrarySearchBar` component
-  - [~] 4.1 Implement `LibrarySearchBar` in `src/components/LibrarySearchBar.tsx`
+  - [x] 4.1 Implement `LibrarySearchBar` in `src/components/LibrarySearchBar.tsx`
     - Accept props: `value`, `onChange`, `onClear`, `autoFocus?`
     - Render a controlled `<input>` with `role="searchbox"`, `aria-label={t('library.searchPlaceholder')}`, and `placeholder={t('library.searchPlaceholder')}`
     - Show a clear `<button>` with `aria-label={t('library.searchClearAriaLabel')}` only when `value` is non-empty
     - Pass `autoFocus` to the `<input>` element
     - Use inline styles with CSS variables
     - _Requirements: 7.1, 7.5, 10.2, 10.4, 10.5_
-  - [~] 4.2 Write unit tests for `LibrarySearchBar` in `src/components/LibrarySearchBar.test.tsx`
+  - [x] 4.2 Write unit tests for `LibrarySearchBar` in `src/components/LibrarySearchBar.test.tsx`
     - Test that the clear button is absent when `value` is empty
     - Test that the clear button is present when `value` is non-empty
     - Test that clicking the clear button calls `onClear`
@@ -76,21 +76,21 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Test that clicking "All" calls `onChange('all')`
     - _Requirements: 8.1, 8.2, 8.5_
 
-- [ ] 6. Create `LibraryEmptyState` component
-  - [~] 6.1 Implement `LibraryEmptyState` in `src/components/LibraryEmptyState.tsx`
+- [x] 6. Create `LibraryEmptyState` component
+  - [x] 6.1 Implement `LibraryEmptyState` in `src/components/LibraryEmptyState.tsx`
     - Accept props: `reason: 'no-documents' | 'no-results'`, `searchQuery?`, `onCreateNew`
     - For `'no-documents'`: render `t('library.emptyState.noDocuments.title')`, `t('library.emptyState.noDocuments.message')`, and a CTA button calling `onCreateNew`
     - For `'no-results'`: render `t('library.emptyState.noResults.title')`, `t('library.emptyState.noResults.message', { query: searchQuery })`, and a clear-search CTA
     - Use inline styles with CSS variables
     - _Requirements: 2.3, 7.4_
-  - [~] 6.2 Write unit tests for `LibraryEmptyState` in `src/components/LibraryEmptyState.test.tsx`
+  - [x] 6.2 Write unit tests for `LibraryEmptyState` in `src/components/LibraryEmptyState.test.tsx`
     - Test that `reason='no-documents'` renders the correct heading and CTA
     - Test that `reason='no-results'` renders the correct heading with the query interpolated
     - Test that clicking the CTA in `'no-documents'` mode calls `onCreateNew`
     - _Requirements: 2.3, 7.4_
 
-- [ ] 7. Create `LibraryCard` component
-  - [~] 7.1 Implement `LibraryCard` in `src/components/LibraryCard.tsx`
+- [x] 7. Create `LibraryCard` component
+  - [x] 7.1 Implement `LibraryCard` in `src/components/LibraryCard.tsx`
     - Accept props: `summary: AuraIntentSummary`, `isLoading`, `hasError`, `onOpen`, `onDelete`
     - Render: document icon (`description` material symbol), `intent_name` (single-line truncated), relative timestamp via `formatRelativeTime(summary.updated_at)` prefixed with `t('library.card.updatedAt', { time })`, version badge via `t('library.card.version', { version: summary.version })`
     - Render a delete `<button>` with `aria-label={t('library.card.deleteAriaLabel', { name: summary.intent_name })}` visible on hover/focus
@@ -100,19 +100,19 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Provide a visible focus indicator (outline) for keyboard navigation
     - Use inline styles with CSS variables
     - _Requirements: 2.6, 2.7, 4.1, 4.5, 4.6, 9.1, 10.2, 10.3_
-  - [~] 7.2 Write property test for `LibraryCard` metadata rendering in `src/components/LibraryCard.property.test.tsx`
+  - [x] 7.2 Write property test for `LibraryCard` metadata rendering in `src/components/LibraryCard.property.test.tsx`
     - **Property 8: Library_Card always renders all required metadata fields**
     - **Validates: Requirements 2.6**
     - For any `AuraIntentSummary`, assert the rendered card contains `intent_name`, a non-empty timestamp string, and the `version` number
     - Use `fc.assert(fc.property(arbitraryAuraIntentSummary(), ...), { numRuns: 100 })`
-  - [~] 7.3 Write unit tests for `LibraryCard` in `src/components/LibraryCard.test.tsx`
+  - [x] 7.3 Write unit tests for `LibraryCard` in `src/components/LibraryCard.test.tsx`
     - Test that clicking the card calls `onOpen` with the correct `id`
     - Test that clicking the delete button calls `onDelete` with the correct `id`
     - Test that `isLoading=true` shows the loading spinner
     - Test that `hasError=true` shows the error message
     - _Requirements: 4.1, 4.5, 4.6, 9.1_
 
-- [~] 8. Checkpoint — Ensure all tests pass
+- [ ] 8. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Create `LibraryView` component
@@ -156,7 +156,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Apply `var(--md-sys-color-*)`, `var(--font-family-ui)`, `var(--radius-*)` CSS variables throughout
     - _Requirements: 2.3, 7.4, 10.1, 10.5, 10.6_
 
-- [~] 10. Checkpoint — Ensure all tests pass
+- [ ] 10. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Modify `TopNavBar` to support tab switching
