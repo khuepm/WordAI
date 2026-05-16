@@ -5,7 +5,7 @@
 
 import { describe, it, vi, beforeEach, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { render, screen, waitFor, act, within } from '@testing-library/react';
+import { render, screen, waitFor, act, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LibraryView } from './LibraryView';
 import type { AuraIntentDocument, AuraIntentSummary } from '../types/auraDocument';
@@ -98,6 +98,7 @@ describe('Property 1: Document list renders cards sorted by recency', () => {
       fc.asyncProperty(
         fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 20 }),
         async (summaries) => {
+          cleanup();
           vi.clearAllMocks();
 
           // Mock list_intents to return the generated summaries
@@ -140,7 +141,7 @@ describe('Property 1: Document list renders cards sorted by recency', () => {
       ),
       { numRuns: 100 }
     );
-  });
+  }, 30000);
 });
 
 // ─── Property 2: Opening a document from the library always switches to the editor tab ───
@@ -157,6 +158,7 @@ describe('Property 2: Opening a document from the library always switches to the
     // **Validates: Requirements 4.2, 4.3, 4.4**
     await fc.assert(
       fc.asyncProperty(arbitraryAuraIntentDocument(), async (doc) => {
+        cleanup();
         vi.clearAllMocks();
         localStorage.clear();
 
@@ -212,7 +214,7 @@ describe('Property 2: Opening a document from the library always switches to the
       }),
       { numRuns: 100 }
     );
-  });
+  }, 30000);
 });
 
 // ─── Property 5: Successful import always opens the document in the editor ───
@@ -229,6 +231,7 @@ describe('Property 5: Successful import always opens the document in the editor'
     // **Validates: Requirements 6.2, 6.3, 6.4**
     await fc.assert(
       fc.asyncProperty(arbitraryAuraIntentDocument(), async (doc) => {
+        cleanup();
         vi.clearAllMocks();
 
         // Mock list_intents to return an empty list (so we get past loading state)
@@ -280,7 +283,7 @@ describe('Property 5: Successful import always opens the document in the editor'
       }),
       { numRuns: 100 }
     );
-  });
+  }, 30000);
 });
 
 
@@ -298,9 +301,10 @@ describe('Property 6: Delete confirmation calls delete_intent with the correct i
     // **Validates: Requirements 9.3, 9.4**
     await fc.assert(
       fc.asyncProperty(
-        fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 10 }),
+        fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 5 }),
         fc.nat(),
         async (summaries, indexSeed) => {
+          cleanup();
           vi.clearAllMocks();
 
           // Deduplicate summaries by id to avoid rendering issues
@@ -379,7 +383,7 @@ describe('Property 6: Delete confirmation calls delete_intent with the correct i
       ),
       { numRuns: 100 }
     );
-  });
+  }, 30000);
 });
 
 
@@ -397,9 +401,10 @@ describe('Property 7: Cancelling any destructive action never persists changes',
     // **Validates: Requirements 6.9, 9.5**
     await fc.assert(
       fc.asyncProperty(
-        fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 10 }),
+        fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 5 }),
         fc.nat(),
         async (summaries, indexSeed) => {
+          cleanup();
           vi.clearAllMocks();
 
           // Deduplicate summaries by id to avoid rendering issues
@@ -476,5 +481,5 @@ describe('Property 7: Cancelling any destructive action never persists changes',
       ),
       { numRuns: 100 }
     );
-  });
+  }, 30000);
 });

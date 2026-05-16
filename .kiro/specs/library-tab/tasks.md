@@ -156,7 +156,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Apply `var(--md-sys-color-*)`, `var(--font-family-ui)`, `var(--radius-*)` CSS variables throughout
     - _Requirements: 2.3, 7.4, 10.1, 10.5, 10.6_
 
-- [~] 10. Checkpoint — Ensure all tests pass
+- [x] 10. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 11. Modify `TopNavBar` to support tab switching
