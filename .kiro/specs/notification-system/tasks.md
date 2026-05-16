@@ -191,7 +191,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 7.2, 7.6, 7.7_
 
 - [ ] 8. Implement Dev Dashboard
-  - [~] 8.1 Tạo `src/components/DevDashboard.tsx` (lazy loaded)
+  - [x] 8.1 Tạo `src/components/DevDashboard.tsx` (lazy loaded)
     - Conditional render: `import.meta.env.DEV` only
     - Keyboard shortcut: `Ctrl+Shift+Alt+D` / `Cmd+Shift+Option+D`
     - Layout: full-screen overlay hoặc side panel
