@@ -1,60 +1,29 @@
-/**
- * LibrarySearchBar — Controlled search input with a clear button.
- *
- * Requirements: 7.1, 7.5, 10.2, 10.4, 10.5
- */
-
-import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface LibrarySearchBarProps {
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;
-  /** When true, the input receives focus on mount (Req 10.4) */
+  /** Passed as autoFocus when LibraryView mounts (Req 10.4) */
   autoFocus?: boolean;
 }
 
-const containerStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0.5rem 0.75rem',
-  borderRadius: 'var(--radius-md, 0.625rem)',
-  border: '1px solid var(--md-sys-color-outline-variant, #c7c4d7)',
-  background: 'var(--md-sys-color-surface-container, #f3f3f7)',
-  fontFamily: 'var(--font-family-ui, Manrope, sans-serif)',
-};
-
-const inputStyle: CSSProperties = {
-  flex: 1,
-  border: 'none',
-  outline: 'none',
-  background: 'transparent',
-  fontSize: '0.9375rem',
-  color: 'var(--md-sys-color-on-surface, #191c1d)',
-  fontFamily: 'inherit',
-};
-
-const clearBtnStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '0.125rem',
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  color: 'var(--md-sys-color-on-surface-variant, #464555)',
-  borderRadius: 'var(--radius-sm, 0.25rem)',
-  flexShrink: 0,
-};
-
 export function LibrarySearchBar({ value, onChange, onClear, autoFocus }: LibrarySearchBarProps) {
   const { t } = useTranslation();
-  const placeholder = t('library.searchPlaceholder');
 
   return (
-    <div style={containerStyle}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'var(--md-sys-color-surface-container-low)',
+        border: '1px solid var(--md-sys-color-outline-variant)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '8px 12px',
+        fontFamily: 'var(--font-family-ui)',
+      }}
+    >
       {/* Search icon */}
       <svg
         width="16"
@@ -62,7 +31,7 @@ export function LibrarySearchBar({ value, onChange, onClear, autoFocus }: Librar
         viewBox="0 0 16 16"
         fill="none"
         aria-hidden="true"
-        style={{ flexShrink: 0, color: 'var(--md-sys-color-on-surface-variant, #464555)' }}
+        style={{ flexShrink: 0, color: 'var(--md-sys-color-outline)' }}
       >
         <path
           d="M7 12A5 5 0 1 0 7 2a5 5 0 0 0 0 10zm4.243-.757 2.757 2.757"
@@ -72,34 +41,57 @@ export function LibrarySearchBar({ value, onChange, onClear, autoFocus }: Librar
         />
       </svg>
 
+      {/* Controlled input */}
       <input
         type="text"
         role="searchbox"
-        aria-label={placeholder}
-        placeholder={placeholder}
+        aria-label={t('library.searchPlaceholder')}
+        placeholder={t('library.searchPlaceholder')}
         value={value}
-        autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
-        style={inputStyle}
+        autoFocus={autoFocus}
+        style={{
+          flex: 1,
+          border: 'none',
+          outline: 'none',
+          backgroundColor: 'transparent',
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--md-sys-color-on-surface)',
+          fontFamily: 'var(--font-family-ui)',
+        }}
       />
 
+      {/* Clear button — only shown when value is non-empty */}
       {value && (
         <button
           type="button"
           aria-label={t('library.searchClearAriaLabel')}
           onClick={onClear}
-          style={clearBtnStyle}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            width: 20,
+            height: 20,
+            padding: 0,
+            border: 'none',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--md-sys-color-surface-container-high)',
+            color: 'var(--md-sys-color-on-surface-variant)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-family-ui)',
+          }}
         >
-          {/* ✕ icon */}
           <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
             fill="none"
             aria-hidden="true"
           >
             <path
-              d="M1 1l12 12M13 1L1 13"
+              d="M1 1l10 10M11 1L1 11"
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
