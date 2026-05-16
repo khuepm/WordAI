@@ -189,14 +189,14 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
   - Đảm bảo tất cả tests pass, hỏi người dùng nếu có thắc mắc.
 
 - [ ] 9. M5 — AuraSphere wiring: panel generates ≥2 variants, fill slots, Pin/Promote
-  - [~] 9.1 Implement `addAuraSphereVariants` trong usePrismState
+  - [x] 9.1 Implement `addAuraSphereVariants` trong usePrismState
     - Nhận AuraSphereSuggestion, validate từng variant (label không rỗng, markdown parse được)
     - Phân phối vào slot trống theo thứ tự index tăng dần
     - Bỏ qua slot pinned, slot 0 có content, slot dirty
     - Bỏ qua variant không hợp lệ, tiếp tục xử lý variant còn lại
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.6, 8.7, 8.8_
 
-  - [~] 9.2 Implement `promoteVariant` trong usePrismState
+  - [x] 9.2 Implement `promoteVariant` trong usePrismState
     - Set promotedVariantId = variant.id
     - Cập nhật bundle.markdown = blockToMarkdown(variant.blockContent)
     - Archive tất cả variant khác không pinned (set archivedAt)
@@ -204,7 +204,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Giữ nguyên slot pinned
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-  - [~] 9.3 Implement `pinVariant` / `unpinVariant` trong usePrismState
+  - [x] 9.3 Implement `pinVariant` / `unpinVariant` trong usePrismState
     - Toggle pinned flag trên variant
     - Variant pinned không bị archive khi promote, không bị ghi đè bởi AuraSphere
     - _Requirements: 7.5, 7.8_

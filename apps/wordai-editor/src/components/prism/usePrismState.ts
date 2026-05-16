@@ -11,6 +11,7 @@ import type {
 } from './types';
 import { auraBundleService } from '../../services/auraBundleService';
 import { blockToMarkdown } from '../../utils/blockToMarkdown';
+import { markdownToBlock } from '../../utils/markdownToBlock';
 
 export interface UsePrismStateReturn {
   state: PrismState;
@@ -329,20 +330,175 @@ export function usePrismState(
     setState((prev) => ({ ...prev, syncScroll: !prev.syncScroll }));
   }, []);
 
-  // Stubs for later milestones
-  const promoteVariant = useCallback((_slotIndex: PrismSlotIndex) => {
-    // No-op: will be implemented in M5
+  const promoteVariant = useCallback((slotIndex: PrismSlotIndex) => {
+    setState((prev) => {
+      const variant = prev.slots[slotIndex];
+      if (!variant) return prev; // Cannot promote null slot
+
+      const now = new Date().toISOString();
+      const promotedMarkdown = blockToMarkdown(variant.blockContent);
+
+      // Build new slots: slot 0 = promoted variant, keep pinned, clear others
+      const newSlots: (PrismVariant | null)[] = [variant, null, null];
+
+      // Preserve pinned variants in their original slots (except the promoted one)
+      for (let i = 0; i < 3; i++) {
+        const slot = prev.slots[i];
+        if (slot && slot.id !== variant.id && slot.pinned) {
+          newSlots[i] = slot;
+        }
+      }
+
+      // Build the bundle with archived variants
+      // First, load existing bundle to preserve previously archived entries
+      const existingBundle = auraBundleService.loadBundle(intentIdRef.current);
+      const existingVariants: AuraVariantEntry[] = existingBundle?.variants ?? [];
+
+      // Collect IDs of pinned variants (they should NOT be archived)
+      const pinnedIds = new Set(
+        prev.slots
+          .filter((s): s is PrismVariant => s !== null && s.pinned)
+          .map((s) => s.id)
+      );
+
+      // Update existing bundle variants: archive non-pinned, non-promoted active variants
+      const updatedExistingVariants = existingVariants.map((v) => {
+        if (v.id === variant.id) return v; // promoted variant stays as-is
+        if (pinnedIds.has(v.id)) return v; // pinned variants stay as-is
+        if (v.archivedAt) return v; // already archived, don't change archivedAt
+        return { ...v, archivedAt: now }; // archive it
+      });
+
+      // Ensure the promoted variant is in the variants list
+      const promotedInList = updatedExistingVariants.some((v) => v.id === variant.id);
+      const finalVariants: AuraVariantEntry[] = promotedInList
+        ? updatedExistingVariants
+        : [
+            {
+              id: variant.id,
+              label: variant.label,
+              markdown: promotedMarkdown,
+              createdBy: variant.promptRef ? 'aurasphere' as const : 'user' as const,
+              promptRef: variant.promptRef,
+              createdAt: now,
+            },
+            ...updatedExistingVariants,
+          ];
+
+      // Also add any active slot variants that weren't in the existing bundle
+      for (const slot of prev.slots) {
+        if (slot && slot.id !== variant.id && !finalVariants.some((v) => v.id === slot.id)) {
+          const entry: AuraVariantEntry = {
+            id: slot.id,
+            label: slot.label,
+            markdown: blockToMarkdown(slot.blockContent),
+            createdBy: slot.promptRef ? 'aurasphere' as const : 'user' as const,
+            promptRef: slot.promptRef,
+            createdAt: now,
+            ...(slot.pinned ? {} : { archivedAt: now }),
+          };
+          finalVariants.push(entry);
+        }
+      }
+
+      // Build and save the bundle directly
+      const newBundle: AuraBundle = {
+        $schema: 'https://wordai.app/schemas/aura/v1.json',
+        version: 1,
+        intentId: intentIdRef.current,
+        canonical: 'markdown',
+        markdown: promotedMarkdown,
+        variants: finalVariants,
+        promotedVariantId: variant.id,
+        lastModified: now,
+      };
+
+      // Save bundle asynchronously (fire-and-forget within setState)
+      auraBundleService.saveBundle(newBundle).catch(() => {
+        // Error will be handled by retry logic on next scheduled save
+      });
+
+      return {
+        ...prev,
+        slots: newSlots,
+        modes: ['preview', 'preview', 'preview'] as PrismViewMode[],
+        codeSubTabs: ['markdown', 'markdown', 'markdown'] as PrismCodeSubTab[],
+        focusedSlot: 0 as PrismSlotIndex,
+      };
+    });
   }, []);
 
-  const pinVariant = useCallback((_slotIndex: PrismSlotIndex) => {
-    // No-op: will be implemented in M5
-  }, []);
+  const pinVariant = useCallback((slotIndex: PrismSlotIndex) => {
+    setState((prev) => {
+      const slot = prev.slots[slotIndex];
+      if (!slot) return prev;
+
+      const newSlots = [...prev.slots];
+      newSlots[slotIndex] = { ...slot, pinned: !slot.pinned };
+
+      return { ...prev, slots: newSlots };
+    });
+    scheduleSave();
+  }, [scheduleSave]);
 
   const addAuraSphereVariants = useCallback(
-    (_suggestion: AuraSphereSuggestion) => {
-      // No-op: will be implemented in M5
+    (suggestion: AuraSphereSuggestion) => {
+      // Validate and filter suggestion variants: label must be non-empty, markdown must parse
+      const validVariants: { label: string; markdown: string; promptRef: string; blockContent: string }[] = [];
+      for (const sv of suggestion.variants) {
+        // Skip variant with empty label
+        if (!sv.label || !sv.label.trim()) continue;
+        // Skip variant with empty markdown
+        if (!sv.markdown || !sv.markdown.trim()) continue;
+        // Attempt to parse markdown — skip if it fails
+        try {
+          const blockContent = markdownToBlock(sv.markdown);
+          validVariants.push({
+            label: sv.label,
+            markdown: sv.markdown,
+            promptRef: sv.promptRef,
+            blockContent,
+          });
+        } catch {
+          // Invalid markdown — skip this variant, continue with the rest
+          continue;
+        }
+      }
+
+      if (validVariants.length === 0) return;
+
+      setState((prev) => {
+        const newSlots = [...prev.slots] as (PrismVariant | null)[];
+        let suggestionIndex = 0;
+
+        for (let i = 0; i < 3 && suggestionIndex < validVariants.length; i++) {
+          const slot = newSlots[i];
+
+          // Skip slot 0 if it has content (preserve user's content)
+          if (i === 0 && slot !== null) continue;
+          // Skip pinned slots
+          if (slot?.pinned) continue;
+          // Skip dirty slots (unsaved changes)
+          if (slot?.dirty) continue;
+
+          const sv = validVariants[suggestionIndex];
+          newSlots[i] = {
+            id: crypto.randomUUID(),
+            label: sv.label,
+            blockContent: sv.blockContent,
+            source: { kind: 'markdown' },
+            promptRef: sv.promptRef,
+            pinned: false,
+            dirty: false,
+          };
+          suggestionIndex++;
+        }
+
+        return { ...prev, slots: newSlots };
+      });
+      scheduleSave();
     },
-    []
+    [scheduleSave]
   );
 
   const updateFromMarkdown = useCallback(
