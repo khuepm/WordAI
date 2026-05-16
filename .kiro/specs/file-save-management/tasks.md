@@ -620,7 +620,7 @@ Các task dưới đây bổ sung phần còn thiếu sau khi kiểm tra impleme
     - Zero Vite build failures
     - _Requirements: 19.1_
 
-- [~] 27. End-to-end tests and release smoke path
+- [x] 27. End-to-end tests and release smoke path
   - [x] 27.1 Full frontend test suite
     - Command: `cd apps/wordai-editor && npm test`
     - All existing tests pass
