@@ -62,3 +62,59 @@ describe('TopNavBar - actions', () => {
     expect(onSave).toHaveBeenCalledOnce();
   });
 });
+
+describe('TopNavBar - tab switching (Requirements 1.3, 1.4)', () => {
+  it('activeTab="editor" applies active style to "Drafts" and inactive style to "Library"', () => {
+    render(<TopNavBar {...defaultProps} activeTab="editor" />);
+
+    const draftsBtn = screen.getByTestId('nav-drafts');
+    const libraryBtn = screen.getByTestId('nav-library');
+
+    // Active style: fontWeight 600, primary color, solid border-bottom with primary color
+    expect(draftsBtn).toHaveStyle({ fontWeight: 600 });
+    expect(draftsBtn).toHaveStyle({ color: 'var(--md-sys-color-primary)' });
+    expect(draftsBtn.style.borderBottom).toBe('2px solid var(--md-sys-color-primary)');
+
+    // Inactive style: fontWeight 400, #5a5a5a, transparent border-bottom
+    expect(libraryBtn).toHaveStyle({ fontWeight: 400 });
+    expect(libraryBtn).toHaveStyle({ color: '#5a5a5a' });
+    expect(libraryBtn.style.borderBottom).toBe('2px solid transparent');
+  });
+
+  it('activeTab="library" applies active style to "Library" and inactive style to "Drafts"', () => {
+    render(<TopNavBar {...defaultProps} activeTab="library" />);
+
+    const draftsBtn = screen.getByTestId('nav-drafts');
+    const libraryBtn = screen.getByTestId('nav-library');
+
+    // Library active
+    expect(libraryBtn).toHaveStyle({ fontWeight: 600 });
+    expect(libraryBtn).toHaveStyle({ color: 'var(--md-sys-color-primary)' });
+    expect(libraryBtn.style.borderBottom).toBe('2px solid var(--md-sys-color-primary)');
+
+    // Drafts inactive
+    expect(draftsBtn).toHaveStyle({ fontWeight: 400 });
+    expect(draftsBtn).toHaveStyle({ color: '#5a5a5a' });
+    expect(draftsBtn.style.borderBottom).toBe('2px solid transparent');
+  });
+
+  it('clicking "Library" calls onTabChange with "library"', async () => {
+    const onTabChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TopNavBar {...defaultProps} activeTab="editor" onTabChange={onTabChange} />);
+
+    await user.click(screen.getByTestId('nav-library'));
+    expect(onTabChange).toHaveBeenCalledOnce();
+    expect(onTabChange).toHaveBeenCalledWith('library');
+  });
+
+  it('clicking "Drafts" calls onTabChange with "editor"', async () => {
+    const onTabChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TopNavBar {...defaultProps} activeTab="library" onTabChange={onTabChange} />);
+
+    await user.click(screen.getByTestId('nav-drafts'));
+    expect(onTabChange).toHaveBeenCalledOnce();
+    expect(onTabChange).toHaveBeenCalledWith('editor');
+  });
+});

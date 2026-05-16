@@ -108,6 +108,7 @@ function App() {
     openVersionHistory,
     closeVersionHistory,
     setAiServiceStatus,
+    setActiveTab,
   } = useAppState();
 
   // Req 13.8–13.11 — derive AI access state to gate AI features
@@ -197,6 +198,7 @@ function App() {
     aiSelection,
     selectedSuggestion,
     aiServiceAvailable,
+    activeTab,
   } = state;
 
   const syncView = useAuraBrainSyncState(document);
@@ -458,6 +460,8 @@ function App() {
         isDirty={syncView.isDirty}
         isSyncing={syncView.isSyncing}
         onRename={handleRename}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (

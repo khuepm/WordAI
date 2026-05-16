@@ -159,7 +159,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
 - [~] 10. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Modify `TopNavBar` to support tab switching
+- [x] 11. Modify `TopNavBar` to support tab switching
   - [x] 11.1 Add `activeTab` and `onTabChange` props to `TopNavBar` and convert nav links to buttons
     - Add `activeTab?: 'editor' | 'library'` and `onTabChange?: (tab: 'editor' | 'library') => void` to `TopNavBarProps`
     - Replace the three `<a>` nav links with `<button>` elements
@@ -167,7 +167,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - Apply active style (bold weight, primary color, underline) to the button matching `activeTab`; apply inactive style to others
     - Default `activeTab` to `'editor'` when prop is not provided (backward-compatible)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
-  - [~] 11.2 Write unit tests for `TopNavBar` tab switching in `src/components/TopNavBar.test.tsx`
+  - [x] 11.2 Write unit tests for `TopNavBar` tab switching in `src/components/TopNavBar.test.tsx`
     - Test that `activeTab='editor'` applies active style to "Drafts" and inactive style to "Library"
     - Test that `activeTab='library'` applies active style to "Library" and inactive style to "Drafts"
     - Test that clicking "Library" calls `onTabChange('library')`
@@ -175,7 +175,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - _Requirements: 1.3, 1.4_
 
 - [ ] 12. Modify `App.tsx` to wire `activeTab` and render `LibraryView`
-  - [~] 12.1 Destructure `activeTab` and `setActiveTab` from `useAppState()` and wire to `TopNavBar`
+  - [x] 12.1 Destructure `activeTab` and `setActiveTab` from `useAppState()` and wire to `TopNavBar`
     - Destructure `activeTab` and `setActiveTab` from `useAppState()`
     - Pass `activeTab={activeTab}` and `onTabChange={setActiveTab}` to `<TopNavBar>`
     - _Requirements: 1.1, 1.2_
@@ -228,7 +228,7 @@ Implement the Library Tab feature for the WordAI desktop editor — a full-scree
     - **Validates: Requirements 9.3, 9.4**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, confirm, assert `delete_intent` was called exactly once with the target `id`, assert the card is no longer in the rendered output
     - Use `fc.assert(fc.property(fc.array(arbitraryAuraIntentSummary(), { minLength: 1 }), fc.nat(), ...), { numRuns: 100 })`
-  - [-] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
+  - [x] 14.7 Write property test for Property 7 (cancel never persists changes) in `src/components/LibraryView.property.test.tsx`
     - **Property 7: Cancelling any destructive action never persists changes**
     - **Validates: Requirements 6.9, 9.5**
     - For any non-empty array of summaries and a target index, render `LibraryView`, click delete on the target card, cancel, assert `delete_intent` was never called and the card is still present in the grid

@@ -381,3 +381,100 @@ describe('Property 6: Delete confirmation calls delete_intent with the correct i
     );
   });
 });
+
+
+// ─── Property 7: Cancelling any destructive action never persists changes ─────
+// Validates: Requirements 6.9, 9.5
+
+describe('Property 7: Cancelling any destructive action never persists changes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('for any non-empty array of summaries and a target index, cancelling delete never calls delete_intent and the card remains', async () => {
+    // Feature: library-tab, Property 7: Cancelling any destructive action never persists changes
+    // **Validates: Requirements 6.9, 9.5**
+    await fc.assert(
+      fc.asyncProperty(
+        fc.array(arbitraryAuraIntentSummary(), { minLength: 1, maxLength: 10 }),
+        fc.nat(),
+        async (summaries, indexSeed) => {
+          vi.clearAllMocks();
+
+          // Deduplicate summaries by id to avoid rendering issues
+          const uniqueSummaries = summaries.filter(
+            (s, i, arr) => arr.findIndex((x) => x.id === s.id) === i
+          );
+          if (uniqueSummaries.length === 0) return true;
+
+          const targetIndex = indexSeed % uniqueSummaries.length;
+          const target = uniqueSummaries[targetIndex];
+
+          // Mock list_intents to return the summaries
+          mockInvoke.mockImplementation(async (cmd: string) => {
+            if (cmd === 'list_intents') return uniqueSummaries;
+            if (cmd === 'delete_intent') return null;
+            return null;
+          });
+
+          const onOpenDocument = vi.fn();
+          const onTabChange = vi.fn();
+
+          const { unmount } = renderLibraryView({ onOpenDocument, onTabChange });
+
+          // Wait for loading to finish and cards to render
+          await waitFor(() => {
+            expect(screen.getAllByTestId('library-card').length).toBeGreaterThan(0);
+          });
+
+          // Find all cards and click delete on the target card
+          const cards = screen.getAllByTestId('library-card');
+
+          // Cards are sorted by updated_at descending, so find the target card's position
+          const sortedSummaries = [...uniqueSummaries].sort(
+            (a, b) => b.updated_at - a.updated_at
+          );
+          const sortedTargetIndex = sortedSummaries.findIndex(
+            (s) => s.id === target.id
+          );
+
+          const targetCard = cards[sortedTargetIndex];
+          const deleteButton = within(targetCard).getByTestId('library-card-delete');
+
+          // Click the delete button to trigger the confirmation dialog
+          await act(async () => {
+            await userEvent.click(deleteButton);
+          });
+
+          // The ConfirmationDialog should now be visible
+          const confirmDialog = screen.getByTestId('confirmation-dialog');
+          expect(confirmDialog).toBeInTheDocument();
+
+          // Click the CANCEL button instead of confirm
+          const cancelButton = within(confirmDialog).getByTestId('confirmation-dialog-cancel');
+          await act(async () => {
+            await userEvent.click(cancelButton);
+          });
+
+          // Assert delete_intent was NEVER called
+          const deleteIntentCalls = mockInvoke.mock.calls.filter(
+            (call) => call[0] === 'delete_intent'
+          );
+          expect(deleteIntentCalls).toHaveLength(0);
+
+          // Assert the card is still present in the grid (all cards remain)
+          const remainingCards = screen.queryAllByTestId('library-card');
+          expect(remainingCards).toHaveLength(uniqueSummaries.length);
+
+          // Assert the confirmation dialog is dismissed
+          expect(screen.queryByTestId('confirmation-dialog')).not.toBeInTheDocument();
+
+          unmount();
+          return true;
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
