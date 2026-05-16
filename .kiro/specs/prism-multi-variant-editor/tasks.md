@@ -144,7 +144,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Export schema và inferred type
     - _Requirements: 5.2, 5.6, 5.8, 5.9_
 
-  - [~] 7.2 Tạo `auraBundleService` tại `src/services/auraBundleService.ts`
+  - [x] 7.2 Tạo `auraBundleService` tại `src/services/auraBundleService.ts`
     - Implement `loadBundle(intentId)`: đọc file từ `{appDataDir}/aura/{intentId}.aura.json`
     - Validate bundle với auraSchema, trả về null nếu invalid hoặc file không tồn tại
     - Implement `saveBundle(bundle)`: validate rồi ghi file (overwrite strategy)
@@ -161,7 +161,7 @@ Triển khai Prism Multi-Variant Editor theo 6 milestone tuần tự: Foundation
     - Không bao giờ throw — fallback sang kind 'markdown'
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [~] 7.5 Viết property test cho source detection determinism
+  - [x] 7.5 Viết property test cho source detection determinism
     - **Property 7: Source Detection Determinism** — detectSource trả về kind tương ứng extension, không throw
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.6**
 
