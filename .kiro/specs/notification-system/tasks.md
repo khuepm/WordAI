@@ -108,7 +108,7 @@ Triển khai hệ thống notification theo triết lý Config-First. Mọi noti
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.7_
 
 - [ ] 4. Implement Notification Channels
-  - [~] 4.1 Tạo `src/services/notificationChannels.ts`
+  - [x] 4.1 Tạo `src/services/notificationChannels.ts`
     - Abstract channel interface
     - StatusBar channel: persistent notifications, priority ordering
     - Toast channel: auto-dismiss, stack management
