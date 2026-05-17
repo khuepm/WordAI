@@ -11,7 +11,10 @@ use rusqlite::{params, Connection};
 use serde_json;
 use tauri::Manager;
 
-use crate::models::{AuraDocument, DocumentBlock, IntentSummary, IPCError, PartialImportResult};
+use crate::models::{
+    ArchiveSuggestion, ArchivedIntentDocument, ArchivedIntentSummary, AuraDocument, DocumentBlock,
+    IntentSummary, IPCError, PartialImportResult, PausedProject,
+};
 
 // ── SqliteStore ───────────────────────────────────────────────────────────────
 
@@ -475,6 +478,555 @@ impl SqliteStore {
         }
 
         Ok(summaries)
+    }
+
+    // ── Archive CRUD Methods ──────────────────────────────────────────────────
+
+    /// List archived intents with optional category (archive_type) filter.
+    ///
+    /// Requirements: 2.1
+    pub fn list_archived_intents(
+        &self,
+        category: Option<&str>,
+    ) -> Result<Vec<ArchivedIntentSummary>, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let (sql, params_vec): (String, Vec<Box<dyn rusqlite::types::ToSql>>) = match category {
+            Some(cat) => (
+                "SELECT id, intent_name, archived_at, archive_reason, archive_type, \
+                 related_current_id, memory_access_enabled, created_at, updated_at, \
+                 version, project_id \
+                 FROM archived_intents WHERE archive_type = ?1 \
+                 ORDER BY archived_at DESC"
+                    .to_string(),
+                vec![Box::new(cat.to_string()) as Box<dyn rusqlite::types::ToSql>],
+            ),
+            None => (
+                "SELECT id, intent_name, archived_at, archive_reason, archive_type, \
+                 related_current_id, memory_access_enabled, created_at, updated_at, \
+                 version, project_id \
+                 FROM archived_intents ORDER BY archived_at DESC"
+                    .to_string(),
+                vec![],
+            ),
+        };
+
+        let mut stmt = conn.prepare(&sql).map_err(|e| IPCError {
+            code: "DB_READ_ERROR".to_string(),
+            message: format!("Cannot prepare list archived query: {e}"),
+        })?;
+
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+            params_vec.iter().map(|p| p.as_ref()).collect();
+
+        let rows = stmt
+            .query_map(params_refs.as_slice(), |row| {
+                Ok(ArchivedIntentSummary {
+                    id: row.get(0)?,
+                    intent_name: row.get(1)?,
+                    archived_at: row.get(2)?,
+                    archive_reason: row.get(3)?,
+                    archive_type: row.get(4)?,
+                    related_current_id: row.get(5)?,
+                    memory_access_enabled: row.get::<_, i64>(6)? != 0,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    version: row.get(9)?,
+                    project_id: row.get(10)?,
+                })
+            })
+            .map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot execute list archived query: {e}"),
+            })?;
+
+        let mut summaries = Vec::new();
+        for row in rows {
+            summaries.push(row.map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot read archived intent row: {e}"),
+            })?);
+        }
+
+        Ok(summaries)
+    }
+
+    /// Retrieve a single archived intent by id, including deserialized content.
+    ///
+    /// Requirements: 2.2
+    pub fn get_archived_intent(
+        &self,
+        id: &str,
+    ) -> Result<Option<ArchivedIntentDocument>, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let result = conn.query_row(
+            "SELECT id, intent_name, raw_content, archived_at, archive_reason, \
+             archive_type, related_current_id, memory_access_enabled, created_at, \
+             updated_at, version, project_id \
+             FROM archived_intents WHERE id = ?1",
+            params![id],
+            |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, i64>(3)?,
+                    row.get::<_, String>(4)?,
+                    row.get::<_, String>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, i64>(7)?,
+                    row.get::<_, i64>(8)?,
+                    row.get::<_, i64>(9)?,
+                    row.get::<_, i64>(10)?,
+                    row.get::<_, Option<String>>(11)?,
+                ))
+            },
+        );
+
+        match result {
+            Ok((
+                id,
+                intent_name,
+                raw_content,
+                archived_at,
+                archive_reason,
+                archive_type,
+                related_current_id,
+                memory_access_enabled,
+                created_at,
+                updated_at,
+                version,
+                project_id,
+            )) => {
+                let content: Vec<DocumentBlock> =
+                    serde_json::from_str(&raw_content).map_err(|e| IPCError {
+                        code: "DESERIALIZE_ERROR".to_string(),
+                        message: format!("Cannot deserialize archived content: {e}"),
+                    })?;
+                Ok(Some(ArchivedIntentDocument {
+                    id,
+                    intent_name,
+                    archived_at,
+                    archive_reason,
+                    archive_type,
+                    related_current_id,
+                    memory_access_enabled: memory_access_enabled != 0,
+                    created_at,
+                    updated_at,
+                    version,
+                    project_id,
+                    content,
+                }))
+            }
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot read archived intent: {e}"),
+            }),
+        }
+    }
+
+    /// Archive an active intent: transactional move from `intents` to `archived_intents`.
+    ///
+    /// If the insert into `archived_intents` fails, the original intent is NOT deleted.
+    ///
+    /// Requirements: 2.3
+    pub fn archive_intent(
+        &self,
+        id: &str,
+        reason: &str,
+    ) -> Result<ArchivedIntentSummary, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        // Read the intent from the intents table
+        let intent_row = conn
+            .query_row(
+                "SELECT id, intent_name, raw_content, created_at, updated_at, version \
+                 FROM intents WHERE id = ?1",
+                params![id],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, i64>(3)?,
+                        row.get::<_, i64>(4)?,
+                        row.get::<_, i64>(5)?,
+                    ))
+                },
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => IPCError {
+                    code: "NOT_FOUND".to_string(),
+                    message: format!("Intent with id '{}' not found", id),
+                },
+                _ => IPCError {
+                    code: "DB_READ_ERROR".to_string(),
+                    message: format!("Cannot read intent for archiving: {e}"),
+                },
+            })?;
+
+        let (intent_id, intent_name, raw_content, created_at, _updated_at, version) = intent_row;
+
+        let now_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as i64;
+
+        // Begin transaction
+        conn.execute_batch("BEGIN;").map_err(|e| IPCError {
+            code: "TX_ERROR".to_string(),
+            message: format!("Cannot begin archive transaction: {e}"),
+        })?;
+
+        let result = (|| -> Result<(), IPCError> {
+            // Insert into archived_intents
+            conn.execute(
+                "INSERT INTO archived_intents \
+                 (id, intent_name, raw_content, archived_at, archive_reason, \
+                  archive_type, related_current_id, memory_access_enabled, \
+                  created_at, updated_at, version, project_id) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, 'manual', NULL, 1, ?6, ?7, ?8, NULL)",
+                params![intent_id, intent_name, raw_content, now_ms, reason, created_at, now_ms, version],
+            )
+            .map_err(|e| IPCError {
+                code: "DB_WRITE_ERROR".to_string(),
+                message: format!("Cannot insert into archived_intents: {e}"),
+            })?;
+
+            // Delete from intents
+            conn.execute("DELETE FROM intents WHERE id = ?1", params![id])
+                .map_err(|e| IPCError {
+                    code: "DB_WRITE_ERROR".to_string(),
+                    message: format!("Cannot delete intent after archiving: {e}"),
+                })?;
+
+            Ok(())
+        })();
+
+        match result {
+            Ok(()) => {
+                conn.execute_batch("COMMIT;").map_err(|e| IPCError {
+                    code: "TX_ERROR".to_string(),
+                    message: format!("Cannot commit archive transaction: {e}"),
+                })?;
+                Ok(ArchivedIntentSummary {
+                    id: intent_id,
+                    intent_name,
+                    archived_at: now_ms,
+                    archive_reason: reason.to_string(),
+                    archive_type: "manual".to_string(),
+                    related_current_id: None,
+                    memory_access_enabled: true,
+                    created_at,
+                    updated_at: now_ms,
+                    version,
+                    project_id: None,
+                })
+            }
+            Err(e) => {
+                let _ = conn.execute_batch("ROLLBACK;");
+                Err(e)
+            }
+        }
+    }
+
+    /// Restore an archived intent: transactional move from `archived_intents` back to `intents`.
+    ///
+    /// If the insert into `intents` fails, the archived intent is NOT deleted.
+    ///
+    /// Requirements: 2.4
+    pub fn restore_intent(&self, id: &str) -> Result<AuraDocument, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        // Read the archived intent
+        let archived_row = conn
+            .query_row(
+                "SELECT id, intent_name, raw_content, created_at, updated_at, version \
+                 FROM archived_intents WHERE id = ?1",
+                params![id],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, i64>(3)?,
+                        row.get::<_, i64>(4)?,
+                        row.get::<_, i64>(5)?,
+                    ))
+                },
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => IPCError {
+                    code: "NOT_FOUND".to_string(),
+                    message: format!("Archived intent with id '{}' not found", id),
+                },
+                _ => IPCError {
+                    code: "DB_READ_ERROR".to_string(),
+                    message: format!("Cannot read archived intent for restoring: {e}"),
+                },
+            })?;
+
+        let (intent_id, intent_name, raw_content, created_at, _updated_at, version) = archived_row;
+
+        let now_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as i64;
+
+        // Deserialize content for the return value
+        let content: Vec<DocumentBlock> =
+            serde_json::from_str(&raw_content).map_err(|e| IPCError {
+                code: "DESERIALIZE_ERROR".to_string(),
+                message: format!("Cannot deserialize archived content: {e}"),
+            })?;
+
+        // Begin transaction
+        conn.execute_batch("BEGIN;").map_err(|e| IPCError {
+            code: "TX_ERROR".to_string(),
+            message: format!("Cannot begin restore transaction: {e}"),
+        })?;
+
+        let result = (|| -> Result<(), IPCError> {
+            // Insert back into intents
+            conn.execute(
+                "INSERT OR REPLACE INTO intents \
+                 (id, intent_name, raw_content, created_at, updated_at, version) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![intent_id, intent_name, raw_content, created_at, now_ms, version],
+            )
+            .map_err(|e| IPCError {
+                code: "DB_WRITE_ERROR".to_string(),
+                message: format!("Cannot insert intent during restore: {e}"),
+            })?;
+
+            // Delete from archived_intents
+            conn.execute(
+                "DELETE FROM archived_intents WHERE id = ?1",
+                params![id],
+            )
+            .map_err(|e| IPCError {
+                code: "DB_WRITE_ERROR".to_string(),
+                message: format!("Cannot delete archived intent after restoring: {e}"),
+            })?;
+
+            Ok(())
+        })();
+
+        match result {
+            Ok(()) => {
+                conn.execute_batch("COMMIT;").map_err(|e| IPCError {
+                    code: "TX_ERROR".to_string(),
+                    message: format!("Cannot commit restore transaction: {e}"),
+                })?;
+                Ok(AuraDocument {
+                    id: intent_id,
+                    intent_name,
+                    content,
+                    version: Some(version),
+                    created_at: Some(created_at),
+                    updated_at: Some(now_ms),
+                })
+            }
+            Err(e) => {
+                let _ = conn.execute_batch("ROLLBACK;");
+                Err(e)
+            }
+        }
+    }
+
+    /// Permanently delete an archived intent.
+    ///
+    /// Requirements: 2.5
+    pub fn delete_archived_intent(&self, id: &str) -> Result<(), IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let rows_affected = conn
+            .execute("DELETE FROM archived_intents WHERE id = ?1", params![id])
+            .map_err(|e| IPCError {
+                code: "DB_WRITE_ERROR".to_string(),
+                message: format!("Cannot delete archived intent: {e}"),
+            })?;
+
+        if rows_affected == 0 {
+            return Err(IPCError {
+                code: "NOT_FOUND".to_string(),
+                message: format!("Archived intent with id '{}' not found", id),
+            });
+        }
+
+        Ok(())
+    }
+
+    /// Toggle the `memory_access_enabled` field on an archived intent.
+    ///
+    /// Requirements: 2.6
+    pub fn update_memory_access(&self, id: &str, enabled: bool) -> Result<(), IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let enabled_int: i64 = if enabled { 1 } else { 0 };
+
+        let rows_affected = conn
+            .execute(
+                "UPDATE archived_intents SET memory_access_enabled = ?1 WHERE id = ?2",
+                params![enabled_int, id],
+            )
+            .map_err(|e| IPCError {
+                code: "DB_WRITE_ERROR".to_string(),
+                message: format!("Cannot update memory_access_enabled: {e}"),
+            })?;
+
+        if rows_affected == 0 {
+            return Err(IPCError {
+                code: "NOT_FOUND".to_string(),
+                message: format!("Archived intent with id '{}' not found", id),
+            });
+        }
+
+        Ok(())
+    }
+
+    /// List paused projects with document count subquery.
+    ///
+    /// Requirements: 2.9
+    pub fn list_paused_projects(&self) -> Result<Vec<PausedProject>, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT p.id, p.name, p.description, \
+                 (SELECT COUNT(*) FROM archived_intents WHERE project_id = p.id) as document_count, \
+                 p.paused_at, p.created_at \
+                 FROM paused_projects p ORDER BY p.paused_at DESC",
+            )
+            .map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot prepare list paused projects query: {e}"),
+            })?;
+
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(PausedProject {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    description: row.get(2)?,
+                    document_count: row.get(3)?,
+                    paused_at: row.get(4)?,
+                    created_at: row.get(5)?,
+                })
+            })
+            .map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot execute list paused projects query: {e}"),
+            })?;
+
+        let mut projects = Vec::new();
+        for row in rows {
+            projects.push(row.map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot read paused project row: {e}"),
+            })?);
+        }
+
+        Ok(projects)
+    }
+
+    /// Get archived intents filtered by project_id.
+    ///
+    /// Requirements: 2.10
+    pub fn get_project_documents(
+        &self,
+        project_id: &str,
+    ) -> Result<Vec<ArchivedIntentSummary>, IPCError> {
+        let conn = self.conn.lock().map_err(|_| IPCError {
+            code: "LOCK_ERROR".to_string(),
+            message: "Cannot acquire database lock".to_string(),
+        })?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, intent_name, archived_at, archive_reason, archive_type, \
+                 related_current_id, memory_access_enabled, created_at, updated_at, \
+                 version, project_id \
+                 FROM archived_intents WHERE project_id = ?1 \
+                 ORDER BY archived_at DESC",
+            )
+            .map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot prepare project documents query: {e}"),
+            })?;
+
+        let rows = stmt
+            .query_map(params![project_id], |row| {
+                Ok(ArchivedIntentSummary {
+                    id: row.get(0)?,
+                    intent_name: row.get(1)?,
+                    archived_at: row.get(2)?,
+                    archive_reason: row.get(3)?,
+                    archive_type: row.get(4)?,
+                    related_current_id: row.get(5)?,
+                    memory_access_enabled: row.get::<_, i64>(6)? != 0,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    version: row.get(9)?,
+                    project_id: row.get(10)?,
+                })
+            })
+            .map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot execute project documents query: {e}"),
+            })?;
+
+        let mut summaries = Vec::new();
+        for row in rows {
+            summaries.push(row.map_err(|e| IPCError {
+                code: "DB_READ_ERROR".to_string(),
+                message: format!("Cannot read project document row: {e}"),
+            })?);
+        }
+
+        Ok(summaries)
+    }
+
+    /// Get archive suggestions for an active document.
+    /// Returns empty vec — actual AI call happens in the command layer.
+    ///
+    /// Requirements: 2.7
+    pub fn get_archive_suggestions(
+        &self,
+        _active_doc_id: &str,
+    ) -> Result<Vec<ArchiveSuggestion>, IPCError> {
+        Ok(vec![])
+    }
+
+    /// Generate archive summary for an archived document.
+    /// Returns empty string — actual AI call happens in the command layer.
+    ///
+    /// Requirements: 2.8
+    pub fn generate_archive_summary(&self, _id: &str) -> Result<String, IPCError> {
+        Ok(String::new())
     }
 }
 

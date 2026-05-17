@@ -71,7 +71,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: Existing `intents` and `intent_chunks` tables remain unmodified in schema and data_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.9, 2.10, 3.1, 3.2, 3.3_
 
-  - [~] 3.3 Implement archive CRUD methods on `SqliteStore`
+  - [x] 3.3 Implement archive CRUD methods on `SqliteStore`
     - `list_archived_intents(category: Option<&str>) -> Result<Vec<ArchivedIntentSummary>, IPCError>` — query with optional category filter
     - `get_archived_intent(id: &str) -> Result<Option<ArchivedIntentDocument>, IPCError>` — full document retrieval with raw_content deserialization
     - `archive_intent(id: &str, reason: &str) -> Result<ArchivedIntentSummary, IPCError>` — transactional move from `intents` to `archived_intents`
