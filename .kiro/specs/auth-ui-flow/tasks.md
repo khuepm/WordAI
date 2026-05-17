@@ -179,7 +179,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - UserMenuGuest "Sign In / Sign Up" button → opens AuthModal
     - _Requirements: 1.1, 8.6_
 
-- [ ] 8. Implement Sign Out and Session Restoration
+- [x] 8. Implement Sign Out and Session Restoration
   - [x] 8.1 Implement sign-out flow in App.tsx
     - `handleSignOut` callback: show spinner on Sign Out button (`progress_activity animate-spin text-error`), disable menu items
     - Call `authService.logout(sessionId)` then `firebaseSignOut()`
@@ -189,7 +189,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Handle network errors gracefully (still clear local state)
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6_
 
-  - [~] 8.2 Implement session restoration in App.tsx
+  - [x] 8.2 Implement session restoration in App.tsx
     - On app startup: check `getPersistedSessionId()`
     - If exists: show pulsing avatar (`animate-pulse opacity-60`), call `fetchAccessContext(sessionId)` with 10s timeout
     - On success: `setAccessContext(context)`, trigger cloud settings sync

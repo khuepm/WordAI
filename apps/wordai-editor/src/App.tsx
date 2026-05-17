@@ -24,9 +24,10 @@ import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
-import { useAIAccessState, useAccessContext } from './services/authStore';
+import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
 import { useAuth } from './hooks/useAuth';
 import { resetCloudSettingsToDefaults } from './services/cloudSettingsService';
+import { getPersistedSessionId, fetchAccessContext, clearLocalAuthCache } from './services/authService';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -126,6 +127,10 @@ function App() {
   const { signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
+  // Req 12.1–12.5 — Session restoration on app startup
+  const { setAccessContext: setAccessCtx, clearAuth } = useAuthState();
+  const [isRestoringSession, setIsRestoringSession] = useState(false);
+
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
     return stored ? Number(stored) : DEFAULT_FONT_SIZE;
@@ -180,6 +185,59 @@ function App() {
   const handleQuickSearchSelect = useCallback((entry: SettingEntry) => {
     setIsQuickSearchOpen(false);
     void openPreferencesWindow({ tab: entry.tab as Tab, settingId: entry.id });
+  }, []);
+
+  // Req 12.1–12.5 — Restore session on app startup (non-blocking)
+  useEffect(() => {
+    const sessionId = getPersistedSessionId();
+    if (!sessionId) {
+      // Req 12.5 — No persisted session: guest state immediately, no fetch
+      return;
+    }
+
+    let cancelled = false;
+    setIsRestoringSession(true);
+
+    const SESSION_RESTORE_TIMEOUT = 10_000; // 10s timeout (Req 12.1)
+    const validSessionId: string = sessionId;
+
+    async function restoreSession() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), SESSION_RESTORE_TIMEOUT);
+
+        const context = await Promise.race([
+          fetchAccessContext(validSessionId),
+          new Promise<never>((_, reject) => {
+            controller.signal.addEventListener('abort', () =>
+              reject(new Error('Session restoration timed out'))
+            );
+          }),
+        ]);
+
+        clearTimeout(timeoutId);
+
+        if (!cancelled) {
+          // Req 12.2 — Restore context and trigger cloud settings sync
+          setAccessCtx(context);
+          // TODO (Task 9.3): Trigger cloud settings sync — syncCloudSettings(context)
+        }
+      } catch {
+        if (!cancelled) {
+          // Req 12.3 — On failure/timeout: clear cache and remain in guest state
+          clearLocalAuthCache();
+          clearAuth();
+        }
+      } finally {
+        if (!cancelled) {
+          setIsRestoringSession(false);
+        }
+      }
+    }
+
+    restoreSession();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshPreferences = useCallback(async () => {
@@ -525,6 +583,7 @@ function App() {
         onSignIn={() => setIsAuthModalOpen(true)}
         onSignOut={handleSignOut}
         isSigningOut={isSigningOut}
+        isRestoringSession={isRestoringSession}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
