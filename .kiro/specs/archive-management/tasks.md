@@ -229,7 +229,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Apply `role="main"` on content area
     - _Requirements: 1.1, 2.1–2.10, 3.1–3.9, 4.1–4.8, 5.1–5.10, 6.1–6.8, 11.4–11.12, 12.1–12.8, 13.1–13.7, 14.1, 14.4_
 
-  - [~] 14.2 Wire ArchiveView into `App.tsx`
+  - [x] 14.2 Wire ArchiveView into `App.tsx`
     - Conditionally render `<ArchiveView>` when `state.activeTab === 'archive'`
     - Pass `onOpenDocument`, `onTabChange`, and `currentDocumentId` props
     - Ensure TopNavBar shows "Archive" tab with active styling when archive is active
