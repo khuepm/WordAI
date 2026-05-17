@@ -209,7 +209,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Implement ArchiveView main container and wire components
-  - [~] 14.1 Create `src/components/ArchiveView.tsx`
+  - [x] 14.1 Create `src/components/ArchiveView.tsx`
     - Accept props: `onOpenDocument`, `onTabChange`, `currentDocumentId`
     - Manage local state: `archivedItems`, `suggestions`, `pausedProjects`, `isLoading`, `loadError`, `searchInput`, `searchQuery` (debounced 300ms), `activeCategory`, `activeFilters`, `selectedItemId`, `isDrawerOpen`
     - Fetch data on mount via `Promise.all` (list_archived_intents, get_archive_suggestions, list_paused_projects)
