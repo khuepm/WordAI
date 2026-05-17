@@ -88,7 +88,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Test filter selection callbacks
     - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.9_
 
-- [ ] 6. Implement SuggestionCard component
+- [x] 6. Implement SuggestionCard component
   - [x] 6.1 Create `src/components/SuggestionCard.tsx`
     - Accept props: `suggestion`, `isPrimary`, `onReview`, `onCompare?`, `onRestore?`
     - Render category badge, title, description (max 3 lines with ellipsis), archived-date (relative time), and action link
@@ -97,14 +97,14 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - "Referenced Work" category: show "Compare" and "Restore" buttons instead of "Review" link
     - _Requirements: 4.2, 4.3, 4.4, 4.5, 12.6, 12.7_
 
-  - [~] 6.2 Write unit tests for `SuggestionCard`
+  - [x] 6.2 Write unit tests for `SuggestionCard`
     - Test primary vs secondary styling
     - Test "Referenced Work" variant renders Compare/Restore buttons
     - Test default variant renders Review link
     - Test click handlers
     - _Requirements: 4.2, 4.4, 4.5_
 
-- [ ] 7. Implement VersionListItem component
+- [x] 7. Implement VersionListItem component
   - [x] 7.1 Create `src/components/VersionListItem.tsx`
     - Accept props: `version`, `onOpen`, `onCompare`, `onRestore`
     - Render document icon in rounded container, title (font-headline, semibold), relative timestamp, archival reason
@@ -113,13 +113,13 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Display inline error if related document unavailable on compare
     - _Requirements: 5.3, 5.4, 5.5, 5.6, 5.7, 12.2, 12.5_
 
-  - [~] 7.2 Write unit tests for `VersionListItem`
+  - [x] 7.2 Write unit tests for `VersionListItem`
     - Test action buttons visible on hover
     - Test click on body calls `onOpen`
     - Test Compare/Restore button click handlers
     - _Requirements: 5.4, 5.5, 5.6_
 
-- [ ] 8. Implement PausedProjectCard component
+- [x] 8. Implement PausedProjectCard component
   - [x] 8.1 Create `src/components/PausedProjectCard.tsx`
     - Accept props: `project`, `onOpen`
     - Render folder icon (48px rounded), project name (truncated at 60 chars), document count, description (max 2 lines), relative timestamp, "Open Folder" link
@@ -127,7 +127,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Decorative 64px circle in top-right, scales to 1.1x on hover (300ms ease-in-out)
     - _Requirements: 6.2, 6.3, 6.5, 12.1, 12.8_
 
-  - [~] 8.2 Write unit tests for `PausedProjectCard`
+  - [x] 8.2 Write unit tests for `PausedProjectCard`
     - Test project name truncation at 60 characters
     - Test "Open Folder" click calls `onOpen`
     - Test document count display
@@ -137,14 +137,14 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 10. Implement DetailDrawer with metadata and AI summary
-  - [~] 10.1 Create `src/hooks/useFocusTrap.ts` custom hook
+  - [x] 10.1 Create `src/hooks/useFocusTrap.ts` custom hook
     - Implement focus trapping: Tab/Shift+Tab cycle within container
     - Move focus to first focusable element on activation
     - Return focus to trigger element on deactivation
     - Handle Escape key to close
     - _Requirements: 7.1, 7.5, 7.6, 7.8, 14.2, 14.3_
 
-  - [~] 10.2 Create `src/hooks/useAISummary.ts` custom hook
+  - [x] 10.2 Create `src/hooks/useAISummary.ts` custom hook
     - Accept `itemId: string | null`
     - Invoke `generate_archive_summary` with 30s timeout
     - Track loading/success/error state and retry count (max 3)
