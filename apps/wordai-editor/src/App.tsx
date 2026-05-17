@@ -25,6 +25,8 @@ import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import { useAIAccessState, useAccessContext } from './services/authStore';
+import { useAuth } from './hooks/useAuth';
+import { resetCloudSettingsToDefaults } from './services/cloudSettingsService';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -119,6 +121,10 @@ function App() {
   // Req 13.8–13.11 — derive AI access state to gate AI features
   const aiAccessState = useAIAccessState();
   const accessContext = useAccessContext();
+
+  // Req 11.1–11.6 — Sign-out flow
+  const { signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -363,6 +369,35 @@ function App() {
     }
   }, [document]);
 
+  /**
+   * Sign-out handler — Req 11.1–11.6
+   *
+   * Flow:
+   * 1. Show spinner on Sign Out button, disable menu items (Req 11.4)
+   * 2. Call authService.logout(sessionId) to revoke session (Req 11.1)
+   * 3. Call firebaseSignOut() (Req 11.1)
+   * 4. Call clearAuth() on store (Req 11.2)
+   * 5. Call resetCloudSettingsToDefaults() (Req 11.6)
+   * 6. Close menu, transition avatar to guest state (Req 11.5)
+   * 7. If network error: still clear local state (Req 11.3)
+   */
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    try {
+      // Steps 1-4: useAuth().signOut() handles:
+      //   - authService.logout(sessionId) → revoke session + clear cache
+      //   - firebaseSignOut()
+      //   - clearAuth() on store
+      // It also handles network errors gracefully (still clears local state)
+      await signOut();
+    } finally {
+      // Step 5: Reset cloud settings to defaults (Req 11.6)
+      await resetCloudSettingsToDefaults();
+      // Step 6: isSigningOut=false triggers avatar transition to guest state
+      setIsSigningOut(false);
+    }
+  }, [signOut]);
+
   const handleImportedDocument = useCallback((doc: Document) => {
     const normalized = { ...doc, content: ensureBlockValue(doc.content) };
     setDocument(normalized, '', true);
@@ -488,6 +523,8 @@ function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onSignIn={() => setIsAuthModalOpen(true)}
+        onSignOut={handleSignOut}
+        isSigningOut={isSigningOut}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (

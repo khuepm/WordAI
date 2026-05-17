@@ -180,7 +180,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 1.1, 8.6_
 
 - [ ] 8. Implement Sign Out and Session Restoration
-  - [~] 8.1 Implement sign-out flow in App.tsx
+  - [x] 8.1 Implement sign-out flow in App.tsx
     - `handleSignOut` callback: show spinner on Sign Out button (`progress_activity animate-spin text-error`), disable menu items
     - Call `authService.logout(sessionId)` then `firebaseSignOut()`
     - Call `clearAuth()` on store
