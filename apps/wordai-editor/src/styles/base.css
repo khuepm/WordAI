@@ -41,6 +41,39 @@ body {
   -webkit-backdrop-filter: blur(20px);
 }
 
+/* Fluid Input — ForgotPassword form */
+.fluid-input {
+  background-color: var(--md-sys-color-surface-container-low, #f3f4f5);
+  border: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.fluid-input:focus {
+  background-color: var(--md-sys-color-surface-container-lowest, #ffffff);
+  border-bottom-color: var(--md-sys-color-primary, #4343d5);
+  box-shadow: 0 4px 6px -1px rgba(67, 67, 213, 0.1);
+  outline: none;
+}
+
+/* Fluid Button — ForgotPassword form */
+.fluid-button {
+  background-color: var(--md-sys-color-primary, #4343d5);
+  color: var(--md-sys-color-on-primary, #ffffff);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fluid-button:hover {
+  background-color: var(--md-sys-color-primary-container, #5d5fef);
+  box-shadow: 0 0 15px rgba(67, 67, 213, 0.4);
+}
+
+.fluid-button:active {
+  background-color: var(--md-sys-color-surface-tint, #4849da);
+}
+
 /* Focus */
 :focus-visible {
   outline: 2px solid var(--md-sys-color-primary);

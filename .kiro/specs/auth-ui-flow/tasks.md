@@ -119,7 +119,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 4.6, 4.7, 4.8_
 
 - [ ] 5. Implement ForgotPasswordForm and ResetSuccessView
-  - [~] 5.1 Create `src/components/auth/ForgotPasswordForm.tsx`
+  - [x] 5.1 Create `src/components/auth/ForgotPasswordForm.tsx`
     - Glass panel: `bg-white/80 backdrop-blur-[20px] border border-outline-variant/15 rounded-xl p-10`
     - Header: filled `lock_reset` icon `text-primary text-2xl`, heading `font-headline font-bold text-2xl tracking-tight`, description `font-body text-on-surface-variant leading-relaxed`
     - Email input: `mail` icon left (`absolute left-4`), input `fluid-input rounded-lg py-4 pl-12 pr-4 font-body text-base`
