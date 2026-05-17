@@ -151,7 +151,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Return `{ state: AISummaryState, retry: () => void }`
     - _Requirements: 9.4, 9.5, 9.6, 9.7_
 
-  - [~] 10.3 Create `src/components/DetailDrawer.tsx`
+  - [x] 10.3 Create `src/components/DetailDrawer.tsx`
     - Accept props per `DetailDrawerProps` interface from design
     - Slide in from right with 500ms ease-out, max-width 672px
     - Full-screen on mobile (< 768px)
@@ -178,7 +178,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - _Requirements: 7.1, 7.5, 7.6, 7.8, 9.4, 9.5, 14.2, 14.3_
 
 - [ ] 11. Implement MemoryAccessToggle component
-  - [~] 11.1 Create `src/components/MemoryAccessToggle.tsx`
+  - [x] 11.1 Create `src/components/MemoryAccessToggle.tsx`
     - Accept props: `enabled`, `isUpdating`, `error`, `onChange`
     - Render section with surface-container-lowest background, rounded-xl, border transitioning to primary/30 on hover
     - Display memory icon, title, description, and toggle switch aligned right
@@ -192,7 +192,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - **Validates: Requirements 10.7**
 
 - [ ] 12. Implement DrawerActionBar component
-  - [~] 12.1 Create `src/components/DrawerActionBar.tsx`
+  - [x] 12.1 Create `src/components/DrawerActionBar.tsx`
     - Accept props: `itemId`, `hasRelatedFile`, `onRestore`, `onCompare`, `onOpenReadOnly`, `onSaveToLibrary`, `onDelete`
     - Render sticky footer with frosted-glass background (surface-container-lowest/90, 12px backdrop blur, top border)
     - Primary row: "Restore to Drafts" (primary bg, flex-1), "Compare with Current" (surface bg, flex-1, disabled if no related file), "Open Read-only" (bordered, fixed width)
