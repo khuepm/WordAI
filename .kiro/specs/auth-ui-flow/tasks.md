@@ -165,7 +165,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Explore Features link: `text-[0.8rem] font-medium text-outline hover:text-primary uppercase tracking-[0.05em]`
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [~] 7.3 Refactor `TopNavBar.tsx` to use new UserMenu components
+  - [x] 7.3 Refactor `TopNavBar.tsx` to use new UserMenu components
     - Replace inline user menu with `UserMenuAuthenticated` or `UserMenuGuest` based on `accessContext`
     - Guest avatar trigger: `w-12 h-12 rounded-full bg-surface-container-low hover:bg-surface-container` with `account_circle` icon
     - Implement keyboard navigation (ArrowUp/Down, Enter, Escape)

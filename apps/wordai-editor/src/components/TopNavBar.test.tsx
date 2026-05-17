@@ -1,12 +1,22 @@
 /**
  * Unit tests for TopNavBar component
- * Requirements: 17.1, 18.1, 19.2
+ * Requirements: 7.6, 7.7, 8.1, 17.1, 18.1, 19.2
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TopNavBar } from './TopNavBar';
+import { AuthStateProvider } from '../services/authStore';
+import type { ReactNode } from 'react';
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return <AuthStateProvider>{children}</AuthStateProvider>;
+}
+
+function renderWithAuth(ui: React.ReactElement) {
+  return render(ui, { wrapper: Wrapper });
+}
 
 const defaultProps = {
   documentTitle: 'My Document',
@@ -21,25 +31,25 @@ beforeEach(() => {
 
 describe('TopNavBar - rendering', () => {
   it('renders the app title "WordAI"', () => {
-    render(<TopNavBar {...defaultProps} />);
+    renderWithAuth(<TopNavBar {...defaultProps} />);
     expect(screen.getByTestId('app-title')).toHaveTextContent('WordAI');
   });
 
   it('renders the document title from props', () => {
-    render(<TopNavBar {...defaultProps} documentTitle="My Test Doc" />);
+    renderWithAuth(<TopNavBar {...defaultProps} documentTitle="My Test Doc" />);
     // DocumentTitleBar renders the title in data-testid="document-title-text"
     expect(screen.getByTestId('document-title-text')).toHaveTextContent('My Test Doc');
   });
 
   it('shows dirty indicator "●" when isDirty=true', () => {
-    render(<TopNavBar {...defaultProps} isDirty={true} />);
+    renderWithAuth(<TopNavBar {...defaultProps} isDirty={true} />);
     // DocumentTitleBar shows ● prefix when isDirty
     const titleText = screen.getByTestId('document-title-text').textContent ?? '';
     expect(titleText).toContain('●');
   });
 
   it('does NOT show "●" when isDirty=false', () => {
-    render(<TopNavBar {...defaultProps} isDirty={false} />);
+    renderWithAuth(<TopNavBar {...defaultProps} isDirty={false} />);
     const titleText = screen.getByTestId('document-title-text').textContent ?? '';
     expect(titleText).not.toContain('●');
   });
@@ -49,7 +59,7 @@ describe('TopNavBar - actions', () => {
   it('clicking "New" calls onNew', async () => {
     const onNew = vi.fn();
     const user = userEvent.setup();
-    render(<TopNavBar {...defaultProps} onNew={onNew} />);
+    renderWithAuth(<TopNavBar {...defaultProps} onNew={onNew} />);
     await user.click(screen.getByTestId('new-button'));
     expect(onNew).toHaveBeenCalledOnce();
   });
@@ -57,7 +67,7 @@ describe('TopNavBar - actions', () => {
   it('clicking "Save" calls onSave', async () => {
     const onSave = vi.fn();
     const user = userEvent.setup();
-    render(<TopNavBar {...defaultProps} onSave={onSave} />);
+    renderWithAuth(<TopNavBar {...defaultProps} onSave={onSave} />);
     await user.click(screen.getByTestId('save-button'));
     expect(onSave).toHaveBeenCalledOnce();
   });
@@ -65,7 +75,7 @@ describe('TopNavBar - actions', () => {
 
 describe('TopNavBar - tab switching (Requirements 1.3, 1.4)', () => {
   it('activeTab="editor" applies active style to "Drafts" and inactive style to "Library"', () => {
-    render(<TopNavBar {...defaultProps} activeTab="editor" />);
+    renderWithAuth(<TopNavBar {...defaultProps} activeTab="editor" />);
 
     const draftsBtn = screen.getByTestId('nav-drafts');
     const libraryBtn = screen.getByTestId('nav-library');
@@ -82,7 +92,7 @@ describe('TopNavBar - tab switching (Requirements 1.3, 1.4)', () => {
   });
 
   it('activeTab="library" applies active style to "Library" and inactive style to "Drafts"', () => {
-    render(<TopNavBar {...defaultProps} activeTab="library" />);
+    renderWithAuth(<TopNavBar {...defaultProps} activeTab="library" />);
 
     const draftsBtn = screen.getByTestId('nav-drafts');
     const libraryBtn = screen.getByTestId('nav-library');
@@ -101,7 +111,7 @@ describe('TopNavBar - tab switching (Requirements 1.3, 1.4)', () => {
   it('clicking "Library" calls onTabChange with "library"', async () => {
     const onTabChange = vi.fn();
     const user = userEvent.setup();
-    render(<TopNavBar {...defaultProps} activeTab="editor" onTabChange={onTabChange} />);
+    renderWithAuth(<TopNavBar {...defaultProps} activeTab="editor" onTabChange={onTabChange} />);
 
     await user.click(screen.getByTestId('nav-library'));
     expect(onTabChange).toHaveBeenCalledOnce();
@@ -111,7 +121,7 @@ describe('TopNavBar - tab switching (Requirements 1.3, 1.4)', () => {
   it('clicking "Drafts" calls onTabChange with "editor"', async () => {
     const onTabChange = vi.fn();
     const user = userEvent.setup();
-    render(<TopNavBar {...defaultProps} activeTab="library" onTabChange={onTabChange} />);
+    renderWithAuth(<TopNavBar {...defaultProps} activeTab="library" onTabChange={onTabChange} />);
 
     await user.click(screen.getByTestId('nav-drafts'));
     expect(onTabChange).toHaveBeenCalledOnce();
