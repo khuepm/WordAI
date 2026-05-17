@@ -118,7 +118,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Handle Firebase errors (email-already-in-use, weak-password)
     - _Requirements: 4.6, 4.7, 4.8_
 
-- [ ] 5. Implement ForgotPasswordForm and ResetSuccessView
+- [x] 5. Implement ForgotPasswordForm and ResetSuccessView
   - [x] 5.1 Create `src/components/auth/ForgotPasswordForm.tsx`
     - Glass panel: `bg-white/80 backdrop-blur-[20px] border border-outline-variant/15 rounded-xl p-10`
     - Header: filled `lock_reset` icon `text-primary text-2xl`, heading `font-headline font-bold text-2xl tracking-tight`, description `font-body text-on-surface-variant leading-relaxed`
@@ -134,7 +134,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - On error: show error message
     - _Requirements: 5.6, 5.7_
 
-  - [~] 5.3 Create `src/components/auth/ResetSuccessView.tsx`
+  - [x] 5.3 Create `src/components/auth/ResetSuccessView.tsx`
     - Container: `bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[24px] p-12 ring-1 ring-outline-variant/15`
     - Top glow: `bg-gradient-to-r from-transparent via-primary/30 to-transparent h-1`
     - Success icon: filled `check_circle` at `text-[80px] text-primary` with glow `bg-primary/10 rounded-full blur-[20px] scale-150`
