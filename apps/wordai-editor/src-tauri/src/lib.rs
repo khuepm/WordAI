@@ -637,6 +637,17 @@ pub fn run() {
             reveal_in_file_manager,
             get_aurabrain_storage_path,
             get_file_size,
+            // Archive commands
+            list_archived_intents,
+            get_archived_intent,
+            archive_intent,
+            restore_intent,
+            delete_archived_intent,
+            update_memory_access,
+            get_archive_suggestions,
+            generate_archive_summary,
+            list_paused_projects,
+            get_project_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -111,7 +111,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: Existing command functions remain unchanged_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
 
-  - [~] 3.6 Register all 10 commands in the `invoke_handler` macro
+  - [x] 3.6 Register all 10 commands in the `invoke_handler` macro
     - Add all 10 new command function names to the `tauri::generate_handler![]` array in the `run()` function
     - Place after existing commands for clarity
     - _Bug_Condition: isBugCondition(input) — commands not in invoke_handler means Tauri returns "command not found"_
