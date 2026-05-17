@@ -110,11 +110,11 @@ export function ForgotPasswordForm({
             id="auth-modal-heading"
             className="font-headline font-bold text-2xl tracking-tight text-on-surface"
           >
-            Khôi phục mật khẩu
+            {t('auth.forgotPassword.title')}
           </h2>
         </div>
         <p className="font-body text-on-surface-variant leading-relaxed">
-          Nhập email của bạn để nhận hướng dẫn khôi phục mật khẩu.
+          {t('auth.forgotPassword.description')}
         </p>
       </header>
 
@@ -127,7 +127,7 @@ export function ForgotPasswordForm({
               className="font-headline text-label-md uppercase tracking-wider text-on-surface-variant font-semibold"
               htmlFor="forgot-password-email"
             >
-              Email liên kết
+              {t('auth.forgotPassword.emailLabel')}
             </label>
             <div className="relative">
               <span
@@ -164,7 +164,7 @@ export function ForgotPasswordForm({
                 progress_activity
               </span>
             )}
-            Gửi email khôi phục
+            {t('auth.forgotPassword.submit')}
             <span className="material-symbols-rounded text-lg">arrow_forward</span>
           </button>
 
@@ -177,7 +177,7 @@ export function ForgotPasswordForm({
             <span className="material-symbols-rounded text-sm group-hover:-translate-x-1 transition-transform">
               arrow_back
             </span>
-            Quay lại Đăng nhập
+            {t('auth.forgotPassword.backToLogin')}
           </button>
         </div>
       </form>

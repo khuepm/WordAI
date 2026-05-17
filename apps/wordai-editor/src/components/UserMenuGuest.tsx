@@ -30,10 +30,7 @@ export function UserMenuGuest({ onSignIn, onExploreFeatures }: UserMenuGuestProp
             </span>
           </div>
           <p className="text-[0.9rem] font-medium leading-[1.6] text-on-surface-variant">
-            {t('userMenu.guestBanner', {
-              defaultValue:
-                'Sign in to sync your theme, typography, and unlock powerful AI models across all devices.',
-            })}
+            {t('userMenu.guestBanner')}
           </p>
         </div>
       </div>
@@ -47,7 +44,7 @@ export function UserMenuGuest({ onSignIn, onExploreFeatures }: UserMenuGuestProp
           className="group w-full bg-primary text-on-primary py-[0.875rem] px-5 rounded-[0.75rem] font-semibold text-[0.95rem] tracking-wide flex items-center justify-center gap-2 transition-shadow hover:shadow-[0_0_16px_rgba(67,67,213,0.4)]"
           data-testid="user-menu-signin-button"
         >
-          {t('userMenu.signInSignUp', { defaultValue: 'Sign In / Sign Up' })}
+          {t('userMenu.signInSignUp')}
           <span className="material-symbols-rounded text-[1.25rem] transition-transform group-hover:translate-x-1">
             arrow_right_alt
           </span>
@@ -61,7 +58,7 @@ export function UserMenuGuest({ onSignIn, onExploreFeatures }: UserMenuGuestProp
             className="text-[0.8rem] font-medium text-outline hover:text-primary uppercase tracking-[0.05em] transition-colors bg-transparent border-none cursor-pointer"
             data-testid="user-menu-explore-button"
           >
-            {t('userMenu.exploreFeatures', { defaultValue: 'Explore Features' })}
+            {t('userMenu.exploreFeatures')}
           </button>
         )}
       </div>

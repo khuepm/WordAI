@@ -261,7 +261,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Guest gating: premium models disabled/grayed with 🔒 icon, Web Access disabled with 🔒
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
 
-- [ ] 11. Implement i18n translations
+- [x] 11. Implement i18n translations
   - [x] 11.1 Add auth translation keys to `src/i18n/locales/en.json`
     - Add `auth.login.*`, `auth.signup.*`, `auth.forgotPassword.*`, `auth.resetSuccess.*`, `auth.errors.*` keys
     - Add `userMenu.*` keys
@@ -271,7 +271,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Mirror all keys from en.json with Vietnamese translations
     - _Requirements: 13.1, 13.2_
 
-  - [~] 11.3 Replace all hardcoded strings in auth components with `t()` calls
+  - [x] 11.3 Replace all hardcoded strings in auth components with `t()` calls
     - Verify no hardcoded strings remain in AuthModal, LoginForm, SignUpForm, ForgotPasswordForm, ResetSuccessView, UserMenuAuthenticated, UserMenuGuest
     - _Requirements: 13.1, 13.3, 13.4_
 

@@ -95,7 +95,7 @@ export function UserMenuAuthenticated({
           <span className="material-symbols-rounded text-outline text-xl">
             folder
           </span>
-          {t('nav.library')}
+          {t('userMenu.myLibrary')}
         </button>
       </div>
 
@@ -109,8 +109,8 @@ export function UserMenuAuthenticated({
           onClick={onSignOut}
           disabled={isSigningOut}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isSigningOut
-              ? 'text-error opacity-70 pointer-events-none'
-              : 'text-error hover:bg-error-container hover:text-on-error-container'
+            ? 'text-error opacity-70 pointer-events-none'
+            : 'text-error hover:bg-error-container hover:text-on-error-container'
             }`}
           data-testid="user-menu-signout-button"
         >
@@ -121,7 +121,7 @@ export function UserMenuAuthenticated({
           ) : (
             <span className="material-symbols-rounded text-xl">logout</span>
           )}
-          {t('nav.signOut')}
+          {t('userMenu.signOut')}
         </button>
       </div>
     </div>

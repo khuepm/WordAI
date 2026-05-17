@@ -148,7 +148,7 @@ export function LoginForm({
         id="auth-modal-heading"
         className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
       >
-        Đăng nhập
+        {t('auth.login.title')}
       </h2>
 
       {/* Error Banner — Req 3.1, 3.2, 3.8 */}
@@ -170,7 +170,7 @@ export function LoginForm({
           {/* Email Field — Req 2.2 */}
           <div className="space-y-2">
             <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-              Email
+              {t('auth.login.emailLabel')}
             </label>
             <div className="input-glow-focus bg-surface-container-low rounded-lg transition-all duration-200 flex items-center h-12 px-4">
               <input
@@ -188,14 +188,14 @@ export function LoginForm({
           <div className="space-y-2 mt-6">
             <div className="flex justify-between items-end">
               <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                Mật khẩu
+                {t('auth.login.passwordLabel')}
               </label>
               <button
                 type="button"
                 onClick={() => onNavigate('forgot-password')}
                 className="font-headline text-xs text-primary hover:text-primary-container transition-colors font-medium"
               >
-                Quên mật khẩu?
+                {t('auth.login.forgotPassword')}
               </button>
             </div>
             <div className="input-glow-focus bg-surface-container-low rounded-lg transition-all duration-200 flex items-center h-12 px-4">
@@ -226,7 +226,7 @@ export function LoginForm({
                 progress_activity
               </span>
             )}
-            Đăng nhập
+            {t('auth.login.submit')}
           </button>
         </div>
       </form>
@@ -234,13 +234,13 @@ export function LoginForm({
       {/* Footer Links — Req 2.9 */}
       <div className="mt-8 text-center">
         <p className="font-headline text-sm text-on-surface-variant">
-          Chưa có tài khoản?{' '}
+          {t('auth.login.noAccount')}{' '}
           <button
             type="button"
             onClick={() => onNavigate('signup')}
             className="text-primary font-bold hover:text-primary-container transition-colors"
           >
-            Đăng ký
+            {t('auth.login.signUp')}
           </button>
         </p>
       </div>

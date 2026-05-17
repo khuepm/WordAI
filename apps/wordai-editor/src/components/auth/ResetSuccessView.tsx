@@ -6,11 +6,15 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
+import { useTranslation } from 'react-i18next';
+
 export interface ResetSuccessViewProps {
   onNavigate: (view: 'login') => void;
 }
 
 export function ResetSuccessView({ onNavigate }: ResetSuccessViewProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[24px] p-12 ring-1 ring-outline-variant/15 flex flex-col items-center text-center gap-6">
       {/* Top glow gradient bar — Req 6.1 */}
@@ -33,12 +37,12 @@ export function ResetSuccessView({ onNavigate }: ResetSuccessViewProps) {
         id="auth-modal-heading"
         className="font-headline text-2xl md:text-3xl font-bold tracking-tight text-on-surface"
       >
-        Đã gửi email thành công!
+        {t('auth.resetSuccess.title')}
       </h2>
 
       {/* Subtitle — Req 6.4 */}
       <p className="font-body text-lg text-on-surface-variant">
-        Vui lòng kiểm tra hòm thư của bạn.
+        {t('auth.resetSuccess.subtitle')}
       </p>
 
       {/* Back to Login button — Req 6.5 */}
@@ -48,7 +52,7 @@ export function ResetSuccessView({ onNavigate }: ResetSuccessViewProps) {
         className="bg-primary text-on-primary rounded-xl font-headline text-xs tracking-[0.05em] uppercase font-bold px-10 py-4 hover:bg-primary-container hover:shadow-[0_0_20px_-2px_rgba(67,67,213,0.3)] transition-all duration-300 mt-2"
         data-testid="nav-to-login-from-success"
       >
-        Về trang Đăng nhập
+        {t('auth.resetSuccess.backToLogin')}
       </button>
     </div>
   );

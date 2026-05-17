@@ -228,10 +228,10 @@ export function SignUpForm({
           id="auth-modal-heading"
           className="font-headline text-3xl tracking-tighter font-bold text-on-surface"
         >
-          Tạo tài khoản
+          {t('auth.signup.title')}
         </h2>
         <p className="font-body text-on-surface-variant text-base mt-2">
-          Đăng ký để sử dụng đầy đủ tính năng AI
+          {t('auth.signup.subtitle')}
         </p>
       </div>
 
@@ -241,7 +241,7 @@ export function SignUpForm({
           {/* Display Name Field */}
           <div className="space-y-2">
             <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
-              Tên hiển thị
+              {t('auth.signup.displayNameLabel')}
             </label>
             <input
               type="text"
@@ -257,7 +257,7 @@ export function SignUpForm({
           {/* Email Field */}
           <div className="space-y-2 mt-5">
             <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
-              Email
+              {t('auth.signup.emailLabel')}
             </label>
             <input
               type="email"
@@ -273,7 +273,7 @@ export function SignUpForm({
           {/* Password Field */}
           <div className="space-y-2 mt-5">
             <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
-              Mật khẩu
+              {t('auth.signup.passwordLabel')}
             </label>
             <input
               type="password"
@@ -289,7 +289,7 @@ export function SignUpForm({
           {/* Confirm Password Field — Req 4.3 */}
           <div className="space-y-2 mt-5">
             <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
-              Xác nhận mật khẩu
+              {t('auth.signup.confirmPasswordLabel')}
             </label>
             <div className="relative">
               <input
@@ -312,7 +312,7 @@ export function SignUpForm({
             </div>
             {showConfirmError && (
               <p className="text-error text-sm font-headline">
-                Mật khẩu xác nhận không khớp
+                {t('auth.errors.passwordMismatch')}
               </p>
             )}
           </div>
@@ -333,7 +333,7 @@ export function SignUpForm({
                 progress_activity
               </span>
             )}
-            Tạo tài khoản
+            {t('auth.signup.submit')}
           </button>
         </div>
       </form>
@@ -341,13 +341,13 @@ export function SignUpForm({
       {/* Footer Link — Req 4.8 */}
       <div className="mt-8 text-center">
         <p className="font-headline text-sm text-on-surface-variant">
-          Đã có tài khoản?{' '}
+          {t('auth.signup.hasAccount')}{' '}
           <button
             type="button"
             onClick={() => onNavigate('login')}
             className="text-primary font-bold hover:text-primary-container transition-colors"
           >
-            Quay lại đăng nhập
+            {t('auth.signup.backToLogin')}
           </button>
         </p>
       </div>

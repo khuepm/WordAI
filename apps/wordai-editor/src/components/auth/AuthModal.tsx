@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useCallback, useState, createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useFocusTrap } from './useFocusTrap';
 
 export type AuthView = 'login' | 'signup' | 'forgot-password' | 'reset-success';
@@ -76,6 +77,8 @@ export function AuthModal({
 
   // Integrate focus trap
   useFocusTrap(modalRef, isOpen);
+
+  const { t } = useTranslation();
 
   // Store the previously focused element when modal opens
   useEffect(() => {
@@ -201,7 +204,7 @@ export function AuthModal({
               id={HEADING_ID}
               className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
             >
-              Đăng nhập
+              {t('auth.login.title')}
             </h2>
             <div>Login placeholder</div>
             <button
@@ -209,14 +212,14 @@ export function AuthModal({
               data-testid="nav-to-signup"
               onClick={() => handleNavigate('signup')}
             >
-              Đăng ký
+              {t('auth.login.signUp')}
             </button>
             <button
               type="button"
               data-testid="nav-to-forgot-password"
               onClick={() => handleNavigate('forgot-password')}
             >
-              Quên mật khẩu?
+              {t('auth.login.forgotPassword')}
             </button>
           </div>
         );
@@ -227,7 +230,7 @@ export function AuthModal({
               id={HEADING_ID}
               className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
             >
-              Tạo tài khoản
+              {t('auth.signup.title')}
             </h2>
             <div>Signup placeholder</div>
             <button
@@ -235,7 +238,7 @@ export function AuthModal({
               data-testid="nav-to-login"
               onClick={() => handleNavigate('login')}
             >
-              Quay lại đăng nhập
+              {t('auth.signup.backToLogin')}
             </button>
           </div>
         );
@@ -246,7 +249,7 @@ export function AuthModal({
               id={HEADING_ID}
               className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
             >
-              Khôi phục mật khẩu
+              {t('auth.forgotPassword.title')}
             </h2>
             <div>Forgot password placeholder</div>
             <button
@@ -254,7 +257,7 @@ export function AuthModal({
               data-testid="nav-to-login-from-forgot"
               onClick={() => handleNavigate('login')}
             >
-              Quay lại Đăng nhập
+              {t('auth.forgotPassword.backToLogin')}
             </button>
           </div>
         );
@@ -265,7 +268,7 @@ export function AuthModal({
               id={HEADING_ID}
               className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
             >
-              Đã gửi email thành công!
+              {t('auth.resetSuccess.title')}
             </h2>
             <div>Reset success placeholder</div>
             <button
@@ -273,7 +276,7 @@ export function AuthModal({
               data-testid="nav-to-login-from-success"
               onClick={() => handleNavigate('login')}
             >
-              Về trang Đăng nhập
+              {t('auth.resetSuccess.backToLogin')}
             </button>
           </div>
         );
