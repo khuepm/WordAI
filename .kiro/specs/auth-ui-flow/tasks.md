@@ -44,7 +44,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Handle: auth/invalid-credential, auth/user-not-found, auth/email-already-in-use, auth/weak-password, auth/too-many-requests, ACCOUNT_SUSPENDED, TOKEN_EXPIRED_OR_INVALID, network errors, generic fallback
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7_
 
-- [ ] 2. Implement AuthModal shell component
+- [x] 2. Implement AuthModal shell component
   - [x] 2.1 Create `src/components/auth/AuthModal.tsx`
     - Render as React Portal to `document.body`
     - Backdrop: `bg-inverse-surface/40 backdrop-blur-sm`, click-to-close (suppressed during loading)
@@ -59,7 +59,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Return focus to previously focused element on close
     - _Requirements: 1.5_
 
-  - [~] 2.3 Implement view routing and transitions in AuthModal
+  - [x] 2.3 Implement view routing and transitions in AuthModal
     - State: `currentView: 'login' | 'signup' | 'forgot-password' | 'reset-success'`
     - State: `sharedEmail: string` — preserved across transitions
     - Transition animation: outgoing `opacity-0 scale-95` (150ms ease-in), incoming `opacity-100 scale-100` (200ms ease-out)
