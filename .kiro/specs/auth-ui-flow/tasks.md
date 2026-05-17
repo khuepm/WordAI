@@ -252,7 +252,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Guest info banner: `p-6 bg-primary/5 rounded-xl border border-outline-variant/10 mb-8` with `auto_awesome` icon and Sign In button
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7_
 
-  - [~] 10.3 Update AI Engine tab UI
+  - [-] 10.3 Update AI Engine tab UI
     - Header: `text-3xl font-bold tracking-tight`
     - Credits card (authenticated): `bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15`, plan badge, progress bar `h-2 bg-gradient-to-r from-primary to-primary-container`, "Get more credits" button
     - Capabilities: 2-column grid dropdowns `bg-surface-container-low border-0 rounded-md px-4 py-3`

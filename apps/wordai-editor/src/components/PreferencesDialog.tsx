@@ -646,176 +646,216 @@ function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
 
 // ─── Tab: AI Engine ──────────────────────────────────────────────────────────
 
-function AgentIconBox({ icon, active, fill }: { icon: string; active: boolean; fill?: boolean }) {
-  return (
-    <div style={{
-      width: '36px', height: '36px', borderRadius: '0.5rem', flexShrink: 0,
-      background: active ? 'rgba(67,67,213,0.1)' : 'rgba(212,212,216,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      transition: 'background 0.15s',
-    }}>
-      <span className="material-symbols-outlined" style={{
-        fontSize: '20px', color: active ? '#4343d5' : '#a1a1aa',
-        fontVariationSettings: fill ? "'FILL' 1" : "'FILL' 0",
-      }}>{icon}</span>
-    </div>
-  );
-}
-
 function AIEngineTab() {
   const { t } = useTranslation();
-  const [selectedAgent, setSelectedAgent] = useState<string>('claude');
-  const [selectedModel, setSelectedModel] = useState<string>('aura-turbo');
+  const accessContext = useAccessContext();
+  const isAuthenticated = accessContext !== null;
 
-  const agents = [
-    { id: 'codex', icon: 'terminal', label: t('settings.aiEngine.agent.codex.label'), desc: t('settings.aiEngine.agent.codex.description') },
-    { id: 'claude', icon: 'neurology', label: t('settings.aiEngine.agent.claude.label'), desc: t('settings.aiEngine.agent.claude.description'), fill: true },
-    { id: 'gemini', icon: 'token', label: t('settings.aiEngine.agent.gemini.label'), desc: t('settings.aiEngine.agent.gemini.description') },
-  ];
+  const [selectedAgent, setSelectedAgent] = useState<string>('gpt4');
+  const [selectedContext, setSelectedContext] = useState<string>('16k');
+  const [webAccessEnabled, setWebAccessEnabled] = useState(true);
+  const [creativity, setCreativity] = useState(70);
 
-  const models = [
-    { id: 'aura-turbo', icon: 'auto_awesome', label: t('settings.aiEngine.models.turbo.label'), desc: t('settings.aiEngine.models.turbo.description'), status: t('settings.aiEngine.models.turbo.status'), statusColor: '#10b981', pro: false },
-    { id: 'aura-pro', icon: 'diamond', label: t('settings.aiEngine.models.proModel.label'), desc: t('settings.aiEngine.models.proModel.description'), status: t('settings.aiEngine.models.proModel.status'), statusColor: '#a1a1aa', pro: true },
-  ];
-
-  const sliders = [
-    { label: t('settings.aiEngine.creativity.label'), desc: t('settings.aiEngine.creativity.description'), badge: t('settings.aiEngine.creativity.badge'), min: 0, max: 100, value: 75, marks: [t('settings.aiEngine.creativity.marks.precise'), t('settings.aiEngine.creativity.marks.balanced'), t('settings.aiEngine.creativity.marks.creative')], settingId: 'ai-engine.creativity' },
-    { label: t('settings.aiEngine.contextWindow.label'), desc: t('settings.aiEngine.contextWindow.description'), badge: t('settings.aiEngine.contextWindow.badge'), min: 2000, max: 32000, step: 2000, value: 16000, marks: ['2k', '16k', '32k'], settingId: 'ai-engine.contextWindowTokens' },
-  ];
+  // Derive entitlement data from access context
+  const planName = accessContext?.entitlement.plan_code === 'pro' ? 'AuraSphere Pro' : 'AuraSphere Free';
+  const remainingTokens = accessContext ? (accessContext.entitlement.monthly_quota - accessContext.entitlement.used_quota) : 0;
+  const usedPercentage = accessContext ? Math.round((accessContext.entitlement.used_quota / accessContext.entitlement.monthly_quota) * 100) : 0;
+  const isPro = accessContext?.entitlement.plan_code === 'pro';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+    <div className="flex flex-col gap-10 max-w-2xl mx-auto">
 
-      {/* Intro */}
+      {/* Header (Req 17.1) */}
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.intro.eyebrow')}</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.aiEngine.intro.title')}</h3>
-        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8, margin: '1rem 0 0' }}>
-          "{t('settings.aiEngine.intro.quote')}"
+        <h2 className="text-3xl font-bold tracking-tight text-on-surface mb-2">
+          {t('settings.aiEngine.intro.title', 'AI Engine Settings')}
+        </h2>
+        <p className="text-on-surface-variant text-base">
+          {t('settings.aiEngine.intro.description', 'Configure model parameters, context window, and usage limits.')}
         </p>
       </div>
 
-      {/* Connect Agent */}
-      <div data-setting-id="ai-engine.agent">
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1rem' }}>
+      {/* Model & Credits Card — authenticated only (Req 17.2) */}
+      {isAuthenticated && (
+        <section className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 shadow-[0_4px_24px_-4px_rgba(25,28,29,0.04)]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-on-surface flex items-center gap-2 m-0">
+                  {planName}
+                  {isPro && (
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary text-on-primary tracking-wide">PRO</span>
+                  )}
+                </h3>
+                <p className="text-sm text-on-surface-variant mt-0.5 m-0">
+                  {t('settings.aiEngine.credits.activeSubscription', 'Active Subscription')}
+                </p>
+              </div>
+            </div>
+            <button className="bg-primary hover:bg-primary-container text-on-primary font-medium px-5 py-2.5 rounded-md transition-colors duration-200 flex items-center gap-2 text-sm shadow-[0_0_12px_rgba(67,67,213,0.15)] hover:shadow-[0_0_16px_rgba(67,67,213,0.25)] border-0 cursor-pointer">
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              {t('settings.aiEngine.credits.getMore', 'Get more credits')}
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-2xl font-bold text-on-surface m-0">
+                  {remainingTokens.toLocaleString()}{' '}
+                  <span className="text-sm font-normal text-on-surface-variant">
+                    {t('settings.aiEngine.credits.tokensRemaining', 'tokens remaining')}
+                  </span>
+                </p>
+              </div>
+              <p className="text-sm font-medium text-on-surface-variant m-0">
+                {usedPercentage}% {t('settings.aiEngine.credits.usedThisMonth', 'used this month')}
+              </p>
+            </div>
+            <div className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full"
+                style={{ width: `${usedPercentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-on-surface-variant mt-2 m-0">
+              {t('settings.aiEngine.credits.renewsAt', 'Renews automatically on')} {accessContext?.entitlement.quota_reset_at ? new Date(accessContext.entitlement.quota_reset_at).toLocaleDateString() : ''}
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* AI Capabilities (Req 17.3) */}
+      <section className="space-y-6">
+        <h3 className="text-lg font-bold text-on-surface border-b border-surface-container-high pb-2 m-0">
+          {t('settings.aiEngine.capabilities.title', 'Capabilities')}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Agent Selection */}
+          <div className="space-y-2" data-setting-id="ai-engine.agent">
+            <label className="block text-sm font-semibold text-on-surface">
+              {t('settings.aiEngine.agent.title', 'AI Agent & Model')}
+            </label>
+            <p className="text-xs text-on-surface-variant mb-2 mt-0">
+              {t('settings.aiEngine.agent.description', 'Select the underlying intelligence engine.')}
+            </p>
+            <div className="relative">
+              <select
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="w-full appearance-none bg-surface-container-low border-0 text-on-surface text-sm rounded-md px-4 py-3 focus:ring-0 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_rgba(67,67,213,1)] transition-all cursor-pointer font-medium outline-none"
+              >
+                <option value="gpt4">{t('settings.aiEngine.agent.options.gpt4', 'AuraSphere Omni (GPT-4o)')}</option>
+                <option value="claude" disabled={!isAuthenticated}>
+                  {!isAuthenticated ? '🔒 ' : ''}{t('settings.aiEngine.agent.options.claude', 'Claude 3.5 Sonnet')}
+                </option>
+                <option value="gemini" disabled={!isAuthenticated}>
+                  {!isAuthenticated ? '🔒 ' : ''}{t('settings.aiEngine.agent.options.gemini', 'Gemini 1.5 Pro')}
+                </option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+                <span className="material-symbols-outlined text-[20px]">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Context Window */}
+          <div className="space-y-2" data-setting-id="ai-engine.contextWindowTokens">
+            <label className="block text-sm font-semibold text-on-surface">
+              {t('settings.aiEngine.contextWindow.label', 'Context Window')}
+            </label>
+            <p className="text-xs text-on-surface-variant mb-2 mt-0">
+              {t('settings.aiEngine.contextWindow.description', 'Memory allocation for current document.')}
+            </p>
+            <div className="relative">
+              <select
+                value={selectedContext}
+                onChange={(e) => setSelectedContext(e.target.value)}
+                className="w-full appearance-none bg-surface-container-low border-0 text-on-surface text-sm rounded-md px-4 py-3 focus:ring-0 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_rgba(67,67,213,1)] transition-all cursor-pointer font-medium outline-none"
+              >
+                <option value="4k">{t('settings.aiEngine.contextWindow.options.4k', '4,096 tokens (Fast)')}</option>
+                <option value="8k">{t('settings.aiEngine.contextWindow.options.8k', '8,192 tokens (Balanced)')}</option>
+                <option value="16k">{t('settings.aiEngine.contextWindow.options.16k', '16,384 tokens (Pro)')}</option>
+                <option value="32k">{t('settings.aiEngine.contextWindow.options.32k', '32,768 tokens (Max)')}</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+                <span className="material-symbols-outlined text-[20px]">expand_more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Web Access Toggle (Req 17.4) */}
+        <div
+          className={`flex items-center justify-between p-4 bg-surface-container-low rounded-lg mt-4 ${!isAuthenticated ? 'opacity-50 pointer-events-none' : ''}`}
+          data-setting-id="ai-engine.webAccess"
+        >
           <div>
-            <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.agent.title')}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{t('settings.aiEngine.agent.description')}</p>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-on-surface m-0">
+                {!isAuthenticated && <span className="mr-1">🔒</span>}
+                {t('settings.aiEngine.knowledge.webAccess', 'Live Web Access')}
+              </h4>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-fixed-dim text-on-primary-fixed tracking-wide">PRO</span>
+            </div>
+            <p className="text-xs text-on-surface-variant mt-1 m-0">
+              {t('settings.aiEngine.knowledge.description', 'Allow AI to search the web for real-time information.')}
+            </p>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{t('settings.aiEngine.agent.activeBadge')}</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={webAccessEnabled}
+              onChange={(e) => setWebAccessEnabled(e.target.checked)}
+              disabled={!isAuthenticated}
+            />
+            <div className="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
+          </label>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-          {agents.map(a => {
-            const active = selectedAgent === a.id;
-            return (
-              <label key={a.id} style={{ cursor: 'pointer' }}>
-                <input type="radio" name="pref-agent" checked={active} onChange={() => setSelectedAgent(a.id)} style={{ display: 'none' }} />
-                <div style={{
-                  padding: '1rem', borderRadius: '0.75rem', height: '100%', boxSizing: 'border-box',
-                  background: active ? 'rgba(67,67,213,0.05)' : '#f3f4f5',
-                  border: active ? '2px solid rgba(67,67,213,0.4)' : '2px solid transparent',
-                  transition: 'all 0.2s',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <AgentIconBox icon={a.icon} active={active} fill={a.fill} />
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
-                  </div>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 4px', color: '#18181b' }}>{a.label}</h4>
-                  <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5, margin: 0 }}>{a.desc}</p>
-                </div>
+      </section>
+
+      {/* Behavior — Creativity Slider (Req 17.5) */}
+      <section className="space-y-6">
+        <h3 className="text-lg font-bold text-on-surface border-b border-surface-container-high pb-2 m-0">
+          {t('settings.aiEngine.behavior.title', 'Behavior')}
+        </h3>
+
+        <div className="space-y-4 p-5 bg-surface-container-lowest rounded-xl border border-outline-variant/15 shadow-[0_4px_24px_-4px_rgba(25,28,29,0.04)]" data-setting-id="ai-engine.creativity">
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <label className="block text-sm font-semibold text-on-surface">
+                {t('settings.aiEngine.creativity.label', 'Creativity (Temperature)')}
               </label>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Aura Models */}
-      <div data-setting-id="ai-engine.model">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#18181b', margin: 0 }}>{t('settings.aiEngine.models.title')}</h3>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#a1a1aa', background: '#f4f4f5', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.proBadge')}</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-          {models.map(m => {
-            const active = selectedModel === m.id;
-            return (
-              <label key={m.id} style={{ cursor: m.pro ? 'not-allowed' : 'pointer' }}>
-                <input type="radio" name="pref-model" checked={active} onChange={() => !m.pro && setSelectedModel(m.id)} style={{ display: 'none' }} />
-                <div style={{
-                  padding: '1.25rem', borderRadius: '0.75rem',
-                  background: active ? 'rgba(67,67,213,0.05)' : '#f3f4f5',
-                  border: active ? '2px solid rgba(67,67,213,0.4)' : '2px solid transparent',
-                  opacity: m.pro ? 0.6 : 1, transition: 'all 0.2s',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <AgentIconBox icon={m.icon} active={active && !m.pro} fill={!m.pro} />
-                    {m.pro
-                      ? <span style={{ fontSize: '9px', fontWeight: 900, color: '#904400', background: 'rgba(144,68,0,0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('settings.aiEngine.models.pro')}</span>
-                      : <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4343d5', opacity: active ? 1 : 0, transition: 'opacity 0.15s', marginTop: '4px' }} />
-                    }
-                  </div>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 4px', color: '#18181b' }}>{m.label}</h4>
-                  <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5, margin: '0 0 0.75rem' }}>{m.desc}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.statusColor }} />
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: m.statusColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.status}</span>
-                  </div>
-                </div>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Sliders */}
-      <div style={{ background: 'rgba(243,244,245,0.5)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(199,196,215,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {sliders.map((s) => (
-          <div key={s.label} data-setting-id={s.settingId}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
-              <div>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{s.label}</h3>
-                <p style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>{s.desc}</p>
-              </div>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#4343d5', background: 'rgba(93,95,239,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{s.badge}</span>
+              <p className="text-xs text-on-surface-variant mt-0.5 m-0">
+                {t('settings.aiEngine.creativity.description', 'Adjust how deterministic the output should be.')}
+              </p>
             </div>
-            <input type="range" min={s.min} max={s.max} step={s.step ?? 1} defaultValue={s.value}
-              style={{ width: '100%', accentColor: '#4343d5' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-              {s.marks.map(m => <span key={m} style={{ fontSize: '10px', color: '#a1a1aa', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m}</span>)}
+            <span className="text-lg font-bold text-primary bg-primary/5 px-3 py-1 rounded-md">
+              {creativity}
+            </span>
+          </div>
+          <div className="pt-2 pb-4">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={creativity}
+              onChange={(e) => setCreativity(Number(e.target.value))}
+              className="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer"
+              style={{ accentColor: '#4343d5' }}
+            />
+            <div className="flex justify-between text-xs text-on-surface-variant mt-2 font-medium">
+              <span>{t('settings.aiEngine.creativity.marks.precise', 'Focused (0)')}</span>
+              <span>{t('settings.aiEngine.creativity.marks.balanced', 'Balanced')}</span>
+              <span>{t('settings.aiEngine.creativity.marks.creative', 'Creative (100)')}</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Language + Knowledge */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-        <div data-setting-id="ai-engine.responseLanguage">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.label')}</label>
-          <div style={{ position: 'relative' }}>
-            <select style={{ width: '100%', background: '#f3f4f5', border: 'none', borderRadius: '0.75rem', padding: '0.75rem 1rem', fontSize: '0.875rem', appearance: 'none', fontFamily: 'inherit' }}>
-              <option>{t('settings.aiEngine.responseLanguage.auto')}</option>
-              <option>{t('settings.aiEngine.responseLanguage.english')}</option>
-              <option>{t('settings.aiEngine.responseLanguage.vietnamese')}</option>
-            </select>
-            <span className="material-symbols-outlined" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#a1a1aa', pointerEvents: 'none', fontSize: '18px' }}>unfold_more</span>
-          </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.responseLanguage.description')}</p>
         </div>
-        <div data-setting-id="ai-engine.webAccess">
-          <label style={{ fontSize: '0.875rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{t('settings.aiEngine.knowledge.label')}</label>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: '#f3f4f5', borderRadius: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span className="material-symbols-outlined" style={{ color: '#4343d5', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>cloud_sync</span>
-              <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#18181b', display: 'block' }}>{t('settings.aiEngine.knowledge.webAccess')}</span>
-                <span style={{ fontSize: '10px', color: '#a1a1aa' }}>{t('settings.aiEngine.knowledge.liveData')}</span>
-              </div>
-            </div>
-            <Toggle checked={true} />
-          </div>
-          <p style={{ fontSize: '10px', color: '#a1a1aa', fontStyle: 'italic', marginTop: '0.5rem' }}>{t('settings.aiEngine.knowledge.description')}</p>
-        </div>
-      </div>
+      </section>
 
     </div>
   );
