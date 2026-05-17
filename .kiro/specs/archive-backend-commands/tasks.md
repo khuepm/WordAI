@@ -136,7 +136,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - Confirm all existing intent CRUD operations still work identically after schema migration
     - Confirm `intents` and `intent_chunks` tables are unmodified
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run full `cargo test` in `src-tauri` to verify all existing and new tests pass
   - Verify no compilation warnings related to archive modules
   - Ensure all tests pass, ask the user if questions arise.
