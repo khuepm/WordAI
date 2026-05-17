@@ -276,7 +276,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 13.1, 13.3, 13.4_
 
 - [ ] 12. Final integration and checkpoint
-  - [~] 12.1 Wire everything together in App.tsx
+  - [x] 12.1 Wire everything together in App.tsx
     - Add `isAuthModalOpen` state
     - Pass `onSignIn` and `onSignOut` to TopNavBar
     - Render `<AuthModal>` with proper props
