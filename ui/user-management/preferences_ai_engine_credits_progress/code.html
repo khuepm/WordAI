@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Engine Preferences - WordAI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#b65700",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "secondary-container": "#babbfe",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#4849da",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed-variant": "#3f417b",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "surface-dim": "#d9dadb",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary": "#904400",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#5d5fef",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c7c4d7",
+                        "on-primary-fixed": "#07006c",
+                        "on-primary-container": "#faf7ff",
+                        "secondary-fixed": "#e1e0ff",
+                        "tertiary-fixed": "#ffdbc8",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "error": "#ba1a1a",
+                        "background": "#f8f9fa",
+                        "primary-fixed": "#e1e0ff",
+                        "primary": "#4343d5",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "inverse-primary": "#c1c1ff",
+                        "on-secondary-fixed": "#12134d",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#fff6f3",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface-variant": "#464555",
+                        "surface-container": "#edeeef",
+                        "surface-container-high": "#e7e8e9",
+                        "outline": "#767586",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#575995",
+                        "on-tertiary-fixed": "#321300",
+                        "on-secondary-container": "#474984"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "display": ["Manrope", "sans-serif"],
+                        "body": ["Newsreader", "serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body antialiased min-h-screen flex items-center justify-center p-4">
+<!-- Modal Container -->
+<div class="w-full max-w-5xl bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+<!-- SideNavBar Component -->
+<nav class="flex flex-col w-full md:w-64 h-full py-6 px-4 gap-2 bg-zinc-50 dark:bg-zinc-900/50 rounded-l-lg border-r border-zinc-200/20 dark:border-zinc-800/20 shrink-0">
+<div class="mb-8 px-4">
+<h1 class="text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight">Preferences</h1>
+<p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">System Configuration</p>
+</div>
+<div class="flex flex-col gap-1 font-['Manrope'] text-sm font-medium tracking-wide uppercase">
+<a class="flex items-center gap-3 px-4 py-3 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:translate-x-1 transition-transform duration-200 click:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                    General
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-md bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm border-r-4 border-indigo-500 hover:translate-x-1 transition-transform duration-200 click:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                    AI Engine
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:translate-x-1 transition-transform duration-200 click:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">format_size</span>
+                    Typography
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:translate-x-1 transition-transform duration-200 click:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">security</span>
+                    Privacy
+                </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 md:p-12 overflow-y-auto bg-surface font-headline">
+<div class="max-w-2xl mx-auto space-y-10">
+<!-- Header -->
+<div>
+<h2 class="text-3xl font-bold tracking-tight text-on-surface mb-2">AI Engine Settings</h2>
+<p class="text-on-surface-variant text-base">Configure model parameters, context window, and usage limits.</p>
+</div>
+<!-- Model & Credits Card -->
+<section class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 shadow-[0_4px_24px_-4px_rgba(25,28,29,0.04)]">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-lg font-semibold text-on-surface flex items-center gap-2">
+                                    AuraSphere Pro
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-primary text-on-primary tracking-wide">PRO</span>
+</h3>
+<p class="text-sm text-on-surface-variant mt-0.5">Active Subscription</p>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-medium px-5 py-2.5 rounded-md transition-colors duration-200 flex items-center gap-2 text-sm shadow-[0_0_12px_rgba(67,67,213,0.15)] hover:shadow-[0_0_16px_rgba(67,67,213,0.25)]">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            Get more credits
+                        </button>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<div>
+<p class="text-2xl font-bold text-on-surface">12,400 <span class="text-sm font-normal text-on-surface-variant">tokens remaining</span></p>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">68% used this month</p>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 68%;"></div>
+</div>
+<p class="text-xs text-on-surface-variant mt-2">Renews automatically on Oct 1st, 2023</p>
+</div>
+</section>
+<!-- AI Capabilities -->
+<section class="space-y-6">
+<h3 class="text-lg font-bold text-on-surface border-b border-surface-container-high pb-2">Capabilities</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Agent Selection -->
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-surface">AI Agent &amp; Model</label>
+<p class="text-xs text-on-surface-variant mb-2">Select the underlying intelligence engine.</p>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-low border-0 text-on-surface text-sm rounded-md px-4 py-3 focus:ring-0 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_rgba(67,67,213,1)] transition-all cursor-pointer font-medium">
+<option value="gpt4">AuraSphere Omni (GPT-4o)</option>
+<option value="claude">Claude 3.5 Sonnet</option>
+<option value="gemini">Gemini 1.5 Pro</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Context Window -->
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-surface">Context Window</label>
+<p class="text-xs text-on-surface-variant mb-2">Memory allocation for current document.</p>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-low border-0 text-on-surface text-sm rounded-md px-4 py-3 focus:ring-0 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_rgba(67,67,213,1)] transition-all cursor-pointer font-medium">
+<option value="4k">4,096 tokens (Fast)</option>
+<option value="8k">8,192 tokens (Balanced)</option>
+<option selected="" value="16k">16,384 tokens (Pro)</option>
+<option value="32k">32,768 tokens (Max)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Web Access Toggle -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg mt-4">
+<div>
+<div class="flex items-center gap-2">
+<h4 class="text-sm font-semibold text-on-surface">Live Web Access</h4>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-fixed-dim text-on-primary-fixed tracking-wide">PRO</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Allow AI to search the web for real-time information.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</section>
+<!-- Behavior Settings -->
+<section class="space-y-6">
+<h3 class="text-lg font-bold text-on-surface border-b border-surface-container-high pb-2">Behavior</h3>
+<div class="space-y-4 p-5 bg-surface-container-lowest rounded-xl border border-outline-variant/15 shadow-[0_4px_24px_-4px_rgba(25,28,29,0.04)]">
+<div class="flex justify-between items-center mb-2">
+<div>
+<label class="block text-sm font-semibold text-on-surface">Creativity (Temperature)</label>
+<p class="text-xs text-on-surface-variant mt-0.5">Adjust how deterministic the output should be.</p>
+</div>
+<span class="text-lg font-bold text-primary bg-primary/5 px-3 py-1 rounded-md">70</span>
+</div>
+<div class="pt-2 pb-4">
+<input class="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="70"/>
+<div class="flex justify-between text-xs text-on-surface-variant mt-2 font-medium">
+<span>Focused (0)</span>
+<span>Balanced</span>
+<span>Creative (100)</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

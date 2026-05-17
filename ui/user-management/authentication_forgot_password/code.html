@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Khôi phục mật khẩu - The Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2e3132",
+                    "primary-fixed-dim": "#c1c1ff",
+                    "outline": "#767586",
+                    "surface-container-highest": "#e1e3e4",
+                    "error": "#ba1a1a",
+                    "primary": "#4343d5",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#c1c1ff",
+                    "tertiary-fixed-dim": "#ffb689",
+                    "outline-variant": "#c7c4d7",
+                    "on-tertiary-container": "#fff6f3",
+                    "tertiary-fixed": "#ffdbc8",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed-variant": "#3f417b",
+                    "surface-container-high": "#e7e8e9",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "secondary-fixed": "#e1e0ff",
+                    "on-secondary-container": "#474984",
+                    "tertiary-container": "#b65700",
+                    "primary-container": "#5d5fef",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "on-primary-container": "#faf7ff",
+                    "tertiary": "#904400",
+                    "on-background": "#191c1d",
+                    "secondary-fixed-dim": "#c1c1ff",
+                    "on-surface-variant": "#464555",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container-low": "#f3f4f5",
+                    "surface-dim": "#d9dadb",
+                    "on-primary-fixed-variant": "#2e2bc2",
+                    "on-secondary-fixed": "#12134d",
+                    "secondary": "#575995",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container": "#edeeef",
+                    "secondary-container": "#babbfe",
+                    "primary-fixed": "#e1e0ff",
+                    "on-tertiary-fixed": "#321300",
+                    "background": "#f8f9fa",
+                    "surface-tint": "#4849da",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary-fixed": "#07006c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                "24": "8.5rem"
+            },
+            "fontFamily": {
+                    "headline": [
+                            "Manrope", "sans-serif"
+                    ],
+                    "display": [
+                            "Manrope", "sans-serif"
+                    ],
+                    "body": [
+                            "Newsreader", "serif"
+                    ],
+                    "label": [
+                            "Inter", "sans-serif"
+                    ]
+            },
+            "fontSize": {}
+    },
+        },
+      }
+    </script>
+<style>
+        /* Tonal depth and asymmetric adjustments */
+        body {
+            background-color: theme('colors.surface');
+            color: theme('colors.on-surface');
+            font-family: theme('fontFamily.body');
+        }
+        
+        .aurasphere-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, theme('colors.primary'), theme('colors.primary-container'));
+            filter: blur(60px);
+            opacity: 0.08;
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(199, 196, 215, 0.15); /* outline-variant at 15% */
+            box-shadow: -5px 10px 40px rgba(25, 28, 29, 0.04); /* Ambient shadow */
+        }
+
+        .fluid-input {
+            background-color: theme('colors.surface-container-low');
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .fluid-input:focus {
+            background-color: theme('colors.surface-container-lowest');
+            border-bottom-color: theme('colors.primary');
+            box-shadow: 0 4px 6px -1px rgba(67, 67, 213, 0.1); /* primary glow */
+            outline: none;
+        }
+
+        .fluid-button {
+            background-color: theme('colors.primary');
+            color: theme('colors.on-primary');
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fluid-button:hover {
+            background-color: theme('colors.primary-container');
+            box-shadow: 0 0 15px rgba(67, 67, 213, 0.4);
+        }
+
+        .fluid-button:active {
+            background-color: theme('colors.surface-tint');
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden antialiased">
+<!-- Ambient AuraSphere Background Elements -->
+<div class="aurasphere-glow -top-20 -left-20"></div>
+<div class="aurasphere-glow bottom-10 right-10" style="opacity: 0.05; transform: scale(1.5);"></div>
+<!-- Main Container -->
+<main class="w-full max-w-md px-6 relative z-10">
+<!-- Glassmorphism Card -->
+<div class="glass-panel rounded-xl p-10 md:p-12 flex flex-col gap-8">
+<!-- Header Section -->
+<header class="flex flex-col gap-3">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">lock_reset</span>
+<h1 class="font-headline font-bold text-2xl tracking-tight text-on-surface">
+                        Khôi phục mật khẩu
+                    </h1>
+</div>
+<p class="font-body text-body-lg text-on-surface-variant leading-relaxed">
+                    Nhập email của bạn để nhận hướng dẫn khôi phục mật khẩu.
+                </p>
+</header>
+<!-- Form Section -->
+<form class="flex flex-col gap-6" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<div class="flex flex-col gap-2">
+<label class="font-headline text-label-md uppercase tracking-wider text-on-surface-variant font-semibold" for="email">
+                        Email liên kết
+                    </label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">mail</span>
+<input class="fluid-input w-full rounded-lg py-4 pl-12 pr-4 font-body text-base text-on-surface placeholder:text-outline" id="email" name="email" placeholder="ví dụ: ten@domain.com" required="" type="email"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-4 mt-4">
+<button class="fluid-button w-full rounded-md py-4 px-6 font-headline font-bold text-sm tracking-wide flex items-center justify-center gap-2" type="submit">
+                        Gửi email khôi phục
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<a class="text-center font-headline text-sm text-primary hover:text-primary-container transition-colors py-2 flex items-center justify-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                        Quay lại Đăng nhập
+                    </a>
+</div>
+</form>
+</div>
+</main>
+</body></html>
