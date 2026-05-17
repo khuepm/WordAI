@@ -61,7 +61,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: Existing model structs (AuraDocument, IntentSummary, IPCError, etc.) remain unchanged_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
 
-  - [~] 3.2 Extend SQLite schema in `sqlite_store.rs`
+  - [x] 3.2 Extend SQLite schema in `sqlite_store.rs`
     - Add `CREATE TABLE IF NOT EXISTS archived_intents` with columns: `id TEXT PRIMARY KEY`, `intent_name TEXT NOT NULL`, `raw_content TEXT NOT NULL`, `archived_at INTEGER NOT NULL`, `archive_reason TEXT NOT NULL DEFAULT ''`, `archive_type TEXT NOT NULL DEFAULT 'manual'`, `related_current_id TEXT`, `memory_access_enabled INTEGER NOT NULL DEFAULT 1`, `created_at INTEGER NOT NULL`, `updated_at INTEGER NOT NULL`, `version INTEGER NOT NULL DEFAULT 1`, `project_id TEXT`
     - Add `CREATE TABLE IF NOT EXISTS paused_projects` with columns: `id TEXT PRIMARY KEY`, `name TEXT NOT NULL`, `description TEXT NOT NULL DEFAULT ''`, `paused_at INTEGER NOT NULL`, `created_at INTEGER NOT NULL`
     - Add indexes: `idx_archived_intents_project_id`, `idx_archived_intents_archive_type`
@@ -86,7 +86,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: Existing methods (upsert_intent, get_intent, list_intents) remain unchanged_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.9, 2.10, 3.1, 3.2, 3.3_
 
-  - [~] 3.4 Add AI service methods to `ai_service.rs`
+  - [x] 3.4 Add AI service methods to `ai_service.rs`
     - `get_archive_suggestions(doc_context: &str) -> Result<Vec<ArchiveSuggestion>, IPCError>` — calls LLM with document context, parses response into suggestions
     - `generate_archive_summary(content: &str) -> Result<String, IPCError>` — calls LLM with archived content, returns summary text
     - Follow existing `AIServiceConnector` pattern (accept `api_key` and optional `endpoint`)

@@ -501,6 +501,32 @@ CREATE TABLE IF NOT EXISTS intent_chunks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_intent_chunks_document_id ON intent_chunks(document_id);
+
+CREATE TABLE IF NOT EXISTS archived_intents (
+    id                    TEXT PRIMARY KEY,
+    intent_name           TEXT NOT NULL,
+    raw_content           TEXT NOT NULL,
+    archived_at           INTEGER NOT NULL,
+    archive_reason        TEXT NOT NULL DEFAULT '',
+    archive_type          TEXT NOT NULL DEFAULT 'manual',
+    related_current_id    TEXT,
+    memory_access_enabled INTEGER NOT NULL DEFAULT 1,
+    created_at            INTEGER NOT NULL,
+    updated_at            INTEGER NOT NULL,
+    version               INTEGER NOT NULL DEFAULT 1,
+    project_id            TEXT
+);
+
+CREATE TABLE IF NOT EXISTS paused_projects (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    paused_at   INTEGER NOT NULL,
+    created_at  INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_archived_intents_project_id ON archived_intents(project_id);
+CREATE INDEX IF NOT EXISTS idx_archived_intents_archive_type ON archived_intents(archive_type);
 ";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

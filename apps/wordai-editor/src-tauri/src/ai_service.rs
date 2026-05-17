@@ -1,6 +1,7 @@
 /// AI Service Connector - interfaces with external LLM APIs
 /// Requirements: 6.3, 6.4, 16.1, 16.2, 16.3
-use crate::models::{AISuggestion, IPCError};
+use crate::models::{AISuggestion, ArchiveSuggestion, IPCError};
+use chrono::Utc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -47,6 +48,15 @@ struct RawSuggestion {
     suggested_text: String,
     explanation: String,
     confidence_score: f32,
+}
+
+/// Parsed archive suggestion from LLM JSON response
+#[derive(Debug, Deserialize)]
+struct RawArchiveSuggestion {
+    category: String,
+    title: String,
+    description: String,
+    relevance_score: f64,
 }
 
 // ── Connector ─────────────────────────────────────────────────────────────────
@@ -161,6 +171,46 @@ impl AIServiceConnector {
         Ok(response_text)
     }
 
+    /// Get archive suggestions for a document based on its context.
+    /// Requirements: 2.7
+    pub async fn get_archive_suggestions(
+        &self,
+        doc_context: &str,
+    ) -> Result<Vec<ArchiveSuggestion>, IPCError> {
+        let system_prompt = "You are a document management assistant. Analyze the given document context \
+            and suggest items that could be archived. Return ONLY a JSON array of suggestion objects \
+            with fields: category (string), title (string), description (string), relevance_score (0.0-1.0). \
+            No markdown, no extra text.";
+
+        let user_content = format!(
+            "Document context:\n{}\n\nSuggest items from this document that could be archived.",
+            doc_context
+        );
+
+        let response_json = self
+            .call_chat_completions(system_prompt, &user_content)
+            .await?;
+
+        parse_archive_suggestions(&response_json)
+    }
+
+    /// Generate a summary for archived content.
+    /// Requirements: 2.8
+    pub async fn generate_archive_summary(
+        &self,
+        content: &str,
+    ) -> Result<String, IPCError> {
+        let system_prompt = "You are a document summarization assistant. Provide a concise summary \
+            of the given archived content. Return only the summary text, no extra formatting.";
+
+        let user_content = format!(
+            "Archived content:\n{}\n\nProvide a concise summary of this content.",
+            content
+        );
+
+        self.call_chat_completions(system_prompt, &user_content).await
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     async fn call_chat_completions(
@@ -269,6 +319,40 @@ pub fn parse_suggestions(
             explanation: r.explanation,
             confidence_score: r.confidence_score.clamp(0.0, 1.0),
             original_text: original_text.to_string(),
+        })
+        .collect())
+}
+
+/// Parse a JSON string (array of RawArchiveSuggestion) into Vec<ArchiveSuggestion>.
+pub fn parse_archive_suggestions(
+    json_str: &str,
+) -> Result<Vec<ArchiveSuggestion>, IPCError> {
+    // Strip markdown code fences if present
+    let cleaned = json_str
+        .trim()
+        .trim_start_matches("```json")
+        .trim_start_matches("```")
+        .trim_end_matches("```")
+        .trim();
+
+    let raw: Vec<RawArchiveSuggestion> = serde_json::from_str(cleaned).map_err(|e| IPCError {
+        code: "AI_PARSE_ERROR".to_string(),
+        message: format!("Failed to parse archive suggestions JSON: {}", e),
+    })?;
+
+    Ok(raw
+        .into_iter()
+        .map(|r| {
+            let id = Uuid::new_v4().to_string();
+            ArchiveSuggestion {
+                id: id.clone(),
+                archive_item_id: Uuid::new_v4().to_string(),
+                category: r.category,
+                title: r.title,
+                description: r.description,
+                archived_at: Utc::now().timestamp(),
+                relevance_score: r.relevance_score.clamp(0.0, 1.0),
+            }
         })
         .collect())
 }
@@ -460,5 +544,55 @@ mod tests {
         let connector = AIServiceConnector::new("".to_string(), None);
         assert_eq!(connector.api_key, "env-key-123");
         std::env::remove_var("OPENAI_API_KEY");
+    }
+
+    // ── Archive suggestion parsing ────────────────────────────────────────────
+
+    #[test]
+    fn test_parse_archive_suggestions_valid_json() {
+        let json_str = r#"[
+            {"category": "completed", "title": "Old Draft", "description": "No longer needed", "relevance_score": 0.85},
+            {"category": "outdated", "title": "Legacy Notes", "description": "Superseded by new doc", "relevance_score": 0.72}
+        ]"#;
+
+        let suggestions = parse_archive_suggestions(json_str).unwrap();
+        assert_eq!(suggestions.len(), 2);
+        assert_eq!(suggestions[0].category, "completed");
+        assert_eq!(suggestions[0].title, "Old Draft");
+        assert_eq!(suggestions[0].description, "No longer needed");
+        assert!((suggestions[0].relevance_score - 0.85).abs() < 0.001);
+        // IDs should be valid UUIDs (non-empty)
+        assert!(!suggestions[0].id.is_empty());
+        assert!(!suggestions[0].archive_item_id.is_empty());
+        assert_ne!(suggestions[0].id, suggestions[1].id);
+    }
+
+    #[test]
+    fn test_parse_archive_suggestions_strips_markdown_fences() {
+        let json_str = "```json\n[{\"category\":\"old\",\"title\":\"T\",\"description\":\"D\",\"relevance_score\":0.5}]\n```";
+        let suggestions = parse_archive_suggestions(json_str).unwrap();
+        assert_eq!(suggestions.len(), 1);
+        assert_eq!(suggestions[0].category, "old");
+    }
+
+    #[test]
+    fn test_parse_archive_suggestions_clamps_relevance_score() {
+        let json_str = r#"[{"category":"c","title":"t","description":"d","relevance_score":1.5}]"#;
+        let suggestions = parse_archive_suggestions(json_str).unwrap();
+        assert!((suggestions[0].relevance_score - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_parse_archive_suggestions_invalid_json_returns_error() {
+        let result = parse_archive_suggestions("not valid json");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.code, "AI_PARSE_ERROR");
+    }
+
+    #[test]
+    fn test_parse_archive_suggestions_empty_array() {
+        let result = parse_archive_suggestions("[]").unwrap();
+        assert!(result.is_empty());
     }
 }
