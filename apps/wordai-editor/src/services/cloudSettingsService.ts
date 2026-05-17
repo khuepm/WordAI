@@ -10,6 +10,7 @@
 import { defaultPreferences } from '../types/preferences';
 import { loadPreferences, savePreferences } from './preferencesService';
 import { fetchJson } from './authService';
+import { CLOUD_SETTINGS } from '../data/settingClassification';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -170,6 +171,59 @@ export async function uploadAllCloudSettings(
   settings: Record<string, unknown>,
 ): Promise<void> {
   await sendPatchRequest(sessionId, settings);
+}
+
+// ---------------------------------------------------------------------------
+// Upload Local Settings on Sign-Up (Req 15.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload current local preferences as initial cloud settings after sign-up.
+ *
+ * 1. Loads current local preferences via loadPreferences('default')
+ * 2. Extracts only the CLOUD_SETTINGS keys
+ * 3. Converts from nested format to flat dot-notation format
+ *    (e.g., { general: { theme: 'dark' } } → { 'general.theme': 'dark' })
+ * 4. Calls uploadAllCloudSettings(sessionId, flatSettings)
+ *
+ * Requirements: 15.4
+ */
+export async function uploadLocalSettingsOnSignup(
+  sessionId: string,
+): Promise<void> {
+  try {
+    const localPrefs = await loadPreferences('default');
+    const prefsObj = (typeof localPrefs === 'object' && localPrefs !== null)
+      ? localPrefs as Record<string, unknown>
+      : {};
+
+    // Convert nested preferences to flat dot-notation, filtering to CLOUD_SETTINGS only
+    const flatSettings: Record<string, unknown> = {};
+
+    for (const dotKey of CLOUD_SETTINGS) {
+      const parts = dotKey.split('.');
+      if (parts.length !== 2) continue;
+
+      const [section, key] = parts;
+
+      // Map 'ai-engine' dot-notation to 'aiEngine' nested key
+      const nestedSection = section === 'ai-engine' ? 'aiEngine' : section;
+
+      const sectionObj = prefsObj[nestedSection];
+      if (sectionObj && typeof sectionObj === 'object' && sectionObj !== null) {
+        const value = (sectionObj as Record<string, unknown>)[key];
+        if (value !== undefined) {
+          flatSettings[dotKey] = value;
+        }
+      }
+    }
+
+    if (Object.keys(flatSettings).length > 0) {
+      await uploadAllCloudSettings(sessionId, flatSettings);
+    }
+  } catch {
+    // Best-effort upload — don't block sign-up flow on failure
+  }
 }
 
 // ---------------------------------------------------------------------------

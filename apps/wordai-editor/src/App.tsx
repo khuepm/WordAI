@@ -26,7 +26,7 @@ import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
 import { useAuth } from './hooks/useAuth';
-import { resetCloudSettingsToDefaults, syncCloudSettingsOnLogin } from './services/cloudSettingsService';
+import { resetCloudSettingsToDefaults, syncCloudSettingsOnLogin, uploadLocalSettingsOnSignup } from './services/cloudSettingsService';
 import { getPersistedSessionId, fetchAccessContext, clearLocalAuthCache } from './services/authService';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
@@ -150,6 +150,8 @@ function App() {
   // Track previous accessContext to detect login transitions (null → non-null)
   const prevAccessContextRef = useRef<typeof accessContext>(null);
   const isRestoringSessionRef = useRef(false);
+  // Track whether the current auth transition is from a sign-up (Req 15.4)
+  const isSignUpRef = useRef(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -256,7 +258,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Req 15.1, 15.2, 15.3 — Sync cloud settings after login (not session restore, which is handled above)
+  // Req 15.1, 15.2, 15.3, 15.4 — Sync cloud settings after login or upload on sign-up
   useEffect(() => {
     const prev = prevAccessContextRef.current;
     prevAccessContextRef.current = accessContext;
@@ -265,14 +267,22 @@ function App() {
     // Skip if this is during session restoration (handled inline above)
     if (prev === null && accessContext !== null && !isRestoringSessionRef.current) {
       const sessionId = accessContext.session.id;
-      syncCloudSettingsOnLogin(sessionId, {
-        applyPreferences: (prefs) => {
-          setPreferences(normalizePreferences(prefs));
-        },
-        onError: () => {
-          setSettingsSyncError('Settings sync failed. Using local preferences.');
-        },
-      });
+
+      if (isSignUpRef.current) {
+        // Req 15.4 — New user sign-up: upload local preferences as initial cloud settings
+        isSignUpRef.current = false;
+        uploadLocalSettingsOnSignup(sessionId);
+      } else {
+        // Req 15.1, 15.2, 15.3 — Existing user login: download and merge cloud settings
+        syncCloudSettingsOnLogin(sessionId, {
+          applyPreferences: (prefs) => {
+            setPreferences(normalizePreferences(prefs));
+          },
+          onError: () => {
+            setSettingsSyncError('Settings sync failed. Using local preferences.');
+          },
+        });
+      }
     }
   }, [accessContext]);
 
@@ -968,6 +978,7 @@ function App() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        onSignUpSuccess={() => { isSignUpRef.current = true; }}
       />
     </div >
   );

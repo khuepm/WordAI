@@ -21,6 +21,8 @@ export interface AuthModalContextValue {
   formError: string | null;
   setFormError: (error: string | null) => void;
   isSubmitting: boolean;
+  /** Called before auth store update on sign-up success (Req 15.4) */
+  onSignUpSuccess?: () => void;
 }
 
 const AuthModalContext = createContext<AuthModalContextValue | null>(null);
@@ -40,6 +42,8 @@ export interface AuthModalProps {
   initialView?: 'login' | 'signup';
   /** When true, suppresses backdrop click and Escape key close */
   isSubmitting?: boolean;
+  /** Called before auth store update on sign-up success (Req 15.4 — signals upload-on-signup) */
+  onSignUpSuccess?: () => void;
   children?: React.ReactNode;
 }
 
@@ -50,6 +54,7 @@ export function AuthModal({
   onClose,
   initialView = 'login',
   isSubmitting = false,
+  onSignUpSuccess,
   children,
 }: AuthModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -181,6 +186,7 @@ export function AuthModal({
     formError,
     setFormError,
     isSubmitting,
+    onSignUpSuccess,
   };
 
   // Render view content based on currentView

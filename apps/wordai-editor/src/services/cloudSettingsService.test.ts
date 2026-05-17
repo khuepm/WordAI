@@ -8,6 +8,7 @@ import {
   fetchCloudSettings,
   patchCloudSetting,
   uploadAllCloudSettings,
+  uploadLocalSettingsOnSignup,
   _resetInternalState,
   _getPendingPatches,
   _getRetryQueueLength,
@@ -64,8 +65,10 @@ vi.mock('../types/preferences', () => ({
 }));
 
 import { fetchJson } from './authService';
+import { loadPreferences } from './preferencesService';
 
 const mockFetchJson = vi.mocked(fetchJson);
+const mockLoadPreferences = vi.mocked(loadPreferences);
 
 describe('cloudSettingsService', () => {
   beforeEach(() => {
@@ -223,6 +226,96 @@ describe('cloudSettingsService', () => {
 
       expect(mockFetchJson).toHaveBeenCalledTimes(1);
       expect(_getPendingPatches()).toEqual({});
+    });
+  });
+
+  describe('uploadLocalSettingsOnSignup', () => {
+    it('loads local preferences and uploads only CLOUD_SETTINGS keys in flat dot-notation', async () => {
+      mockLoadPreferences.mockResolvedValueOnce({
+        general: {
+          theme: 'dark',
+          language: 'vi',
+          focusMode: true,
+          autoSave: { enabled: true, intervalMinutes: 5 },
+          autoSyncEnabled: true,
+          autoSyncInterval: 15,
+          defaultExportFormat: 'docx',
+          defaultExportPath: '/local/path', // LOCAL_SETTING — should NOT be uploaded
+        },
+        aiEngine: {
+          agent: 'claude',
+          model: 'gpt-4',
+          creativity: 80,
+          contextWindowTokens: 32000,
+          responseLanguage: 'vi',
+          webAccess: false,
+        },
+        typography: {
+          fontFamily: 'roboto',
+          fontSize: 'large',
+          lineSpacing: '1.5',
+          smartQuotes: false,
+          autoCapitalize: true,
+          ligatures: false,
+        },
+        privacy: {
+          allowAITraining: true,
+          localProcessingOnly: true,
+          crashReports: false, // LOCAL_SETTING — should NOT be uploaded
+          analyticsEnabled: true, // LOCAL_SETTING — should NOT be uploaded
+        },
+      } as unknown as import('../types/preferences').Preferences);
+
+      mockFetchJson.mockResolvedValueOnce({ updated_at: '2024-01-01T00:00:00Z' });
+
+      await uploadLocalSettingsOnSignup('session-signup');
+
+      expect(mockLoadPreferences).toHaveBeenCalledWith('default');
+      expect(mockFetchJson).toHaveBeenCalledTimes(1);
+
+      const callArgs = mockFetchJson.mock.calls[0];
+      const body = JSON.parse(callArgs[1]?.body as string);
+
+      // Should include cloud settings
+      expect(body.settings['general.theme']).toBe('dark');
+      expect(body.settings['general.language']).toBe('vi');
+      expect(body.settings['general.focusMode']).toBe(true);
+      expect(body.settings['ai-engine.agent']).toBe('claude');
+      expect(body.settings['ai-engine.model']).toBe('gpt-4');
+      expect(body.settings['typography.fontFamily']).toBe('roboto');
+      expect(body.settings['privacy.allowAITraining']).toBe(true);
+      expect(body.settings['privacy.localProcessingOnly']).toBe(true);
+
+      // Should NOT include local settings
+      expect(body.settings['general.defaultExportPath']).toBeUndefined();
+      expect(body.settings['privacy.crashReports']).toBeUndefined();
+      expect(body.settings['privacy.analyticsEnabled']).toBeUndefined();
+    });
+
+    it('does not call API when no cloud settings are found', async () => {
+      mockLoadPreferences.mockResolvedValueOnce({} as unknown as import('../types/preferences').Preferences);
+
+      await uploadLocalSettingsOnSignup('session-signup');
+
+      expect(mockFetchJson).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when loadPreferences fails', async () => {
+      mockLoadPreferences.mockRejectedValueOnce(new Error('Storage unavailable'));
+
+      // Should not throw — best-effort
+      await expect(uploadLocalSettingsOnSignup('session-signup')).resolves.toBeUndefined();
+      expect(mockFetchJson).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when API call fails', async () => {
+      mockLoadPreferences.mockResolvedValueOnce({
+        general: { theme: 'dark' },
+      } as unknown as import('../types/preferences').Preferences);
+      mockFetchJson.mockRejectedValueOnce(new Error('Server error'));
+
+      // Should not throw — best-effort
+      await expect(uploadLocalSettingsOnSignup('session-signup')).resolves.toBeUndefined();
     });
   });
 });

@@ -29,6 +29,8 @@ export interface SignUpFormProps {
   error?: string | null;
   /** Callback to clear the error (Req 3.8 pattern) */
   clearError?: () => void;
+  /** Called before setAccessContext on successful sign-up (Req 15.4 — signals upload-on-signup) */
+  onBeforeSuccess?: () => void;
 }
 
 export function SignUpForm({
@@ -41,6 +43,7 @@ export function SignUpForm({
   setIsSubmitting,
   error = null,
   clearError,
+  onBeforeSuccess,
 }: SignUpFormProps) {
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
@@ -143,10 +146,13 @@ export function SignUpForm({
           // Step 2: Exchange token via Bridge API → get AccessContext (Req 4.6)
           const context = await login(idToken);
 
-          // Step 3: Update auth store (Req 4.6)
+          // Step 3: Signal sign-up before updating store (Req 15.4 — triggers upload-on-signup)
+          if (onBeforeSuccess) onBeforeSuccess();
+
+          // Step 4: Update auth store (Req 4.6)
           setAccessContext(context);
 
-          // Step 4: Close modal on success
+          // Step 5: Close modal on success
           onSuccess();
         })(),
         timeoutPromise,

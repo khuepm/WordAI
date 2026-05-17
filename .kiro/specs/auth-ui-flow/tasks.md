@@ -213,14 +213,14 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Handle network failures: queue for retry, never revert UI
     - _Requirements: 14.3, 14.4, 14.5, 19.1, 19.2, 19.3, 19.4_
 
-  - [-] 9.3 Implement sync-on-login flow
+  - [x] 9.3 Implement sync-on-login flow
     - After successful login/session-restore: call `fetchCloudSettings()`
     - Merge server values over local (server wins for all CLOUD_SETTINGS keys)
     - Apply immediately to store → UI re-renders (theme, font, AI model, etc.)
     - On failure: show non-blocking toast "Settings sync failed. Using local preferences."
     - _Requirements: 15.1, 15.2, 15.3_
 
-  - [~] 9.4 Implement upload-on-signup flow
+  - [x] 9.4 Implement upload-on-signup flow
     - After new user sign-up: collect current local values for all CLOUD_SETTINGS keys
     - Call `uploadAllCloudSettings(sessionId, settings)`
     - _Requirements: 15.4_
