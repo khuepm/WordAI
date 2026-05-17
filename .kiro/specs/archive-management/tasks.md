@@ -208,7 +208,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
 - [~] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement ArchiveView main container and wire components
+- [x] 14. Implement ArchiveView main container and wire components
   - [x] 14.1 Create `src/components/ArchiveView.tsx`
     - Accept props: `onOpenDocument`, `onTabChange`, `currentDocumentId`
     - Manage local state: `archivedItems`, `suggestions`, `pausedProjects`, `isLoading`, `loadError`, `searchInput`, `searchQuery` (debounced 300ms), `activeCategory`, `activeFilters`, `selectedItemId`, `isDrawerOpen`
@@ -236,11 +236,11 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Preserve unsaved document state when switching to archive tab
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-  - [~] 14.3 Write property test for document state preservation across tab switches
+  - [x] 14.3 Write property test for document state preservation across tab switches
     - **Property 1: Document state preservation across tab switches**
     - **Validates: Requirements 1.6**
 
-  - [~] 14.4 Write integration tests for ArchiveView
+  - [x] 14.4 Write integration tests for ArchiveView
     - Test data fetching on mount
     - Test search filtering with debounce
     - Test filter panel interaction
