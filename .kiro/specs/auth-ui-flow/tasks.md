@@ -31,7 +31,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Export `app` and `auth` instances
     - _Requirements: 2.5, 4.6, 5.6_
 
-  - [~] 1.2 Create `src/services/firebaseAuthService.ts`
+  - [x] 1.2 Create `src/services/firebaseAuthService.ts`
     - Implement `firebaseSignIn(email, password): Promise<string>` — returns ID token
     - Implement `firebaseSignUp(email, password, displayName): Promise<string>` — creates user, sets displayName, returns ID token
     - Implement `firebaseResetPassword(email): Promise<void>` — sends reset email
