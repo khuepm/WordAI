@@ -199,7 +199,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
 - [ ] 9. Implement Preference Cloud Sync
-  - [~] 9.1 Create `src/data/settingClassification.ts`
+  - [x] 9.1 Create `src/data/settingClassification.ts`
     - Define `CLOUD_SETTINGS` array with all cloud-synced setting keys
     - Define `LOCAL_SETTINGS` array with device-only setting keys
     - Export `isCloudSetting(key): boolean` helper
