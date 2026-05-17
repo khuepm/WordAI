@@ -136,7 +136,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
 - [~] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement DetailDrawer with metadata and AI summary
+- [x] 10. Implement DetailDrawer with metadata and AI summary
   - [x] 10.1 Create `src/hooks/useFocusTrap.ts` custom hook
     - Implement focus trapping: Tab/Shift+Tab cycle within container
     - Move focus to first focusable element on activation
@@ -166,7 +166,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Display error state with retry if item data fails to load
     - _Requirements: 7.1–7.10, 8.1–8.6, 9.1–9.7, 13.5, 14.2, 14.3, 14.5_
 
-  - [~] 10.4 Write unit tests for `DetailDrawer`
+  - [x] 10.4 Write unit tests for `DetailDrawer`
     - Test drawer opens with slide animation
     - Test Escape key closes drawer
     - Test Scrim click closes drawer
@@ -177,7 +177,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Test AI summary loading/success/error states
     - _Requirements: 7.1, 7.5, 7.6, 7.8, 9.4, 9.5, 14.2, 14.3_
 
-- [ ] 11. Implement MemoryAccessToggle component
+- [x] 11. Implement MemoryAccessToggle component
   - [x] 11.1 Create `src/components/MemoryAccessToggle.tsx`
     - Accept props: `enabled`, `isUpdating`, `error`, `onChange`
     - Render section with surface-container-lowest background, rounded-xl, border transitioning to primary/30 on hover
@@ -187,11 +187,11 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Display inline error message on persistence failure
     - _Requirements: 10.1–10.8, 14.6_
 
-  - [~] 11.2 Write property test for MemoryAccessToggle state revert
+  - [x] 11.2 Write property test for MemoryAccessToggle state revert
     - **Property 6: Toggle state revert on persistence failure**
     - **Validates: Requirements 10.7**
 
-- [ ] 12. Implement DrawerActionBar component
+- [x] 12. Implement DrawerActionBar component
   - [x] 12.1 Create `src/components/DrawerActionBar.tsx`
     - Accept props: `itemId`, `hasRelatedFile`, `onRestore`, `onCompare`, `onOpenReadOnly`, `onSaveToLibrary`, `onDelete`
     - Render sticky footer with frosted-glass background (surface-container-lowest/90, 12px backdrop blur, top border)
@@ -199,7 +199,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Secondary row: "Save to Library" (left, bookmark_add icon), "Delete Permanently" (right, error color, delete_forever icon)
     - _Requirements: 11.1–11.3, 11.6_
 
-  - [~] 12.2 Write unit tests for `DrawerActionBar`
+  - [x] 12.2 Write unit tests for `DrawerActionBar`
     - Test "Compare with Current" disabled when `hasRelatedFile` is false
     - Test all button click handlers
     - Test button labels and icons
