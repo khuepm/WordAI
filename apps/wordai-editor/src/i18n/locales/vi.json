@@ -511,6 +511,131 @@
       "warningsMessage": "File đã được nhập với {{count}} cảnh báo."
     }
   },
+  "archive": {
+    "tabName": "Lưu trữ",
+    "title": "Lưu trữ",
+    "subtitle": "Quản lý tài liệu đã lưu trữ, phiên bản cũ và dự án tạm dừng.",
+    "sidebar": {
+      "drafts": "Bản nháp",
+      "projects": "Dự án",
+      "versions": "Phiên bản",
+      "trash": "Thùng rác"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm mục đã lưu trữ...",
+      "clear": "Xóa tìm kiếm",
+      "filters": "Bộ lọc"
+    },
+    "filters": {
+      "itemType": {
+        "label": "Loại mục",
+        "suggestions": "Đề xuất",
+        "versions": "Phiên bản",
+        "pausedProjects": "Dự án tạm dừng"
+      },
+      "dateRange": {
+        "label": "Khoảng thời gian",
+        "last7Days": "7 ngày qua",
+        "last30Days": "30 ngày qua",
+        "last90Days": "90 ngày qua",
+        "allTime": "Tất cả"
+      },
+      "clearAll": "Xóa tất cả bộ lọc"
+    },
+    "sections": {
+      "suggestedToReview": "Đề xuất xem lại",
+      "oldVersions": "Phiên bản cũ",
+      "pausedProjects": "Dự án tạm dừng"
+    },
+    "actions": {
+      "newEntry": "Mục mới",
+      "review": "Xem lại",
+      "compare": "So sánh",
+      "restore": "Khôi phục",
+      "openFolder": "Mở thư mục",
+      "viewAll": "Xem tất cả",
+      "restoreToDrafts": "Khôi phục về Bản nháp",
+      "compareWithCurrent": "So sánh với bản hiện tại",
+      "openReadOnly": "Mở chỉ đọc",
+      "saveToLibrary": "Lưu vào Thư viện",
+      "deletePermanently": "Xóa vĩnh viễn"
+    },
+    "detail": {
+      "archivedDate": "Ngày lưu trữ",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Không có lý do",
+      "relatedCurrentFile": "File hiện tại liên quan",
+      "aiSummary": {
+        "title": "Tóm tắt AI",
+        "generating": "Đang tạo tóm tắt...",
+        "unavailable": "Không thể tạo tóm tắt. Vui lòng thử lại.",
+        "retry": "Thử lại"
+      },
+      "memoryAccess": {
+        "title": "Bật/Tắt truy cập bộ nhớ",
+        "description": "Cho phép AuraSphere AI tham chiếu mục này khi tạo nội dung.",
+        "enabled": "Truy cập bộ nhớ đã bật",
+        "disabled": "Truy cập bộ nhớ đã tắt"
+      }
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "Không tìm thấy kết quả",
+        "message": "Không có mục lưu trữ nào khớp với tiêu chí tìm kiếm.",
+        "clearButton": "Xóa bộ lọc"
+      },
+      "noVersions": {
+        "title": "Không có phiên bản cũ",
+        "message": "Không có phiên bản cũ nào."
+      },
+      "noProjects": {
+        "title": "Không có dự án tạm dừng",
+        "message": "Không có dự án nào đang tạm dừng."
+      },
+      "noSuggestions": {
+        "title": "Chưa có đề xuất",
+        "message": "Đề xuất sẽ xuất hiện khi bạn làm việc trên tài liệu đang hoạt động."
+      }
+    },
+    "errors": {
+      "loadFailed": "Không thể tải lưu trữ: {{message}}",
+      "deleteFailed": "Không thể xóa mục: {{message}}",
+      "restoreFailed": "Không thể khôi phục mục: {{message}}",
+      "summaryUnavailable": "Tóm tắt AI hiện không khả dụng.",
+      "relatedDocUnavailable": "Tài liệu liên quan không khả dụng.",
+      "memoryAccessFailed": "Không thể lưu trạng thái truy cập bộ nhớ."
+    },
+    "aria": {
+      "navigation": "Điều hướng danh mục lưu trữ",
+      "searchBar": "Tìm kiếm mục đã lưu trữ",
+      "drawer": "Panel chi tiết mục lưu trữ",
+      "closeDrawer": "Đóng panel chi tiết",
+      "suggestionCard": "Mục lưu trữ đề xuất: {{title}}",
+      "versionItem": "Phiên bản đã lưu trữ: {{title}}",
+      "projectCard": "Dự án tạm dừng: {{title}}"
+    },
+    "confirm": {
+      "restore": {
+        "title": "Khôi phục mục",
+        "message": "Bạn có chắc muốn khôi phục \"{{name}}\" về bản nháp không?",
+        "confirm": "Khôi phục",
+        "cancel": "Hủy"
+      },
+      "delete": {
+        "title": "Xóa vĩnh viễn",
+        "message": "Bạn có chắc muốn xóa vĩnh viễn \"{{name}}\" không? Hành động này không thể hoàn tác.",
+        "confirm": "Xóa",
+        "cancel": "Hủy"
+      }
+    },
+    "notifications": {
+      "restored": "\"{{name}}\" đã được khôi phục về bản nháp.",
+      "saved": "\"{{name}}\" đã được lưu vào thư viện.",
+      "deleted": "\"{{name}}\" đã bị xóa vĩnh viễn."
+    },
+    "loading": "Đang tải lưu trữ...",
+    "retry": "Thử lại"
+  },
   "confirmationDialog": {
     "ariaLabel": "Hộp thoại xác nhận"
   }
