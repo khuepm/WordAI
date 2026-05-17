@@ -68,7 +68,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
 - [ ] 3. Implement LoginForm component
-  - [~] 3.1 Create `src/components/auth/LoginForm.tsx`
+  - [x] 3.1 Create `src/components/auth/LoginForm.tsx`
     - Heading: `font-headline text-[2rem] font-bold tracking-tight mb-8`
     - Email input: label `font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant`, input `input-glow-focus bg-surface-container-low rounded-lg h-12 px-4`, focus state `bg-surface-container-lowest shadow-[inset_0_-2px_0_0_#4343d5]`
     - Password input: same styling, with "Quên mật khẩu?" link `font-headline text-xs text-primary font-medium` aligned right
