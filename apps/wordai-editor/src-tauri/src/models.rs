@@ -69,7 +69,7 @@ pub struct AuraDocument {
 }
 
 /// Block-level content elements inside an AuraDocument.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DocumentBlock {
     Paragraph { text: String, inline: Vec<InlineSpan> },
@@ -80,7 +80,7 @@ pub enum DocumentBlock {
 }
 
 /// Inline formatting spans within a block.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum InlineSpan {
     Text { text: String },
@@ -91,7 +91,7 @@ pub enum InlineSpan {
 }
 
 /// Placeholder for unsupported DOCX elements (Table, Image, Comment, etc.).
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct DocxPlaceholder {
     pub element_type: String,
     pub raw_xml: String,
@@ -204,4 +204,63 @@ impl Default for CancellationToken {
     fn default() -> Self {
         Self::new()
     }
+}
+
+// ── Archive Models ────────────────────────────────────────────────────────────
+// Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10
+
+/// Lightweight archived intent summary (no content) for list views.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchivedIntentSummary {
+    pub id: String,
+    pub intent_name: String,
+    pub archived_at: i64,
+    pub archive_reason: String,
+    pub archive_type: String,
+    pub related_current_id: Option<String>,
+    pub memory_access_enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub version: i64,
+    pub project_id: Option<String>,
+}
+
+/// Full archived document including deserialized content for detail views.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ArchivedIntentDocument {
+    pub id: String,
+    pub intent_name: String,
+    pub archived_at: i64,
+    pub archive_reason: String,
+    pub archive_type: String,
+    pub related_current_id: Option<String>,
+    pub memory_access_enabled: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub version: i64,
+    pub project_id: Option<String>,
+    pub content: Vec<DocumentBlock>,
+}
+
+/// AI-generated suggestion for archiving a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchiveSuggestion {
+    pub id: String,
+    pub archive_item_id: String,
+    pub category: String,
+    pub title: String,
+    pub description: String,
+    pub archived_at: i64,
+    pub relevance_score: f64,
+}
+
+/// A paused project with its associated document count.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PausedProject {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub document_count: i64,
+    pub paused_at: i64,
+    pub created_at: i64,
 }

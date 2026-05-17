@@ -50,7 +50,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
 
 - [ ] 3. Fix for missing archive backend commands
 
-  - [~] 3.1 Add archive model structs to `models.rs`
+  - [x] 3.1 Add archive model structs to `models.rs`
     - Add `ArchivedIntentSummary` struct with fields: `id`, `intent_name`, `archived_at`, `archive_reason`, `archive_type`, `related_current_id`, `memory_access_enabled`, `created_at`, `updated_at`, `version`, `project_id`
     - Add `ArchivedIntentDocument` struct extending summary with `content: Vec<DocumentBlock>`
     - Add `ArchiveSuggestion` struct with fields: `id`, `archive_item_id`, `category`, `title`, `description`, `archived_at`, `relevance_score`
