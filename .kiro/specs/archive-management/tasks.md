@@ -26,7 +26,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ded
     - _Requirements: 3.5, 3.6, 4.1, 4.2, 5.3, 6.3, 7.9, 10.3_
 
 - [ ] 2. Implement archive utility functions
-  - [ ] 2.1 Create `src/utils/archiveFilters.ts` with filtering and sorting logic
+  - [x] 2.1 Create `src/utils/archiveFilters.ts` with filtering and sorting logic
     - Implement `applyArchiveFilters(items, query, filters)` — case-insensitive substring match on title/reason, type filter, date range filter
     - Implement `sortVersionsByDate(versions)` — sort by `archived_at` descending
     - Implement `truncateReason(reason, maxLength)` — truncate at 200 chars with ellipsis, return placeholder for empty/null
