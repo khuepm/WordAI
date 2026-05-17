@@ -9,9 +9,171 @@
 
 import { defaultPreferences } from '../types/preferences';
 import { loadPreferences, savePreferences } from './preferencesService';
+import { fetchJson } from './authService';
 
 // ---------------------------------------------------------------------------
-// Cloud Settings Reset (Req 11.6)
+// Configuration
+// ---------------------------------------------------------------------------
+
+const BRIDGE_API_BASE_URL =
+  import.meta.env.VITE_BRIDGE_API_URL || 'http://localhost:3001';
+
+/** Debounce window in milliseconds for batching cloud setting patches. */
+const DEBOUNCE_MS = 1000;
+
+/** Maximum retry attempts for failed API calls. */
+const MAX_RETRIES = 3;
+
+/** Delay between retries in milliseconds (exponential backoff base). */
+const RETRY_BASE_DELAY_MS = 2000;
+
+// ---------------------------------------------------------------------------
+// Internal state
+// ---------------------------------------------------------------------------
+
+/** Pending settings changes waiting to be sent in the next debounced batch. */
+let pendingPatches: Record<string, unknown> = {};
+
+/** Timer handle for the debounce window. */
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Queue of failed patches awaiting retry. */
+interface RetryEntry {
+  sessionId: string;
+  settings: Record<string, unknown>;
+  attempts: number;
+}
+
+const retryQueue: RetryEntry[] = [];
+
+/** Timer handle for retry processing. */
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+// ---------------------------------------------------------------------------
+// Bridge API: Fetch Cloud Settings (Req 14.3, 15.1, 15.2)
+// ---------------------------------------------------------------------------
+
+interface CloudSettingsResponse {
+  settings: Record<string, unknown>;
+  updated_at: string;
+}
+
+/**
+ * Fetch all cloud settings from the Bridge API.
+ *
+ * GET /user/preferences → { settings: Record<string, unknown>, updated_at: string }
+ *
+ * Returns only the settings object (flat key-value map).
+ * On failure, throws the underlying BridgeApiError.
+ *
+ * Requirements: 14.3, 15.1, 15.2
+ */
+export async function fetchCloudSettings(
+  sessionId: string,
+): Promise<Record<string, unknown>> {
+  const response = await fetchJson<CloudSettingsResponse>(
+    `${BRIDGE_API_BASE_URL}/user/preferences`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Session-Id': sessionId,
+      },
+    },
+  );
+  return response.settings;
+}
+
+// ---------------------------------------------------------------------------
+// Bridge API: Patch Cloud Setting (Req 14.3, 19.2, 19.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Queue a single setting change for debounced batch PATCH to the Bridge API.
+ *
+ * Multiple calls within the 1-second debounce window are batched into a
+ * single PATCH request. On failure, the patch is queued for retry without
+ * reverting the UI (optimistic update pattern).
+ *
+ * Requirements: 14.3, 19.2, 19.3
+ */
+export async function patchCloudSetting(
+  sessionId: string,
+  key: string,
+  value: unknown,
+): Promise<void> {
+  // Accumulate the change in the pending batch
+  pendingPatches[key] = value;
+
+  // Reset the debounce timer
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+  }
+
+  debounceTimer = setTimeout(() => {
+    flushPendingPatches(sessionId);
+  }, DEBOUNCE_MS);
+}
+
+/**
+ * Flush all pending patches as a single PATCH request.
+ * On failure, queue for retry (Req 19.3).
+ */
+async function flushPendingPatches(sessionId: string): Promise<void> {
+  const batch = { ...pendingPatches };
+  pendingPatches = {};
+  debounceTimer = null;
+
+  if (Object.keys(batch).length === 0) return;
+
+  try {
+    await sendPatchRequest(sessionId, batch);
+  } catch {
+    // Network failure: queue for retry, never revert UI (Req 19.3)
+    enqueueRetry(sessionId, batch);
+  }
+}
+
+/**
+ * Send a PATCH request to the Bridge API.
+ * PATCH /user/preferences → body: { settings: { key: value, ... } }
+ */
+async function sendPatchRequest(
+  sessionId: string,
+  settings: Record<string, unknown>,
+): Promise<void> {
+  await fetchJson<{ updated_at: string }>(
+    `${BRIDGE_API_BASE_URL}/user/preferences`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Session-Id': sessionId,
+      },
+      body: JSON.stringify({ settings }),
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bridge API: Upload All Cloud Settings (Req 15.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload all cloud settings to the Bridge API in a single request.
+ * Used after sign-up to persist the user's initial local preferences.
+ *
+ * Requirements: 15.4
+ */
+export async function uploadAllCloudSettings(
+  sessionId: string,
+  settings: Record<string, unknown>,
+): Promise<void> {
+  await sendPatchRequest(sessionId, settings);
+}
+
+// ---------------------------------------------------------------------------
+// Cloud Settings Reset (Req 11.6, 19.5)
 // ---------------------------------------------------------------------------
 
 /**
@@ -26,7 +188,7 @@ import { loadPreferences, savePreferences } from './preferencesService';
  * Local settings (general.defaultExportPath, about.auraBrainStoragePath,
  * privacy.crashReports, privacy.analyticsEnabled) are retained.
  *
- * Requirements: 11.6, 14.1, 14.2
+ * Requirements: 11.6, 14.1, 14.2, 19.5
  */
 export async function resetCloudSettingsToDefaults(): Promise<void> {
   try {
@@ -54,4 +216,108 @@ export async function resetCloudSettingsToDefaults(): Promise<void> {
   } catch {
     // Best-effort reset — don't block sign-out on failure
   }
+}
+
+// ---------------------------------------------------------------------------
+// Retry Queue (Req 19.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Enqueue a failed patch for retry with exponential backoff.
+ * Never reverts the UI — the optimistic local value is retained.
+ */
+function enqueueRetry(sessionId: string, settings: Record<string, unknown>): void {
+  retryQueue.push({ sessionId, settings, attempts: 0 });
+  scheduleRetryProcessing();
+}
+
+/**
+ * Schedule retry processing if not already scheduled.
+ */
+function scheduleRetryProcessing(): void {
+  if (retryTimer !== null) return;
+
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    processRetryQueue();
+  }, RETRY_BASE_DELAY_MS);
+}
+
+/**
+ * Process the retry queue: attempt to resend failed patches.
+ * Uses exponential backoff. Entries exceeding MAX_RETRIES are dropped
+ * (the local optimistic value is still retained).
+ */
+async function processRetryQueue(): Promise<void> {
+  const entries = retryQueue.splice(0, retryQueue.length);
+
+  for (const entry of entries) {
+    entry.attempts += 1;
+
+    if (entry.attempts > MAX_RETRIES) {
+      // Give up after max retries — local value is still retained (Req 19.3)
+      continue;
+    }
+
+    try {
+      await sendPatchRequest(entry.sessionId, entry.settings);
+    } catch {
+      // Still failing — re-enqueue with incremented attempt count
+      retryQueue.push(entry);
+    }
+  }
+
+  // If there are still entries, schedule another round
+  if (retryQueue.length > 0) {
+    const nextDelay = RETRY_BASE_DELAY_MS * Math.pow(2, retryQueue[0].attempts - 1);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      processRetryQueue();
+    }, nextDelay);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Test helpers (exported for testing only)
+// ---------------------------------------------------------------------------
+
+/**
+ * Cancel any pending debounce timer and clear the pending patches.
+ * Used in tests to reset internal state between test cases.
+ */
+export function _resetInternalState(): void {
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+  if (retryTimer !== null) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  pendingPatches = {};
+  retryQueue.length = 0;
+}
+
+/**
+ * Get the current pending patches (for testing).
+ */
+export function _getPendingPatches(): Record<string, unknown> {
+  return { ...pendingPatches };
+}
+
+/**
+ * Get the current retry queue length (for testing).
+ */
+export function _getRetryQueueLength(): number {
+  return retryQueue.length;
+}
+
+/**
+ * Force flush pending patches immediately (for testing).
+ */
+export async function _forceFlush(sessionId: string): Promise<void> {
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+  }
+  await flushPendingPatches(sessionId);
 }

@@ -205,7 +205,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Export `isCloudSetting(key): boolean` helper
     - _Requirements: 14.1, 14.2_
 
-  - [~] 9.2 Create `src/services/cloudSettingsService.ts`
+  - [x] 9.2 Create `src/services/cloudSettingsService.ts`
     - Implement `fetchCloudSettings(sessionId): Promise<Record<string, unknown>>`
     - Implement `patchCloudSetting(sessionId, key, value): Promise<void>` with 1s debounce
     - Implement `uploadAllCloudSettings(sessionId, settings): Promise<void>`
