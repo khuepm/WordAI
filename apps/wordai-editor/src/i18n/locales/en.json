@@ -33,7 +33,7 @@
     "shieldActive": "Shield Active"
   },
   "settings": {
-    "title": "Settings",
+    "title": "Preferences",
     "tabs": {
       "general": "General",
       "aiEngine": "AI Engine",
@@ -259,7 +259,7 @@
       "showingFor": "Showing results for \"{{query}}\""
     },
     "sidebar": {
-      "systemConfiguration": "SYSTEM CONFIGURATION",
+      "systemConfiguration": "System Configuration",
       "proCard": {
         "title": "AuraSphere Pro",
         "description": "Unlock larger context windows and exclusive models."

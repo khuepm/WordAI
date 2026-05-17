@@ -34,57 +34,48 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
   ];
 
   return (
-    <aside style={{
-      display: 'flex', flexDirection: 'column', width: '256px',
-      padding: '1.5rem 1rem', gap: '0.375rem',
-      background: '#fafafa', boxShadow: '2px 0 8px rgba(0,0,0,0.03)',
-      justifyContent: 'space-between'
-    }}>
+    <aside className="flex flex-col w-64 py-6 px-4 bg-zinc-50 border-r border-zinc-200/20 rounded-l-lg justify-between">
       <div>
-        <div style={{ marginBottom: '2rem', padding: '0 0.5rem' }}>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#18181b', letterSpacing: '-0.02em', margin: 0 }}>{t('settings.title')}</h1>
-          <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', fontWeight: 700, marginTop: '4px' }}>{t('settings.sidebar.systemConfiguration')}</p>
+        <div className="mb-8 px-2">
+          <h1 className="text-lg font-black tracking-tight text-zinc-900 m-0">{t('settings.title')}</h1>
+          <p className="text-sm text-zinc-500 mt-1">{t('settings.sidebar.systemConfiguration')}</p>
         </div>
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <nav className="flex-1 flex flex-col gap-1.5">
           {items.map(({ id, icon, label }) => {
-            const active = activeTab === id;
+            const active = activeTab === id && !isSearching;
             return (
-              <button key={id} onClick={() => { onTabChange(id); onClearSearch(); }} style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-                fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
-                border: 'none',
-                borderRight: active && !isSearching ? '4px solid #4f46e5' : '4px solid transparent',
-                background: active && !isSearching ? '#ffffff' : 'transparent',
-                color: active && !isSearching ? '#4f46e5' : '#71717a',
-                boxShadow: active && !isSearching ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                transform: active && !isSearching ? 'scale(1.02)' : 'none',
-                transition: 'all 0.15s',
-                fontFamily: 'inherit',
-              }}>
-                <span className="material-symbols-outlined" style={{
-                  fontSize: '20px',
-                  fontVariationSettings: active && !isSearching ? "'FILL' 1" : "'FILL' 0",
+              <button
+                key={id}
+                onClick={() => { onTabChange(id); onClearSearch(); }}
+                className={[
+                  "flex items-center gap-3 py-2.5 px-3 rounded-lg border-0 cursor-pointer",
+                  "font-['Manrope'] text-sm font-medium tracking-wide uppercase",
+                  "transition-transform duration-200",
+                  active
+                    ? "bg-white text-indigo-600 shadow-sm border-r-4 border-indigo-500"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:translate-x-1",
+                ].join(' ')}
+                style={{
+                  borderRight: active ? '4px solid #6366f1' : '4px solid transparent',
+                }}
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{
+                  fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
                 }}>{icon}</span>
                 {label}
               </button>
             );
           })}
           {isSearching && (
-            <div style={{ marginTop: '1rem', paddingTop: '1rem' }}>
-              <button style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-                fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
-                border: 'none',
-                borderLeft: '4px solid #4343d5',
-                background: 'rgba(67,67,213,0.05)',
-                color: '#4343d5',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                fontFamily: 'inherit',
-                width: '100%',
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>search</span>
+            <div className="mt-4 pt-4">
+              <button className={[
+                "flex items-center gap-3 py-2.5 px-3 rounded-lg border-0 cursor-pointer w-full",
+                "font-['Manrope'] text-sm font-medium tracking-wide uppercase",
+                "bg-indigo-50 text-indigo-600 shadow-sm",
+              ].join(' ')}
+                style={{ borderLeft: '4px solid #4343d5' }}
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>search</span>
                 {t('settings.search.results')}
               </button>
             </div>
@@ -92,9 +83,9 @@ function Sidebar({ activeTab, onTabChange, isSearching, onClearSearch }: { activ
         </nav>
       </div>
       <div>
-        <div style={{ padding: '1rem', background: 'rgba(67,67,213,0.05)', borderRadius: '0.75rem', border: '1px solid rgba(67,67,213,0.1)' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4343d5', marginBottom: '4px' }}>{t('settings.sidebar.proCard.title')}</p>
-          <p style={{ fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>{t('settings.sidebar.proCard.description')}</p>
+        <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+          <p className="text-xs font-semibold text-primary mb-1">{t('settings.sidebar.proCard.title')}</p>
+          <p className="text-[11px] text-zinc-500 leading-relaxed">{t('settings.sidebar.proCard.description')}</p>
         </div>
       </div>
     </aside>

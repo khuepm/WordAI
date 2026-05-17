@@ -33,7 +33,7 @@
     "shieldActive": "Khiên bảo vệ đang bật"
   },
   "settings": {
-    "title": "Cài đặt",
+    "title": "Tùy chỉnh",
     "tabs": {
       "general": "Chung",
       "aiEngine": "AI Engine",
@@ -259,7 +259,7 @@
       "showingFor": "Kết quả cho \"{{query}}\""
     },
     "sidebar": {
-      "systemConfiguration": "CẤU HÌNH HỆ THỐNG",
+      "systemConfiguration": "Cấu hình hệ thống",
       "proCard": {
         "title": "AuraSphere Pro",
         "description": "Mở khóa cửa sổ ngữ cảnh lớn hơn và các mô hình độc quyền."
