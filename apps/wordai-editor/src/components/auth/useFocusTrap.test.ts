@@ -3,7 +3,7 @@
  * Requirements: 1.5
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useFocusTrap } from './useFocusTrap';
 
@@ -18,12 +18,6 @@ function createButton(label: string): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.textContent = label;
   return btn;
-}
-
-function createInput(placeholder: string): HTMLInputElement {
-  const input = document.createElement('input');
-  input.placeholder = placeholder;
-  return input;
 }
 
 describe('useFocusTrap', () => {

@@ -275,7 +275,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Verify no hardcoded strings remain in AuthModal, LoginForm, SignUpForm, ForgotPasswordForm, ResetSuccessView, UserMenuAuthenticated, UserMenuGuest
     - _Requirements: 13.1, 13.3, 13.4_
 
-- [ ] 12. Final integration and checkpoint
+- [x] 12. Final integration and checkpoint
   - [x] 12.1 Wire everything together in App.tsx
     - Add `isAuthModalOpen` state
     - Pass `onSignIn` and `onSignOut` to TopNavBar
@@ -284,7 +284,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Cloud settings sync after login/restore
     - _Requirements: 1.1, 7.4, 8.6, 11.1, 12.1_
 
-  - [~] 12.2 Verify complete flow end-to-end
+  - [x] 12.2 Verify complete flow end-to-end
     - Guest → Sign In → Login → Authenticated (settings sync)
     - Guest → Sign In → Sign Up → Authenticated (settings upload)
     - Authenticated → Sign Out → Guest (settings reset)

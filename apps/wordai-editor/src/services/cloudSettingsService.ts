@@ -194,7 +194,7 @@ export async function uploadLocalSettingsOnSignup(
   try {
     const localPrefs = await loadPreferences('default');
     const prefsObj = (typeof localPrefs === 'object' && localPrefs !== null)
-      ? localPrefs as Record<string, unknown>
+      ? localPrefs as unknown as Record<string, unknown>
       : {};
 
     // Convert nested preferences to flat dot-notation, filtering to CLOUD_SETTINGS only
@@ -247,26 +247,35 @@ export async function uploadLocalSettingsOnSignup(
 export async function resetCloudSettingsToDefaults(): Promise<void> {
   try {
     const current = await loadPreferences('default');
-    const currentObj = (typeof current === 'object' && current !== null) ? current as Record<string, unknown> : {};
+    const currentObj = (typeof current === 'object' && current !== null) ? current as unknown as Record<string, unknown> : {};
 
     // Preserve local-only settings, reset cloud settings to defaults
+    const generalObj = currentObj.general as Record<string, unknown> | undefined;
+    const privacyObj = currentObj.privacy as Record<string, unknown> | undefined;
+
     const reset = {
       general: {
         ...defaultPreferences.general,
         // Preserve local-only: defaultExportPath
-        defaultExportPath: (currentObj.general as Record<string, unknown>)?.defaultExportPath ?? defaultPreferences.general.defaultExportPath,
+        defaultExportPath: (typeof generalObj?.defaultExportPath === 'string'
+          ? generalObj.defaultExportPath
+          : defaultPreferences.general.defaultExportPath) as string,
       },
       aiEngine: { ...defaultPreferences.aiEngine },
       typography: { ...defaultPreferences.typography },
       privacy: {
         ...defaultPreferences.privacy,
         // Preserve local-only: crashReports, analyticsEnabled
-        crashReports: (currentObj.privacy as Record<string, unknown>)?.crashReports ?? defaultPreferences.privacy.crashReports,
-        analyticsEnabled: (currentObj.privacy as Record<string, unknown>)?.analyticsEnabled ?? defaultPreferences.privacy.analyticsEnabled,
+        crashReports: (typeof privacyObj?.crashReports === 'boolean'
+          ? privacyObj.crashReports
+          : defaultPreferences.privacy.crashReports) as boolean,
+        analyticsEnabled: (typeof privacyObj?.analyticsEnabled === 'boolean'
+          ? privacyObj.analyticsEnabled
+          : defaultPreferences.privacy.analyticsEnabled) as boolean,
       },
     };
 
-    await savePreferences('default', reset);
+    await savePreferences('default', reset as Parameters<typeof savePreferences>[1]);
   } catch {
     // Best-effort reset — don't block sign-out on failure
   }
@@ -367,7 +376,7 @@ export async function syncCloudSettingsOnLogin(
     try {
       const loaded = await loadPreferences('default');
       localPrefs = (typeof loaded === 'object' && loaded !== null)
-        ? loaded as Record<string, unknown>
+        ? loaded as unknown as Record<string, unknown>
         : {};
     } catch {
       localPrefs = {};
@@ -377,7 +386,7 @@ export async function syncCloudSettingsOnLogin(
     const merged = mergeCloudOverLocal(localPrefs, cloudSettings);
 
     // Persist merged preferences locally
-    await savePreferences('default', merged as Parameters<typeof savePreferences>[1]);
+    await savePreferences('default', merged as unknown as Parameters<typeof savePreferences>[1]);
 
     // Apply to store so UI re-renders immediately (theme, font, AI model, etc.)
     options.applyPreferences(merged);

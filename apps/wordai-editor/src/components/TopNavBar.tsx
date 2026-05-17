@@ -52,7 +52,7 @@ export function TopNavBar({
   onSave,
   onOpenPreferences,
   userName,
-  userEmail,
+  userEmail: _userEmail,
   isDirty = false,
   isSyncing = false,
   onRename,
