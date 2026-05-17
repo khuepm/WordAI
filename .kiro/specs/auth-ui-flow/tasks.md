@@ -267,7 +267,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Add `userMenu.*` keys
     - _Requirements: 13.1, 13.2_
 
-  - [~] 11.2 Add auth translation keys to `src/i18n/locales/vi.json`
+  - [x] 11.2 Add auth translation keys to `src/i18n/locales/vi.json`
     - Mirror all keys from en.json with Vietnamese translations
     - _Requirements: 13.1, 13.2_
 
