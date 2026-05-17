@@ -515,6 +515,12 @@
     "tabName": "Lưu trữ",
     "title": "Lưu trữ",
     "subtitle": "Quản lý tài liệu đã lưu trữ, phiên bản cũ và dự án tạm dừng.",
+    "categories": {
+      "unused_concept": "Khái niệm chưa dùng",
+      "referenced_work": "Tài liệu tham chiếu",
+      "outdated_draft": "Bản nháp lỗi thời",
+      "related_research": "Nghiên cứu liên quan"
+    },
     "sidebar": {
       "drafts": "Bản nháp",
       "projects": "Dự án",

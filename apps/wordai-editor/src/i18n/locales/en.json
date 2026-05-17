@@ -515,6 +515,12 @@
     "tabName": "Archive",
     "title": "Archive",
     "subtitle": "Manage archived documents, old versions, and paused projects.",
+    "categories": {
+      "unused_concept": "Unused Concept",
+      "referenced_work": "Referenced Work",
+      "outdated_draft": "Outdated Draft",
+      "related_research": "Related Research"
+    },
     "sidebar": {
       "drafts": "Drafts",
       "projects": "Projects",

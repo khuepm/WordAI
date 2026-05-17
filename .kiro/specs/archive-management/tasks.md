@@ -23,7 +23,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Add `archive.*` namespace with keys for all labels, placeholders, error messages, empty states, ARIA labels, and action button text
     - _Requirements: 12.1, 14.4_
 
-- [ ] 2. Implement archive utility functions
+- [x] 2. Implement archive utility functions
   - [x] 2.1 Create `src/utils/archiveFilters.ts` with pure filter/sort/truncate functions
     - Implement `applyArchiveFilters(items, query, filters)` — case-insensitive substring match on `intent_name` and `archive_reason`, type filter mapping, date range cutoff, sorted by `archived_at` descending
     - Implement `sortAndLimitVersions(versions, maxCount?)` — sort by `archived_at` descending, return at most `maxCount` (default 5)
@@ -31,26 +31,26 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Implement `isCompareDisabled(relatedCurrentId)` — return `true` if null or undefined
     - _Requirements: 3.3, 3.6, 3.7, 5.3, 8.3, 11.6_
 
-  - [~] 2.2 Write property test for `applyArchiveFilters`
+  - [x] 2.2 Write property test for `applyArchiveFilters`
     - **Property 2: Archive filter correctness**
     - **Validates: Requirements 3.3, 3.6, 3.7**
 
-  - [~] 2.3 Write property test for `sortAndLimitVersions`
+  - [x] 2.3 Write property test for `sortAndLimitVersions`
     - **Property 3: Version list sorting and limit invariant**
     - **Validates: Requirements 5.3**
 
-  - [~] 2.4 Write property test for `truncateReason`
+  - [x] 2.4 Write property test for `truncateReason`
     - **Property 4: Archive reason truncation correctness**
     - **Validates: Requirements 8.3**
 
-  - [~] 2.5 Write property test for `isCompareDisabled`
+  - [x] 2.5 Write property test for `isCompareDisabled`
     - **Property 5: Compare button disabled state derivation**
     - **Validates: Requirements 11.6**
 
 - [~] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement ArchiveSidebar component
+- [x] 4. Implement ArchiveSidebar component
   - [x] 4.1 Create `src/components/ArchiveSidebar.tsx`
     - Accept props: `activeCategory`, `onCategoryChange`, `onNewEntry`
     - Render `role="navigation"` container with fixed 288px width
@@ -60,14 +60,14 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Use inline styles with CSS variables (`--md-sys-color-*`, `--font-family-ui`, `--radius-*`, `--shadow-*`)
     - _Requirements: 2.1, 2.2, 2.3, 2.9, 2.10, 12.1, 12.2, 12.5_
 
-  - [~] 4.2 Write unit tests for `ArchiveSidebar` in `src/components/ArchiveSidebar.test.tsx`
+  - [x] 4.2 Write unit tests for `ArchiveSidebar` in `src/components/ArchiveSidebar.test.tsx`
     - Test active category highlighting
     - Test "New Entry" button click calls `onNewEntry`
     - Test category link click calls `onCategoryChange` with correct category
     - Test ARIA navigation role
     - _Requirements: 2.1, 2.2, 2.3, 14.4_
 
-- [ ] 5. Implement ArchiveSearchBar and ArchiveFilterPanel
+- [x] 5. Implement ArchiveSearchBar and ArchiveFilterPanel
   - [x] 5.1 Create `src/components/ArchiveSearchBar.tsx`
     - Accept props: `value`, `onChange`, `onClear`, `onToggleFilters`, `isFilterPanelOpen`
     - Render `role="search"` container with glass-panel effect (white bg + backdrop blur), rounded-xl, outline-variant border, search icon
@@ -82,14 +82,14 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Render date range options (Last 7 days, Last 30 days, Last 90 days, All time) as radio-style selection
     - _Requirements: 3.5, 3.6_
 
-  - [~] 5.3 Write unit tests for `ArchiveSearchBar` and `ArchiveFilterPanel`
+  - [x] 5.3 Write unit tests for `ArchiveSearchBar` and `ArchiveFilterPanel`
     - Test clear button visibility based on value
     - Test filter panel toggle
     - Test filter selection callbacks
     - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.9_
 
 - [ ] 6. Implement SuggestionCard component
-  - [~] 6.1 Create `src/components/SuggestionCard.tsx`
+  - [x] 6.1 Create `src/components/SuggestionCard.tsx`
     - Accept props: `suggestion`, `isPrimary`, `onReview`, `onCompare?`, `onRestore?`
     - Render category badge, title, description (max 3 lines with ellipsis), archived-date (relative time), and action link
     - Primary variant: glass-panel, `--shadow-ambient-strong`, primary/10 border
@@ -105,7 +105,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - _Requirements: 4.2, 4.4, 4.5_
 
 - [ ] 7. Implement VersionListItem component
-  - [~] 7.1 Create `src/components/VersionListItem.tsx`
+  - [x] 7.1 Create `src/components/VersionListItem.tsx`
     - Accept props: `version`, `onOpen`, `onCompare`, `onRestore`
     - Render document icon in rounded container, title (font-headline, semibold), relative timestamp, archival reason
     - Show "Compare" and "Restore" circular action buttons on hover/focus
@@ -120,7 +120,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - _Requirements: 5.4, 5.5, 5.6_
 
 - [ ] 8. Implement PausedProjectCard component
-  - [~] 8.1 Create `src/components/PausedProjectCard.tsx`
+  - [x] 8.1 Create `src/components/PausedProjectCard.tsx`
     - Accept props: `project`, `onOpen`
     - Render folder icon (48px rounded), project name (truncated at 60 chars), document count, description (max 2 lines), relative timestamp, "Open Folder" link
     - Apply surface-container-lowest background, rounded-xl, outline-variant/10 border, ambient-shadow
