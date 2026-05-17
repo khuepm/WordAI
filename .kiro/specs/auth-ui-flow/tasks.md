@@ -85,7 +85,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Close modal on success
     - _Requirements: 2.5, 2.6, 2.7_
 
-  - [~] 3.3 Implement login loading state
+  - [x] 3.3 Implement login loading state
     - Show spinning `progress_activity` icon in button during submission
     - Disable all inputs with `opacity-60 pointer-events-none` on form container
     - 30-second timeout → cancel and show timeout error
