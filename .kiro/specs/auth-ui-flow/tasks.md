@@ -76,7 +76,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Footer: "Chưa có tài khoản? Đăng ký" in `font-headline text-sm text-on-surface-variant`, link in `text-primary font-bold`
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.9, 2.10_
 
-  - [~] 3.2 Implement login submission logic
+  - [x] 3.2 Implement login submission logic
     - Client-side validation: non-empty email and password
     - Call `firebaseSignIn(email, password)` → get idToken
     - Call `authService.login(idToken)` → get AccessContext

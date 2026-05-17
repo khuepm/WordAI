@@ -2,10 +2,19 @@
  * LoginForm - Login form component rendered inside AuthModal.
  * Displays email/password inputs, submit button, and navigation links.
  *
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.9, 2.10
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.9, 2.10
  */
 
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { firebaseSignIn } from '../../services/firebaseAuthService';
+import { login, BridgeApiError } from '../../services/authService';
+import { useAuthState } from '../../services/authStore';
+import {
+  mapFirebaseError,
+  mapNetworkError,
+  mapBridgeError,
+} from '../../utils/authErrorMapper';
 
 export interface LoginFormProps {
   email: string;
@@ -21,13 +30,72 @@ export function LoginForm({
   email,
   onEmailChange,
   onNavigate,
+  onSuccess,
+  onError,
   isSubmitting,
+  setIsSubmitting,
 }: LoginFormProps) {
   const [password, setPassword] = useState('');
+  const { t } = useTranslation();
+  const { setAccessContext } = useAuthState();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Submission logic will be implemented in task 3.2
+
+    // Client-side validation: non-empty email and password (Req 2.7)
+    if (!email.trim()) {
+      onError(t('auth.errors.emailRequired'));
+      return;
+    }
+    if (!password) {
+      onError(t('auth.errors.passwordRequired'));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Step 1: Firebase sign-in → get idToken (Req 2.5)
+      const idToken = await firebaseSignIn(email, password);
+
+      // Step 2: Exchange token via Bridge API → get AccessContext (Req 2.5)
+      const context = await login(idToken);
+
+      // Step 3: Update auth store (Req 2.6)
+      setAccessContext(context);
+
+      // Step 4: Close modal on success (Req 2.6)
+      onSuccess();
+    } catch (error: unknown) {
+      // Check for network errors first
+      const networkMsg = mapNetworkError(error, t);
+      if (networkMsg) {
+        onError(networkMsg);
+        return;
+      }
+
+      // Bridge API errors
+      if (error instanceof BridgeApiError) {
+        onError(mapBridgeError(error.code, t));
+        return;
+      }
+
+      // Firebase errors (have a `code` property)
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        typeof (error as { code: unknown }).code === 'string'
+      ) {
+        onError(mapFirebaseError((error as { code: string }).code, t));
+        return;
+      }
+
+      // Generic fallback
+      onError(t('auth.errors.generic'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
