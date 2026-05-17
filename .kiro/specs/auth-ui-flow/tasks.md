@@ -25,7 +25,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
 
 ## Tasks
 
-- [ ] 1. Set up Firebase client SDK and auth service
+- [x] 1. Set up Firebase client SDK and auth service
   - [x] 1.1 Create `src/services/firebaseApp.ts`
     - Initialize Firebase app with config from environment variables (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID)
     - Export `app` and `auth` instances
@@ -38,7 +38,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Implement `firebaseSignOut(): Promise<void>` — signs out from Firebase
     - _Requirements: 2.5, 4.7, 5.6, 11.1_
 
-  - [~] 1.3 Create `src/utils/authErrorMapper.ts`
+  - [x] 1.3 Create `src/utils/authErrorMapper.ts`
     - Implement `mapFirebaseError(code, t): string` — maps Firebase error codes to localized messages
     - Implement `mapBridgeError(code, t): string` — maps Bridge API error codes to localized messages
     - Handle: auth/invalid-credential, auth/user-not-found, auth/email-already-in-use, auth/weak-password, auth/too-many-requests, ACCOUNT_SUSPENDED, TOKEN_EXPIRED_OR_INVALID, network errors, generic fallback
