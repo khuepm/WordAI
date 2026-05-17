@@ -99,7 +99,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Map errors via `authErrorMapper`
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 4. Implement SignUpForm component
+- [x] 4. Implement SignUpForm component
   - [x] 4.1 Create `src/components/auth/SignUpForm.tsx`
     - Centered header: icon container `w-12 h-12 rounded-lg bg-surface-container-low` with filled `edit_note` in `text-primary text-2xl`
     - Heading: `font-headline text-3xl tracking-tighter font-bold`, subtitle: `font-body text-on-surface-variant text-base`
@@ -110,7 +110,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Footer: "Đã có tài khoản? Quay lại đăng nhập" link
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.8_
 
-  - [~] 4.2 Implement sign-up validation and submission
+  - [x] 4.2 Implement sign-up validation and submission
     - Validate: display name 1-100 chars trimmed, valid email, password ≥6 chars, confirm matches
     - Call `firebaseSignUp(email, password, displayName)` → get idToken
     - Call `authService.login(idToken)` → get AccessContext

@@ -3,10 +3,19 @@
  * Displays display name, email, password, confirm password inputs with validation,
  * submit button, and navigation link back to login.
  *
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.8
+ * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8
  */
 
-import { useState, useMemo, type FormEvent } from 'react';
+import { useState, useMemo, useRef, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { firebaseSignUp } from '../../services/firebaseAuthService';
+import { login, BridgeApiError } from '../../services/authService';
+import { useAuthState } from '../../services/authStore';
+import {
+  mapFirebaseError,
+  mapNetworkError,
+  mapBridgeError,
+} from '../../utils/authErrorMapper';
 
 export interface SignUpFormProps {
   email: string;
@@ -42,6 +51,9 @@ export function SignUpForm({
     password: false,
     confirmPassword: false,
   });
+  const { t } = useTranslation();
+  const { setAccessContext } = useAuthState();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // --- Validation ---
 
@@ -110,18 +122,74 @@ export function SignUpForm({
       return;
     }
 
-    // Placeholder for task 4.2 — full submission logic will be implemented there
     setIsSubmitting(true);
+
+    // 30-second timeout (same pattern as LoginForm)
+    let timedOut = false;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutRef.current = setTimeout(() => {
+        timedOut = true;
+        reject(new Error('TIMEOUT'));
+      }, 30_000);
+    });
+
     try {
-      // TODO: Task 4.2 will implement:
-      // 1. firebaseSignUp(email, password, displayName.trim())
-      // 2. authService.login(idToken)
-      // 3. setAccessContext(context)
-      // 4. onSuccess()
-      onSuccess();
-    } catch (err: unknown) {
-      onError(err instanceof Error ? err.message : 'An error occurred');
+      // Race the sign-up flow against the 30s timeout
+      await Promise.race([
+        (async () => {
+          // Step 1: Firebase sign-up → get idToken (Req 4.7)
+          const idToken = await firebaseSignUp(email, password, displayName.trim());
+
+          // Step 2: Exchange token via Bridge API → get AccessContext (Req 4.6)
+          const context = await login(idToken);
+
+          // Step 3: Update auth store (Req 4.6)
+          setAccessContext(context);
+
+          // Step 4: Close modal on success
+          onSuccess();
+        })(),
+        timeoutPromise,
+      ]);
+    } catch (error: unknown) {
+      // Handle timeout
+      if (timedOut || (error instanceof Error && error.message === 'TIMEOUT')) {
+        onError(t('auth.errors.timeout'));
+        return;
+      }
+
+      // Check for network errors first
+      const networkMsg = mapNetworkError(error, t);
+      if (networkMsg) {
+        onError(networkMsg);
+        return;
+      }
+
+      // Bridge API errors
+      if (error instanceof BridgeApiError) {
+        onError(mapBridgeError(error.code, t));
+        return;
+      }
+
+      // Firebase errors (have a `code` property) — handles email-already-in-use, weak-password
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        typeof (error as { code: unknown }).code === 'string'
+      ) {
+        onError(mapFirebaseError((error as { code: string }).code, t));
+        return;
+      }
+
+      // Generic fallback
+      onError(t('auth.errors.generic'));
     } finally {
+      // Clear timeout if it hasn't fired
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       setIsSubmitting(false);
     }
   };
