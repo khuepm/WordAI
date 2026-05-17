@@ -25,9 +25,9 @@ interface TopNavBarProps {
   /** Called when the user renames the document via the title bar. */
   onRename?: (newTitle: string) => void;
   /** Currently active top-level tab */
-  activeTab?: 'editor' | 'library';
+  activeTab?: 'editor' | 'library' | 'archive';
   /** Called when the user clicks a nav tab button */
-  onTabChange?: (tab: 'editor' | 'library') => void;
+  onTabChange?: (tab: 'editor' | 'library' | 'archive') => void;
   /** Called when guest clicks Sign In */
   onSignIn?: () => void;
   /** Called when authenticated user clicks Sign Out */

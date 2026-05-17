@@ -25,7 +25,7 @@ export interface AppState {
   isFilePersisted: boolean;
 
   // Tab navigation (Req 1.1, 1.2, 1.3, 1.4)
-  activeTab: 'editor' | 'library';
+  activeTab: 'editor' | 'library' | 'archive';
 
   // UI flags (Req 17.2–17.5)
   isAIPanelOpen: boolean;
@@ -68,7 +68,7 @@ type Action =
   | { type: 'SET_DOCUMENT'; payload: { document: Document; filePath: string; isFilePersisted?: boolean } }
   | { type: 'UPDATE_DOCUMENT'; payload: Document }
   | { type: 'RENAME_DOCUMENT'; payload: string }
-  | { type: 'SET_ACTIVE_TAB'; payload: 'editor' | 'library' }
+  | { type: 'SET_ACTIVE_TAB'; payload: 'editor' | 'library' | 'archive' }
   | { type: 'OPEN_AI_PANEL'; payload: TextSelection }
   | { type: 'CLOSE_AI_PANEL' }
   | { type: 'OPEN_NEGOTIATION'; payload: AISuggestion }
@@ -195,7 +195,7 @@ interface AppContextValue {
   markSaved: (document: Document) => void;
   setSaveError: (err: IPCError | null) => void;
   // Tab navigation (Req 1.1, 1.2, 1.3, 1.4)
-  setActiveTab: (tab: 'editor' | 'library') => void;
+  setActiveTab: (tab: 'editor' | 'library' | 'archive') => void;
   // UI flag actions (Req 17.4, 17.5)
   openAIPanel: (selection: TextSelection) => void;
   closeAIPanel: () => void;
@@ -229,7 +229,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RENAME_DOCUMENT', payload: title });
   }, []);
 
-  const setActiveTab = useCallback((tab: 'editor' | 'library') => {
+  const setActiveTab = useCallback((tab: 'editor' | 'library' | 'archive') => {
     dispatch({ type: 'SET_ACTIVE_TAB', payload: tab });
   }, []);
 

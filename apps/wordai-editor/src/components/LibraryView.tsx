@@ -37,7 +37,7 @@ export interface LibraryViewProps {
   /** Called when the user opens a document (card click, new doc, or import) */
   onOpenDocument: (doc: Document) => void;
   /** Called to switch the active tab */
-  onTabChange: (tab: 'editor' | 'library') => void;
+  onTabChange: (tab: 'editor' | 'library' | 'archive') => void;
   /** The id of the document currently loaded in the editor (for delete-active-doc logic) */
   currentDocumentId: string | null;
 }
