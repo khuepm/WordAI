@@ -507,7 +507,7 @@ async fn update_memory_access(
 /// Get AI-powered archive suggestions for an active document.
 /// Retrieves the document content from the store, then calls the AI service.
 /// Requirements: 2.7
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_archive_suggestions(
     active_doc_id: String,
     api_key: String,
@@ -536,7 +536,7 @@ async fn get_archive_suggestions(
 /// Generate an AI-powered summary for an archived document.
 /// Retrieves the archived content from the store, then calls the AI service.
 /// Requirements: 2.8
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn generate_archive_summary(
     id: String,
     api_key: String,
@@ -573,7 +573,7 @@ async fn list_paused_projects(
 
 /// Get all archived documents belonging to a specific project.
 /// Requirements: 2.10
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_project_documents(
     project_id: String,
     state: tauri::State<'_, SqliteStore>,
