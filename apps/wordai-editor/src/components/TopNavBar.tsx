@@ -342,11 +342,24 @@ export function TopNavBar({
               <button
                 type="button"
                 onClick={toggleMenu}
-                className={`w-12 h-12 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center transition-colors ${isRestoringSession ? 'animate-pulse opacity-60' : ''}`}
                 data-testid="guest-avatar-trigger"
                 aria-label="User menu"
+                className={isRestoringSession ? 'animate-pulse' : ''}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--md-sys-color-on-surface-variant)',
+                  opacity: isRestoringSession ? 0.6 : 1,
+                }}
               >
-                <span className="material-symbols-rounded text-outline text-2xl">
+                <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>
                   account_circle
                 </span>
               </button>
