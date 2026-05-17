@@ -48,7 +48,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 3. Fix for missing archive backend commands
+- [x] 3. Fix for missing archive backend commands
 
   - [x] 3.1 Add archive model structs to `models.rs`
     - Add `ArchivedIntentSummary` struct with fields: `id`, `intent_name`, `archived_at`, `archive_reason`, `archive_type`, `related_current_id`, `memory_access_enabled`, `created_at`, `updated_at`, `version`, `project_id`
@@ -119,7 +119,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: All existing commands remain registered in the same handler_
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
 
-  - [~] 3.7 Verify bug condition exploration test now passes
+  - [x] 3.7 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Archive Commands Return Valid Results
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -128,7 +128,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed — all 10 commands compile and execute correctly)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
 
-  - [~] 3.8 Verify preservation tests still pass
+  - [x] 3.8 Verify preservation tests still pass
     - **Property 2: Preservation** - Existing Intent CRUD Unchanged After Schema Migration
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2
@@ -136,7 +136,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - Confirm all existing intent CRUD operations still work identically after schema migration
     - Confirm `intents` and `intent_chunks` tables are unmodified
 
-- [~] 4. Checkpoint - Ensure all tests pass
+- [ ] 4. Checkpoint - Ensure all tests pass
   - Run full `cargo test` in `src-tauri` to verify all existing and new tests pass
   - Verify no compilation warnings related to archive modules
   - Ensure all tests pass, ask the user if questions arise.

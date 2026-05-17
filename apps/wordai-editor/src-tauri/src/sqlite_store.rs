@@ -58,7 +58,7 @@ impl SqliteStore {
     /// 4. Creates the schema (idempotent — uses `IF NOT EXISTS`).
     ///
     /// Requirements: 5.1, 9.6
-    pub(crate) fn new_with_path(db_path: &std::path::Path) -> Result<Self, IPCError> {
+    pub fn new_with_path(db_path: &std::path::Path) -> Result<Self, IPCError> {
         // Create parent directories if needed
         if let Some(parent) = db_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| IPCError {
