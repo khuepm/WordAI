@@ -143,14 +143,14 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Button: `bg-primary text-on-primary rounded-xl font-headline text-xs tracking-[0.05em] uppercase font-bold px-10 py-4`
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [~] 6. Checkpoint — Auth Modal complete
+- [x] 6. Checkpoint — Auth Modal complete
   - Verify all 4 views render correctly matching mockups
   - Verify transitions between views work (fade, email preservation, error clearing)
   - Verify loading states and error handling
   - Verify focus trap and keyboard accessibility
 
 - [ ] 7. Implement User Menu components
-  - [~] 7.1 Create `src/components/UserMenuAuthenticated.tsx`
+  - [x] 7.1 Create `src/components/UserMenuAuthenticated.tsx`
     - Popover: `bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-xl outline outline-1 outline-outline-variant/15 shadow-[0_-5px_40px_rgba(25,28,29,0.04)]`
     - Header Block: button `w-full text-left p-5 flex items-center gap-4 hover:bg-surface-container-low`, avatar `w-12 h-12 rounded-full`, online indicator `w-3.5 h-3.5 bg-[#10b981] border-2 border-surface-container-lowest rounded-full`, name `font-bold tracking-tight`, plan badge `px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-gradient-to-br from-primary to-primary-container text-on-primary`, email `text-sm text-on-surface-variant`
     - Tonal dividers: `h-2 bg-surface-container-low`
