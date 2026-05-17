@@ -158,7 +158,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Sign Out: `text-error hover:bg-error-container hover:text-on-error-container`, `logout` icon
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [~] 7.2 Create `src/components/UserMenuGuest.tsx`
+  - [x] 7.2 Create `src/components/UserMenuGuest.tsx`
     - Popover: `w-[340px] bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[1.25rem] border border-outline-variant/15 shadow-[0_24px_60px_-10px_rgba(25,28,29,0.06)]`
     - Info banner: `p-6 bg-primary/5 border-b border-outline-variant/10`, icon `w-8 h-8 rounded-full bg-primary/10` with filled `auto_awesome` in `text-primary text-[1.125rem]`, text `text-[0.9rem] font-medium leading-[1.6] text-on-surface-variant`
     - Sign In button: `w-full bg-primary text-on-primary py-[0.875rem] px-5 rounded-[0.75rem] font-semibold text-[0.95rem] tracking-wide`, hover glow, `arrow_right_alt` icon
