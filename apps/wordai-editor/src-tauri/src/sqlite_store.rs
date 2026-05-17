@@ -941,4 +941,318 @@ mod tests {
             }
         }
     }
+
+    // ── Preservation Property Tests ───────────────────────────────────────────
+    // Feature: archive-backend-commands, Property 2: Preservation
+    // Existing Intent CRUD Unchanged After Schema Migration
+    // **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
+    #[cfg(test)]
+    mod pbt_preservation {
+        use super::*;
+        use crate::models::InlineSpan;
+        use proptest::prelude::*;
+        use tempfile::tempdir;
+
+        /// Generate a random non-empty string for intent names.
+        fn arb_intent_name() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9 _-]{1,40}".prop_map(|s| s)
+        }
+
+        /// Generate a random UUID-like id string.
+        fn arb_id() -> impl Strategy<Value = String> {
+            "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+                .prop_map(|s| s)
+        }
+
+        /// Generate a random InlineSpan.
+        fn arb_inline_span() -> impl Strategy<Value = InlineSpan> {
+            prop_oneof![
+                "[a-zA-Z0-9 ]{1,30}".prop_map(|text| InlineSpan::Text { text }),
+                "[a-zA-Z0-9 ]{1,30}".prop_map(|text| InlineSpan::Bold { text }),
+                "[a-zA-Z0-9 ]{1,30}".prop_map(|text| InlineSpan::Italic { text }),
+            ]
+        }
+
+        /// Generate a random DocumentBlock.
+        fn arb_document_block() -> impl Strategy<Value = DocumentBlock> {
+            prop_oneof![
+                ("[a-zA-Z0-9 ]{1,50}", prop::collection::vec(arb_inline_span(), 0..=3))
+                    .prop_map(|(text, inline)| DocumentBlock::Paragraph { text, inline }),
+                (1u8..=3u8, "[a-zA-Z0-9 ]{1,50}")
+                    .prop_map(|(level, text)| DocumentBlock::Heading { level, text }),
+                (any::<bool>(), "[a-zA-Z0-9 ]{1,50}", prop::collection::vec(arb_inline_span(), 0..=2))
+                    .prop_map(|(ordered, text, inline)| DocumentBlock::ListItem { ordered, text, inline }),
+                (prop::option::of("[a-z]{2,10}"), "[a-zA-Z0-9 (){};]{1,80}")
+                    .prop_map(|(language, code)| DocumentBlock::CodeBlock { language, code }),
+            ]
+        }
+
+        /// Generate a Vec of 1–5 DocumentBlocks.
+        fn arb_blocks() -> impl Strategy<Value = Vec<DocumentBlock>> {
+            prop::collection::vec(arb_document_block(), 1..=5)
+        }
+
+        /// Generate a random AuraDocument.
+        fn arb_aura_document() -> impl Strategy<Value = AuraDocument> {
+            (arb_id(), arb_intent_name(), arb_blocks()).prop_map(|(id, intent_name, content)| {
+                AuraDocument {
+                    id,
+                    intent_name,
+                    content,
+                    version: None,
+                    created_at: None,
+                    updated_at: None,
+                }
+            })
+        }
+
+        proptest! {
+            /// Property 2a: Round-trip Preservation
+            ///
+            /// For all random AuraDocuments, `upsert_intent` followed by `get_intent`
+            /// returns the same document data (id, intent_name, content).
+            ///
+            /// Feature: archive-backend-commands, Property 2: Preservation
+            /// **Validates: Requirements 3.1, 3.2**
+            #[test]
+            fn prop_upsert_get_roundtrip_preservation(
+                doc in arb_aura_document(),
+            ) {
+                let dir = tempdir().unwrap();
+                let db_path = dir.path().join("roundtrip_test.db");
+                let store = SqliteStore::new_with_path(&db_path).unwrap();
+
+                // Upsert the document
+                let version = store.upsert_intent(&doc).unwrap();
+                prop_assert!(version >= 1, "Version should be at least 1");
+
+                // Retrieve the document
+                let retrieved = store.get_intent(&doc.id).unwrap();
+                prop_assert!(retrieved.is_some(), "Document should be retrievable after upsert");
+
+                let retrieved = retrieved.unwrap();
+
+                // Verify round-trip preservation of core fields
+                prop_assert_eq!(&retrieved.id, &doc.id, "ID must be preserved");
+                prop_assert_eq!(&retrieved.intent_name, &doc.intent_name, "intent_name must be preserved");
+                prop_assert_eq!(retrieved.version, Some(version), "version must match upserted version");
+
+                // Verify content blocks are preserved (serialize both to JSON for comparison)
+                let original_json = serde_json::to_string(&doc.content).unwrap();
+                let retrieved_json = serde_json::to_string(&retrieved.content).unwrap();
+                prop_assert_eq!(original_json, retrieved_json, "Content blocks must be preserved exactly");
+            }
+
+            /// Property 2b: Upsert Version Incrementing
+            ///
+            /// For all random AuraDocuments, successive upserts return incrementing
+            /// version numbers (v1, v2, v3, ...).
+            ///
+            /// Feature: archive-backend-commands, Property 2: Preservation
+            /// **Validates: Requirements 3.1, 3.2**
+            #[test]
+            fn prop_upsert_version_increments(
+                doc in arb_aura_document(),
+                num_upserts in 2u8..=5u8,
+            ) {
+                let dir = tempdir().unwrap();
+                let db_path = dir.path().join("version_test.db");
+                let store = SqliteStore::new_with_path(&db_path).unwrap();
+
+                let mut last_version = 0i64;
+                for i in 0..num_upserts {
+                    let version = store.upsert_intent(&doc).unwrap();
+                    prop_assert!(
+                        version > last_version,
+                        "Version must increment: got {} after {} (iteration {})",
+                        version, last_version, i
+                    );
+                    last_version = version;
+                }
+            }
+
+            /// Property 2c: List Intents Includes Upserted Document
+            ///
+            /// For all random AuraDocuments upserted, `list_intents` includes a
+            /// matching IntentSummary with the correct id and intent_name.
+            ///
+            /// Feature: archive-backend-commands, Property 2: Preservation
+            /// **Validates: Requirements 3.3**
+            #[test]
+            fn prop_list_intents_includes_upserted(
+                doc in arb_aura_document(),
+            ) {
+                let dir = tempdir().unwrap();
+                let db_path = dir.path().join("list_test.db");
+                let store = SqliteStore::new_with_path(&db_path).unwrap();
+
+                // Upsert the document
+                let version = store.upsert_intent(&doc).unwrap();
+
+                // List all intents
+                let summaries = store.list_intents().unwrap();
+
+                // Find our document in the list
+                let found = summaries.iter().find(|s| s.id == doc.id);
+                prop_assert!(found.is_some(), "Upserted document must appear in list_intents");
+
+                let summary = found.unwrap();
+                prop_assert_eq!(&summary.intent_name, &doc.intent_name, "intent_name must match");
+                prop_assert_eq!(summary.version, version, "version must match");
+                prop_assert!(summary.created_at > 0, "created_at must be set");
+                prop_assert!(summary.updated_at > 0, "updated_at must be set");
+            }
+
+            /// Property 2d: List Intents Ordered by updated_at DESC
+            ///
+            /// For multiple random AuraDocuments upserted, `list_intents` returns
+            /// them ordered by `updated_at` descending (most recently updated first).
+            ///
+            /// Feature: archive-backend-commands, Property 2: Preservation
+            /// **Validates: Requirements 3.3**
+            #[test]
+            fn prop_list_intents_ordered_by_updated_at_desc(
+                docs in prop::collection::vec(arb_aura_document(), 2..=5),
+            ) {
+                let dir = tempdir().unwrap();
+                let db_path = dir.path().join("order_test.db");
+                let store = SqliteStore::new_with_path(&db_path).unwrap();
+
+                // Upsert documents with small delays to ensure different updated_at
+                for doc in &docs {
+                    store.upsert_intent(doc).unwrap();
+                    // Small sleep to ensure distinct timestamps
+                    std::thread::sleep(std::time::Duration::from_millis(2));
+                }
+
+                // List all intents
+                let summaries = store.list_intents().unwrap();
+
+                // Verify ordering: each updated_at >= next updated_at
+                for window in summaries.windows(2) {
+                    prop_assert!(
+                        window[0].updated_at >= window[1].updated_at,
+                        "list_intents must be ordered by updated_at DESC: {} should >= {}",
+                        window[0].updated_at, window[1].updated_at
+                    );
+                }
+            }
+        }
+
+        /// Property 2e: Schema Tables Exist with Correct Columns
+        ///
+        /// After `SqliteStore::new_with_path`, the `intents` and `intent_chunks`
+        /// tables exist with the expected column definitions.
+        ///
+        /// Feature: archive-backend-commands, Property 2: Preservation
+        /// **Validates: Requirements 3.1, 3.2, 3.3**
+        #[test]
+        fn test_schema_tables_exist_with_correct_columns() {
+            let dir = tempdir().unwrap();
+            let db_path = dir.path().join("schema_preservation_test.db");
+            let store = SqliteStore::new_with_path(&db_path).unwrap();
+            let conn = store.conn.lock().unwrap();
+
+            // Verify `intents` table exists
+            let intents_exists: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='intents'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            assert_eq!(intents_exists, 1, "intents table must exist");
+
+            // Verify `intent_chunks` table exists
+            let chunks_exists: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='intent_chunks'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            assert_eq!(chunks_exists, 1, "intent_chunks table must exist");
+
+            // Verify `intents` table columns
+            let mut stmt = conn
+                .prepare("PRAGMA table_info(intents)")
+                .unwrap();
+            let intents_columns: Vec<(String, String)> = stmt
+                .query_map([], |row| {
+                    Ok((row.get::<_, String>(1)?, row.get::<_, String>(2)?))
+                })
+                .unwrap()
+                .filter_map(|r| r.ok())
+                .collect();
+
+            let expected_intents_cols = vec![
+                ("id", "TEXT"),
+                ("intent_name", "TEXT"),
+                ("raw_content", "TEXT"),
+                ("created_at", "INTEGER"),
+                ("updated_at", "INTEGER"),
+                ("version", "INTEGER"),
+            ];
+
+            for (name, col_type) in &expected_intents_cols {
+                let found = intents_columns.iter().find(|(n, _)| n == name);
+                assert!(
+                    found.is_some(),
+                    "intents table must have column '{}'",
+                    name
+                );
+                let (_, actual_type) = found.unwrap();
+                assert_eq!(
+                    actual_type, col_type,
+                    "intents.{} must be type {}",
+                    name, col_type
+                );
+            }
+
+            // Verify `intent_chunks` table columns
+            let mut stmt = conn
+                .prepare("PRAGMA table_info(intent_chunks)")
+                .unwrap();
+            let chunks_columns: Vec<(String, String)> = stmt
+                .query_map([], |row| {
+                    Ok((row.get::<_, String>(1)?, row.get::<_, String>(2)?))
+                })
+                .unwrap()
+                .filter_map(|r| r.ok())
+                .collect();
+
+            let expected_chunks_cols = vec![
+                ("id", "TEXT"),
+                ("document_id", "TEXT"),
+                ("chunk_index", "INTEGER"),
+                ("chunk_text", "TEXT"),
+                ("embedding", "BLOB"),
+            ];
+
+            for (name, col_type) in &expected_chunks_cols {
+                let found = chunks_columns.iter().find(|(n, _)| n == name);
+                assert!(
+                    found.is_some(),
+                    "intent_chunks table must have column '{}'",
+                    name
+                );
+                let (_, actual_type) = found.unwrap();
+                assert_eq!(
+                    actual_type, col_type,
+                    "intent_chunks.{} must be type {}",
+                    name, col_type
+                );
+            }
+
+            // Verify index exists
+            let index_exists: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_intent_chunks_document_id'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            assert_eq!(index_exists, 1, "idx_intent_chunks_document_id index must exist");
+        }
+    }
 }
