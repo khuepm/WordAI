@@ -47,7 +47,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - **Property 5: Compare button disabled state derivation**
     - **Validates: Requirements 11.6**
 
-- [~] 3. Checkpoint - Ensure all tests pass
+- [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 4. Implement ArchiveSidebar component
@@ -133,7 +133,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Test document count display
     - _Requirements: 6.3, 6.4_
 
-- [~] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 10. Implement DetailDrawer with metadata and AI summary
@@ -205,7 +205,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Test button labels and icons
     - _Requirements: 11.1–11.3, 11.6_
 
-- [~] 13. Checkpoint - Ensure all tests pass
+- [x] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 14. Implement ArchiveView main container and wire components
@@ -250,7 +250,7 @@ Implement the Archive Management feature for the WordAI desktop editor — a ful
     - Test empty states for each section
     - _Requirements: 1.1, 3.3, 3.6, 4.3, 5.5, 11.4, 11.10_
 
-- [~] 15. Final checkpoint - Ensure all tests pass
+- [x] 15. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
