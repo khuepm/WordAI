@@ -2,10 +2,13 @@
  * ForgotPasswordForm - Forgot password form component rendered inside AuthModal.
  * Displays a glass panel with email input for requesting a password reset email.
  *
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
+ * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7
  */
 
 import { type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { firebaseResetPassword } from '../../services/firebaseAuthService';
+import { mapFirebaseError, mapNetworkError } from '../../utils/authErrorMapper';
 
 export interface ForgotPasswordFormProps {
   email: string;
@@ -24,18 +27,60 @@ export function ForgotPasswordForm({
   email,
   onEmailChange,
   onNavigate,
+  onError,
   isSubmitting,
+  setIsSubmitting,
   error = null,
   clearError,
 }: ForgotPasswordFormProps) {
+  const { t } = useTranslation();
+
   const handleEmailChange = (value: string) => {
     onEmailChange(value);
     if (clearError) clearError();
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Submission logic will be added in task 5.2
+
+    // Validate non-empty email (Req 5.7)
+    if (!email.trim()) {
+      onError(t('auth.errors.emailRequired'));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Call Firebase sendPasswordResetEmail (Req 5.6)
+      await firebaseResetPassword(email.trim());
+
+      // On success: navigate to reset-success view
+      onNavigate('reset-success');
+    } catch (error: unknown) {
+      // Check for network errors first
+      const networkMsg = mapNetworkError(error, t);
+      if (networkMsg) {
+        onError(networkMsg);
+        return;
+      }
+
+      // Firebase errors (have a `code` property)
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        typeof (error as { code: unknown }).code === 'string'
+      ) {
+        onError(mapFirebaseError((error as { code: string }).code, t));
+        return;
+      }
+
+      // Generic fallback
+      onError(t('auth.errors.generic'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

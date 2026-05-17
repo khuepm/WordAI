@@ -127,7 +127,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Back link: `arrow_back` icon with `group-hover:-translate-x-1`
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [~] 5.2 Implement forgot password submission
+  - [x] 5.2 Implement forgot password submission
     - Validate non-empty email
     - Call `firebaseResetPassword(email)`
     - On success: navigate to 'reset-success' view
