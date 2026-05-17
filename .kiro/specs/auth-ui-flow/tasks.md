@@ -198,7 +198,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Non-blocking: editor loads normally during restoration
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 9. Implement Preference Cloud Sync
+- [x] 9. Implement Preference Cloud Sync
   - [x] 9.1 Create `src/data/settingClassification.ts`
     - Define `CLOUD_SETTINGS` array with all cloud-synced setting keys
     - Define `LOCAL_SETTINGS` array with device-only setting keys
@@ -225,7 +225,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Call `uploadAllCloudSettings(sessionId, settings)`
     - _Requirements: 15.4_
 
-  - [~] 9.5 Wire preference change handler
+  - [x] 9.5 Wire preference change handler
     - When any setting changes: update store immediately (optimistic)
     - If Cloud_Setting + authenticated: debounce 1s → `patchCloudSetting()`
     - If Local_Setting or guest: `localStorage.setItem()` only

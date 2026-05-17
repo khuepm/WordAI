@@ -22,6 +22,7 @@ import { LibraryView } from './components/LibraryView';
 import { Tooltip } from './components/Tooltip';
 import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
+import { usePreferenceSync } from './hooks/usePreferenceSync';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
@@ -522,6 +523,9 @@ function App() {
     autoSyncEnabled: preferences.general.autoSyncEnabled,
     autoSyncInterval: preferences.general.autoSyncInterval,
   });
+
+  // Req 19.1–19.4 — Sync preference changes to cloud when authenticated
+  usePreferenceSync({ preferences, accessContext });
 
   useEffect(() => {
     setSyncErrorDismissed(false);
