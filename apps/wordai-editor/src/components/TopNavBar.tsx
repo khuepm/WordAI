@@ -1,11 +1,14 @@
 /**
  * TopNavBar - Application top navigation bar
- * Requirements: 18.1, 19.2
+ * Requirements: 7.6, 7.7, 8.1, 18.1, 19.2
  */
 
 import { UserAvatar } from './UserAvatar';
 import { DocumentTitleBar } from './DocumentTitleBar';
-import { useState, useRef, useEffect } from 'react';
+import { UserMenuAuthenticated } from './UserMenuAuthenticated';
+import { UserMenuGuest } from './UserMenuGuest';
+import { useAccessContext } from '../services/authStore';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface TopNavBarProps {
@@ -32,22 +35,125 @@ interface TopNavBarProps {
   onSignIn?: () => void;
   /** Called when authenticated user clicks Sign Out */
   onSignOut?: () => void;
+  /** Whether sign-out is currently in progress */
+  isSigningOut?: boolean;
+  /** Called when user clicks My Library in the authenticated menu */
+  onOpenLibrary?: () => void;
+  /** Called when user clicks profile header in the authenticated menu */
+  onOpenProfile?: () => void;
+  /** Whether session restoration is in progress (shows pulsing avatar) */
+  isRestoringSession?: boolean;
 }
 
-export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onOpenPreferences, userName, userEmail, isDirty = false, isSyncing = false, onRename, activeTab = 'editor', onTabChange, onSignIn, onSignOut }: TopNavBarProps) {
+export function TopNavBar({
+  documentTitle,
+  hasUnsavedChanges,
+  onNew,
+  onSave,
+  onOpenPreferences,
+  userName,
+  userEmail: _userEmail,
+  isDirty = false,
+  isSyncing = false,
+  onRename,
+  activeTab = 'editor',
+  onTabChange,
+  onSignIn,
+  onSignOut,
+  isSigningOut = false,
+  onOpenLibrary,
+  onOpenProfile,
+  isRestoringSession = false,
+}: TopNavBarProps) {
   const { t } = useTranslation();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
+  const accessContext = useAccessContext();
 
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const focusedIndexRef = useRef<number>(-1);
+
+  // Close menu with fade-out animation (Req 7.7)
+  const closeMenu = useCallback(() => {
+    if (!isUserMenuOpen || isClosing) return;
+    setIsClosing(true);
+    // Wait for fade-out animation to complete (150ms)
+    setTimeout(() => {
+      setIsUserMenuOpen(false);
+      setIsClosing(false);
+      focusedIndexRef.current = -1;
+    }, 150);
+  }, [isUserMenuOpen, isClosing]);
+
+  // Click outside to close
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
+        closeMenu();
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isUserMenuOpen, closeMenu]);
+
+  // Window blur close (Req 7.7)
+  useEffect(() => {
+    if (isUserMenuOpen) {
+      window.addEventListener('blur', closeMenu);
+    }
+    return () => window.removeEventListener('blur', closeMenu);
+  }, [isUserMenuOpen, closeMenu]);
+
+  // Keyboard navigation (Req 7.6)
+  const handleMenuKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (!isUserMenuOpen) return;
+
+    // Query focusable buttons within the popover
+    const container = userMenuRef.current?.querySelector('[data-testid="user-menu-popover"]');
+    if (!container) return;
+    const items = Array.from(container.querySelectorAll<HTMLButtonElement>('button'));
+    if (items.length === 0) return;
+
+    switch (event.key) {
+      case 'ArrowDown': {
+        event.preventDefault();
+        focusedIndexRef.current = (focusedIndexRef.current + 1) % items.length;
+        items[focusedIndexRef.current]?.focus();
+        break;
+      }
+      case 'ArrowUp': {
+        event.preventDefault();
+        focusedIndexRef.current = focusedIndexRef.current <= 0
+          ? items.length - 1
+          : focusedIndexRef.current - 1;
+        items[focusedIndexRef.current]?.focus();
+        break;
+      }
+      case 'Enter': {
+        event.preventDefault();
+        if (focusedIndexRef.current >= 0 && items[focusedIndexRef.current]) {
+          items[focusedIndexRef.current].click();
+        }
+        break;
+      }
+      case 'Escape': {
+        event.preventDefault();
+        closeMenu();
+        break;
+      }
+    }
+  }, [isUserMenuOpen, closeMenu]);
+
+  const toggleMenu = () => {
+    if (isUserMenuOpen) {
+      closeMenu();
+    } else {
+      setIsUserMenuOpen(true);
+      focusedIndexRef.current = -1;
+    }
+  };
 
   return (
     <>
@@ -207,155 +313,90 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
-          <div ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <span
-              style={{
-                borderRadius: '50%',
-                display: 'inline-flex',
-                boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
-                transition: 'box-shadow 0.15s',
-              }}
-            >
-              <UserAvatar name={userName} size={32} onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} />
-            </span>
 
+          {/* User Menu Popover — Req 7.6, 7.7, 8.1 */}
+          <div
+            ref={userMenuRef}
+            style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+            onKeyDown={handleMenuKeyDown}
+          >
+            {/* Avatar trigger */}
+            {accessContext ? (
+              /* Authenticated avatar trigger */
+              <span
+                style={{
+                  borderRadius: '50%',
+                  display: 'inline-flex',
+                  boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
+                  transition: 'box-shadow 0.15s',
+                }}
+              >
+                <UserAvatar
+                  name={userName}
+                  size={32}
+                  onClick={toggleMenu}
+                />
+              </span>
+            ) : (
+              /* Guest avatar trigger — Req 8.1 */
+              <button
+                type="button"
+                onClick={toggleMenu}
+                className={`w-12 h-12 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center transition-colors ${isRestoringSession ? 'animate-pulse opacity-60' : ''}`}
+                data-testid="guest-avatar-trigger"
+                aria-label="User menu"
+              >
+                <span className="material-symbols-rounded text-outline text-2xl">
+                  account_circle
+                </span>
+              </button>
+            )}
+
+            {/* Popover menu */}
             {isUserMenuOpen && (
               <div
+                data-testid="user-menu-popover"
+                className={`transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 0.5rem)',
                   right: 0,
-                  width: '260px',
-                  backgroundColor: 'color-mix(in srgb, var(--md-sys-color-surface-container-lowest, #ffffff) 80%, transparent)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  boxShadow: '0 40px 60px -5px color-mix(in srgb, var(--md-sys-color-on-surface, #191c1d) 4%, transparent)',
-                  borderRadius: 'var(--radius-md, 0.75rem)',
-                  border: '1px solid color-mix(in srgb, var(--md-sys-color-outline-variant, #c7c4d7) 15%, transparent)',
-                  padding: 'var(--spacing-4, 1.4rem)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'var(--spacing-3, 1rem)',
                   zIndex: 200,
                 }}
+                role="menu"
+                aria-label="User menu"
               >
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.25rem',
-                  padding: '1rem',
-                  backgroundColor: 'var(--md-sys-color-surface-container-low, #f0f1f3)',
-                  borderRadius: 'var(--radius-sm, 0.5rem)',
-                }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--md-sys-color-on-surface, #191c1d)', fontFamily: 'var(--font-family-ui)' }}>
-                    {userName || 'Guest'}
-                  </div>
-                  {userEmail && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant, #40484c)', fontFamily: 'var(--font-family-ui)' }}>
-                      {userEmail}
-                    </div>
-                  )}
-                </div>
-
-                {userName ? (
-                  /* Authenticated user menu */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <button
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '0.75rem 1rem',
-                        textAlign: 'left',
-                        borderRadius: 'var(--radius-sm, 0.25rem)',
-                        color: 'var(--md-sys-color-on-surface, #191c1d)',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        fontFamily: 'var(--font-family-ui)',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>person</span>
-                      {t('nav.profile')}
-                    </button>
-                    <button
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '0.75rem 1rem',
-                        textAlign: 'left',
-                        borderRadius: 'var(--radius-sm, 0.25rem)',
-                        color: 'var(--md-sys-color-on-surface, #191c1d)',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        fontFamily: 'var(--font-family-ui)',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>workspace_premium</span>
-                      {t('nav.subscription')}
-                    </button>
-                    <button
-                      onClick={onSignOut}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '0.75rem 1rem',
-                        textAlign: 'left',
-                        borderRadius: 'var(--radius-sm, 0.25rem)',
-                        color: 'var(--md-sys-color-error, #ba1a1a)',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        fontFamily: 'var(--font-family-ui)',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-error-container, #ffdad6)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
-                      {t('nav.signOut')}
-                    </button>
-                  </div>
+                {accessContext ? (
+                  <UserMenuAuthenticated
+                    user={{
+                      displayName: accessContext.user.display_name,
+                      email: accessContext.user.email,
+                      avatarUrl: accessContext.user.avatar_url ?? undefined,
+                      plan: accessContext.entitlement.plan_code !== 'free'
+                        ? accessContext.entitlement.plan_code.toUpperCase()
+                        : undefined,
+                    }}
+                    onSignOut={() => {
+                      onSignOut?.();
+                      closeMenu();
+                    }}
+                    onOpenLibrary={() => {
+                      onOpenLibrary?.();
+                      closeMenu();
+                    }}
+                    onOpenProfile={() => {
+                      onOpenProfile?.();
+                      closeMenu();
+                    }}
+                    isSigningOut={isSigningOut}
+                  />
                 ) : (
-                  /* Guest menu */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <button
-                      onClick={onSignIn}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: '0.75rem 1rem',
-                        textAlign: 'left',
-                        borderRadius: 'var(--radius-sm, 0.25rem)',
-                        color: 'var(--md-sys-color-primary, #4343d5)',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        fontFamily: 'var(--font-family-ui)',
-                        fontWeight: 600,
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low, #f0f1f3)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>login</span>
-                      {t('nav.signIn')}
-                    </button>
-                  </div>
+                  <UserMenuGuest
+                    onSignIn={() => {
+                      onSignIn?.();
+                      closeMenu();
+                    }}
+                  />
                 )}
               </div>
             )}

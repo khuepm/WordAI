@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guest User Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#b65700",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#2e2bc2",
+                    "secondary-container": "#babbfe",
+                    "surface": "#f8f9fa",
+                    "surface-tint": "#4849da",
+                    "primary-fixed-dim": "#c1c1ff",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed-variant": "#3f417b",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#ffb689",
+                    "surface-dim": "#d9dadb",
+                    "inverse-on-surface": "#f0f1f2",
+                    "tertiary": "#904400",
+                    "inverse-surface": "#2e3132",
+                    "primary-container": "#5d5fef",
+                    "on-error": "#ffffff",
+                    "outline-variant": "#c7c4d7",
+                    "on-primary-fixed": "#07006c",
+                    "on-primary-container": "#faf7ff",
+                    "secondary-fixed": "#e1e0ff",
+                    "tertiary-fixed": "#ffdbc8",
+                    "secondary-fixed-dim": "#c1c1ff",
+                    "error": "#ba1a1a",
+                    "background": "#f8f9fa",
+                    "primary-fixed": "#e1e0ff",
+                    "primary": "#4343d5",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "inverse-primary": "#c1c1ff",
+                    "on-secondary-fixed": "#12134d",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary-container": "#fff6f3",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-surface-variant": "#464555",
+                    "surface-container": "#edeeef",
+                    "surface-container-high": "#e7e8e9",
+                    "outline": "#767586",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-background": "#191c1d",
+                    "surface-container-low": "#f3f4f5",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary": "#575995",
+                    "on-tertiary-fixed": "#321300",
+                    "on-secondary-container": "#474984"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope", "sans-serif"],
+                    "display": ["Manrope", "sans-serif"],
+                    "body": ["Newsreader", "serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen antialiased flex flex-col pt-12 pr-12 items-end">
+<!-- Simulated Header Context for the Popover -->
+<div class="relative w-full max-w-sm flex justify-end">
+<!-- Generic User Icon Trigger (Active State Simulated) -->
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-colors duration-300 group z-10 relative">
+<span class="material-symbols-outlined text-outline group-hover:text-on-surface transition-colors">account_circle</span>
+</button>
+<!-- Guest Menu Popover -->
+<!-- Utilizing Glass & Gradient rule, ambient shadows, and no-line ghost borders -->
+<div class="absolute top-[120%] right-0 w-[340px] bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[1.25rem] border border-outline-variant/15 shadow-[0_24px_60px_-10px_rgba(25,28,29,0.06)] overflow-hidden z-50 origin-top-right transform transition-all duration-300">
+<!-- Info Banner Section -->
+<!-- Tonal shift using primary color family, maintaining Focus-first asymmetry -->
+<div class="p-6 bg-primary/5 border-b border-outline-variant/10">
+<div class="flex items-start gap-4">
+<div class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[1.125rem]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<p class="text-[0.9rem] font-medium leading-[1.6] text-on-surface-variant">
+                        Sign in to sync your theme, typography, and unlock powerful AI models across all devices.
+                    </p>
+</div>
+</div>
+<!-- Action Section -->
+<!-- Fluid Button implementation -->
+<div class="p-5 bg-transparent">
+<button class="w-full group relative flex items-center justify-center gap-2 bg-primary text-on-primary py-[0.875rem] px-5 rounded-[0.75rem] font-semibold text-[0.95rem] tracking-wide transition-all duration-300 hover:bg-primary-container">
+<!-- Subtle Glow Effect on Hover -->
+<div class="absolute inset-0 rounded-[0.75rem] opacity-0 group-hover:opacity-100 shadow-[0_0_16px_rgba(67,67,213,0.4)] transition-opacity duration-300 pointer-events-none"></div>
+<span class="relative z-10">Sign In / Sign Up</span>
+<span class="material-symbols-outlined text-[1.125rem] relative z-10 group-hover:translate-x-1 transition-transform duration-300">arrow_right_alt</span>
+</button>
+<!-- Secondary subtle link to maintain editorial feel -->
+<div class="mt-4 text-center">
+<a class="inline-flex text-[0.8rem] font-medium text-outline hover:text-primary transition-colors duration-200 uppercase tracking-[0.05em]" href="#">
+                        Explore Features
+                    </a>
+</div>
+</div>
+</div>
+</div>
+</body></html>

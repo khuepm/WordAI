@@ -33,7 +33,7 @@
     "shieldActive": "Khiên bảo vệ đang bật"
   },
   "settings": {
-    "title": "Cài đặt",
+    "title": "Tùy chỉnh",
     "tabs": {
       "general": "Chung",
       "aiEngine": "AI Engine",
@@ -71,7 +71,8 @@
       },
       "defaultExportPath": {
         "label": "Thư mục xuất mặc định",
-        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX."
+        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX.",
+        "browse": "Duyệt"
       },
       "defaultExportFormat": {
         "label": "Định dạng xuất mặc định",
@@ -84,6 +85,10 @@
       "autoSyncInterval": {
         "label": "Khoảng thời gian đồng bộ",
         "description": "Khoảng thời gian giữa các lần auto-sync (5–60 giây)."
+      },
+      "guestBanner": {
+        "description": "Đăng nhập để đồng bộ giao diện, ngôn ngữ và cài đặt trên tất cả thiết bị của bạn.",
+        "signIn": "Đăng nhập"
       }
     },
     "aiEngine": {
@@ -259,7 +264,7 @@
       "showingFor": "Kết quả cho \"{{query}}\""
     },
     "sidebar": {
-      "systemConfiguration": "CẤU HÌNH HỆ THỐNG",
+      "systemConfiguration": "Cấu hình hệ thống",
       "proCard": {
         "title": "AuraSphere Pro",
         "description": "Mở khóa cửa sổ ngữ cảnh lớn hơn và các mô hình độc quyền."
@@ -644,5 +649,65 @@
   },
   "confirmationDialog": {
     "ariaLabel": "Hộp thoại xác nhận"
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "emailLabel": "Email",
+      "passwordLabel": "Mật khẩu",
+      "forgotPassword": "Quên mật khẩu?",
+      "submit": "Đăng nhập",
+      "noAccount": "Chưa có tài khoản?",
+      "signUp": "Đăng ký"
+    },
+    "signup": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Bắt đầu không gian sáng tạo của bạn.",
+      "displayNameLabel": "Tên hiển thị",
+      "emailLabel": "Email",
+      "passwordLabel": "Mật khẩu",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "submit": "Đăng ký",
+      "hasAccount": "Đã có tài khoản?",
+      "backToLogin": "Quay lại đăng nhập"
+    },
+    "forgotPassword": {
+      "title": "Khôi phục mật khẩu",
+      "description": "Nhập email của bạn để nhận hướng dẫn khôi phục mật khẩu.",
+      "emailLabel": "Email liên kết",
+      "submit": "Gửi email khôi phục",
+      "backToLogin": "Quay lại Đăng nhập"
+    },
+    "resetSuccess": {
+      "title": "Đã gửi email thành công!",
+      "subtitle": "Vui lòng kiểm tra hòm thư của bạn.",
+      "backToLogin": "Về trang Đăng nhập"
+    },
+    "errors": {
+      "invalidCredential": "Thông tin đăng nhập không hợp lệ. Vui lòng kiểm tra lại email và mật khẩu.",
+      "userNotFound": "Không tìm thấy tài khoản với email này.",
+      "emailInUse": "Email này đã được đăng ký.",
+      "weakPassword": "Mật khẩu không đủ mạnh. Vui lòng chọn mật khẩu dài hơn.",
+      "tooManyRequests": "Quá nhiều lần thử. Vui lòng đợi một lát rồi thử lại.",
+      "accountSuspended": "Tài khoản đã bị tạm khóa. Vui lòng liên hệ hỗ trợ.",
+      "tokenInvalid": "Phiên đăng nhập không hợp lệ. Vui lòng thử lại.",
+      "networkError": "Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.",
+      "timeout": "Thao tác quá thời gian. Vui lòng thử lại.",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+      "passwordMismatch": "Mật khẩu không khớp",
+      "passwordTooShort": "Mật khẩu phải có ít nhất 6 ký tự",
+      "nameRequired": "Tên hiển thị không được để trống",
+      "nameTooLong": "Tên hiển thị tối đa 100 ký tự",
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Email không hợp lệ",
+      "passwordRequired": "Vui lòng nhập mật khẩu"
+    }
+  },
+  "userMenu": {
+    "myLibrary": "Thư viện của tôi",
+    "signOut": "Đăng xuất",
+    "guestBanner": "Đăng nhập để đồng bộ giao diện, kiểu chữ và mở khóa các mô hình AI mạnh mẽ trên mọi thiết bị.",
+    "signInSignUp": "Đăng nhập / Đăng ký",
+    "exploreFeatures": "Khám phá tính năng"
   }
 }

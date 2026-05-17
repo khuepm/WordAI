@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Menu - Ethereal Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#b65700",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#2e2bc2",
+                        "secondary-container": "#babbfe",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#4849da",
+                        "primary-fixed-dim": "#c1c1ff",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed-variant": "#3f417b",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "surface-dim": "#d9dadb",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary": "#904400",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#5d5fef",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c7c4d7",
+                        "on-primary-fixed": "#07006c",
+                        "on-primary-container": "#faf7ff",
+                        "secondary-fixed": "#e1e0ff",
+                        "tertiary-fixed": "#ffdbc8",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "error": "#ba1a1a",
+                        "background": "#f8f9fa",
+                        "primary-fixed": "#e1e0ff",
+                        "primary": "#4343d5",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "inverse-primary": "#c1c1ff",
+                        "on-secondary-fixed": "#12134d",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#fff6f3",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface-variant": "#464555",
+                        "surface-container": "#edeeef",
+                        "surface-container-high": "#e7e8e9",
+                        "outline": "#767586",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#575995",
+                        "on-tertiary-fixed": "#321300",
+                        "on-secondary-container": "#474984"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "display": ["Manrope", "sans-serif"],
+                        "body": ["Newsreader", "serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface font-headline min-h-screen flex items-start justify-end p-8 text-on-surface">
+<!-- Container to simulate top-right placement -->
+<div class="relative w-80">
+<!-- User Menu Dropdown (AuraSphere style) -->
+<div class="absolute right-0 top-0 w-full bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-xl outline outline-1 outline-outline-variant/15 shadow-[0_-5px_40px_rgba(25,28,29,0.04)] overflow-hidden flex flex-col">
+<!-- Header Block -->
+<button class="w-full text-left p-5 flex items-center gap-4 hover:bg-surface-container-low transition-colors duration-200">
+<div class="relative shrink-0">
+<img alt="User Avatar" class="w-12 h-12 rounded-full object-cover" data-alt="A portrait photograph of a confident professional woman used as a user avatar. The lighting is soft and flattering, highlighting her features against a clean, minimal background. The aesthetic matches a high-end editorial UI, with sophisticated tones and a crisp, modern feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8uQ7cxOgWmcz5HBd8gECSCYxqueHQSoY2mHMravioEk5568j6Ag51DCGR_4AGHAZFHaNRvWjnjaMg320E_DendVrKDu6PdziGcdkT9Bbta9DeLWzTsxP8HykGTzeoNNrS2XvscB-mW3BnUzruLT_Pxu_iWhQANIERPD3pHSZ7WWb9Hg34T_zmqs_wfmsLlyZaUI0qAZxVSp2S3AcxNsXjR3WTQIFw757TKYj52YDaUxz0CoV72d4hjehrxiJ_uViaWcv67LVdc4I"/>
+<!-- Online Status Indicator (Optional, but adds detail) -->
+<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#10b981] border-2 border-surface-container-lowest rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0 flex flex-col justify-center">
+<div class="flex items-center gap-2 mb-0.5">
+<span class="font-bold text-on-surface truncate tracking-tight">The Curator</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-gradient-to-br from-primary to-primary-container text-on-primary">
+                            Pro
+                        </span>
+</div>
+<span class="text-sm text-on-surface-variant truncate">curator@ethereal.app</span>
+</div>
+</button>
+<!-- Separation via Tonal Shift -->
+<div class="h-2 bg-surface-container-low"></div>
+<!-- Section 1: Workspace Navigation -->
+<div class="p-2 flex flex-col gap-1">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors duration-200 text-sm font-medium">
+<span class="material-symbols-outlined text-outline">folder</span>
+                    My Library
+                </button>
+</div>
+<!-- Separation via Tonal Shift -->
+<div class="h-2 bg-surface-container-low"></div>
+<!-- Section 2: Sign Out -->
+<div class="p-2">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-error hover:bg-error-container hover:text-on-error-container transition-colors duration-200 text-sm font-medium">
+<span class="material-symbols-outlined">logout</span>
+                    Sign Out
+                </button>
+</div>
+</div>
+</div>
+</body></html>

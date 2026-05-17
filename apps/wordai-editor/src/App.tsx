@@ -16,15 +16,20 @@ import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
 import { DevDashboardLoader } from './components/DevDashboardLoader';
+import { AuthModal } from './components/auth/AuthModal';
 import { openPreferencesWindow } from './services/preferencesWindow';
 import { LibraryView } from './components/LibraryView';
 import { ArchiveView } from './components/ArchiveView';
 import { Tooltip } from './components/Tooltip';
 import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
+import { usePreferenceSync } from './hooks/usePreferenceSync';
 import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
-import { useAIAccessState, useAccessContext } from './services/authStore';
+import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
+import { useAuth } from './hooks/useAuth';
+import { resetCloudSettingsToDefaults, syncCloudSettingsOnLogin, uploadLocalSettingsOnSignup } from './services/cloudSettingsService';
+import { getPersistedSessionId, fetchAccessContext, clearLocalAuthCache } from './services/authService';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
 import { getAuraBrainStoragePath } from './services/platformService';
@@ -120,18 +125,35 @@ function App() {
   const aiAccessState = useAIAccessState();
   const accessContext = useAccessContext();
 
+  // Req 11.1–11.6 — Sign-out flow
+  const { signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  // Req 12.1–12.5 — Session restoration on app startup
+  const { setAccessContext: setAccessCtx, clearAuth } = useAuthState();
+  const [isRestoringSession, setIsRestoringSession] = useState(false);
+
   const [fontSize, setFontSize] = useState<number>(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY);
     return stored ? Number(stored) : DEFAULT_FONT_SIZE;
   });
 
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
   const [storagePath, setStoragePath] = useState('');
   const [startupError, setStartupError] = useState<string | null>(null);
   const [startupRetryKey, setStartupRetryKey] = useState(0);
   const [syncErrorDismissed, setSyncErrorDismissed] = useState(false);
+  const [settingsSyncError, setSettingsSyncError] = useState<string | null>(null);
+  const [settingsSyncErrorDismissed, setSettingsSyncErrorDismissed] = useState(false);
+
+  // Track previous accessContext to detect login transitions (null → non-null)
+  const prevAccessContextRef = useRef<typeof accessContext>(null);
+  const isRestoringSessionRef = useRef(false);
+  // Track whether the current auth transition is from a sign-up (Req 15.4)
+  const isSignUpRef = useRef(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -174,6 +196,97 @@ function App() {
     setIsQuickSearchOpen(false);
     void openPreferencesWindow({ tab: entry.tab as Tab, settingId: entry.id });
   }, []);
+
+  // Req 12.1–12.5 — Restore session on app startup (non-blocking)
+  useEffect(() => {
+    const sessionId = getPersistedSessionId();
+    if (!sessionId) {
+      // Req 12.5 — No persisted session: guest state immediately, no fetch
+      return;
+    }
+
+    let cancelled = false;
+    setIsRestoringSession(true);
+    isRestoringSessionRef.current = true;
+
+    const SESSION_RESTORE_TIMEOUT = 10_000; // 10s timeout (Req 12.1)
+    const validSessionId: string = sessionId;
+
+    async function restoreSession() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), SESSION_RESTORE_TIMEOUT);
+
+        const context = await Promise.race([
+          fetchAccessContext(validSessionId),
+          new Promise<never>((_, reject) => {
+            controller.signal.addEventListener('abort', () =>
+              reject(new Error('Session restoration timed out'))
+            );
+          }),
+        ]);
+
+        clearTimeout(timeoutId);
+
+        if (!cancelled) {
+          // Req 12.2 — Restore context and trigger cloud settings sync
+          setAccessCtx(context);
+          // Req 15.1, 15.2, 15.3 — Sync cloud settings after session restore
+          syncCloudSettingsOnLogin(validSessionId, {
+            applyPreferences: (prefs) => {
+              setPreferences(normalizePreferences(prefs));
+            },
+            onError: () => {
+              setSettingsSyncError('Settings sync failed. Using local preferences.');
+            },
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          // Req 12.3 — On failure/timeout: clear cache and remain in guest state
+          clearLocalAuthCache();
+          clearAuth();
+        }
+      } finally {
+        if (!cancelled) {
+          setIsRestoringSession(false);
+          isRestoringSessionRef.current = false;
+        }
+      }
+    }
+
+    restoreSession();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Req 15.1, 15.2, 15.3, 15.4 — Sync cloud settings after login or upload on sign-up
+  useEffect(() => {
+    const prev = prevAccessContextRef.current;
+    prevAccessContextRef.current = accessContext;
+
+    // Trigger sync when accessContext transitions from null to non-null (login)
+    // Skip if this is during session restoration (handled inline above)
+    if (prev === null && accessContext !== null && !isRestoringSessionRef.current) {
+      const sessionId = accessContext.session.id;
+
+      if (isSignUpRef.current) {
+        // Req 15.4 — New user sign-up: upload local preferences as initial cloud settings
+        isSignUpRef.current = false;
+        uploadLocalSettingsOnSignup(sessionId);
+      } else {
+        // Req 15.1, 15.2, 15.3 — Existing user login: download and merge cloud settings
+        syncCloudSettingsOnLogin(sessionId, {
+          applyPreferences: (prefs) => {
+            setPreferences(normalizePreferences(prefs));
+          },
+          onError: () => {
+            setSettingsSyncError('Settings sync failed. Using local preferences.');
+          },
+        });
+      }
+    }
+  }, [accessContext]);
 
   const refreshPreferences = useCallback(async () => {
     try {
@@ -362,6 +475,35 @@ function App() {
     }
   }, [document]);
 
+  /**
+   * Sign-out handler — Req 11.1–11.6
+   *
+   * Flow:
+   * 1. Show spinner on Sign Out button, disable menu items (Req 11.4)
+   * 2. Call authService.logout(sessionId) to revoke session (Req 11.1)
+   * 3. Call firebaseSignOut() (Req 11.1)
+   * 4. Call clearAuth() on store (Req 11.2)
+   * 5. Call resetCloudSettingsToDefaults() (Req 11.6)
+   * 6. Close menu, transition avatar to guest state (Req 11.5)
+   * 7. If network error: still clear local state (Req 11.3)
+   */
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    try {
+      // Steps 1-4: useAuth().signOut() handles:
+      //   - authService.logout(sessionId) → revoke session + clear cache
+      //   - firebaseSignOut()
+      //   - clearAuth() on store
+      // It also handles network errors gracefully (still clears local state)
+      await signOut();
+    } finally {
+      // Step 5: Reset cloud settings to defaults (Req 11.6)
+      await resetCloudSettingsToDefaults();
+      // Step 6: isSigningOut=false triggers avatar transition to guest state
+      setIsSigningOut(false);
+    }
+  }, [signOut]);
+
   const handleImportedDocument = useCallback((doc: Document) => {
     const normalized = { ...doc, content: ensureBlockValue(doc.content) };
     setDocument(normalized, '', true);
@@ -390,6 +532,9 @@ function App() {
     autoSyncEnabled: preferences.general.autoSyncEnabled,
     autoSyncInterval: preferences.general.autoSyncInterval,
   });
+
+  // Req 19.1–19.4 — Sync preference changes to cloud when authenticated
+  usePreferenceSync({ preferences, accessContext });
 
   useEffect(() => {
     setSyncErrorDismissed(false);
@@ -494,6 +639,10 @@ function App() {
         onRename={handleRename}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onSignIn={() => setIsAuthModalOpen(true)}
+        onSignOut={handleSignOut}
+        isSigningOut={isSigningOut}
+        isRestoringSession={isRestoringSession}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -626,6 +775,52 @@ function App() {
           </div >
         )
       }
+
+      {/* Settings sync error toast (Req 15.3) — non-blocking notification */}
+      {settingsSyncError && !settingsSyncErrorDismissed && (
+        <div
+          data-testid="settings-sync-error-toast"
+          role="alert"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '24px',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            background: '#1f2937',
+            color: '#f9fafb',
+            fontFamily: 'var(--font-family-ui)',
+            fontSize: '12px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            maxWidth: '320px',
+          }}
+        >
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{settingsSyncError}</span>
+          <button
+            data-testid="settings-sync-error-close-button"
+            onClick={() => setSettingsSyncErrorDismissed(true)}
+            aria-label="Dismiss"
+            style={{
+              background: 'transparent',
+              color: '#9ca3af',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '2px 4px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-ui)',
+              fontSize: '14px',
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <aside style={{
         position: 'fixed',
         left: 0,
@@ -809,6 +1004,11 @@ function App() {
         onSelect={handleQuickSearchSelect}
       />
       <DevDashboardLoader />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSignUpSuccess={() => { isSignUpRef.current = true; }}
+      />
     </div >
   );
 }
