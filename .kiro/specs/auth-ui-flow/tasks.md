@@ -45,7 +45,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7_
 
 - [ ] 2. Implement AuthModal shell component
-  - [~] 2.1 Create `src/components/auth/AuthModal.tsx`
+  - [x] 2.1 Create `src/components/auth/AuthModal.tsx`
     - Render as React Portal to `document.body`
     - Backdrop: `bg-inverse-surface/40 backdrop-blur-sm`, click-to-close (suppressed during loading)
     - Modal container: `bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-xl shadow-ambient-glow`
