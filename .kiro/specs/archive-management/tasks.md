@@ -2,276 +2,255 @@
 
 ## Overview
 
-Implement the Archive Management feature for the WordAI desktop editor — a dedicated full-screen view accessible via the "Archive" tab in the TopNavBar for managing archived documents, old versions, paused projects, and inactive drafts. The implementation follows existing patterns: no router, inline styles with CSS variables, React hooks for local state, Tauri IPC for backend communication, and react-i18next for all user-facing strings. The view features a bento-grid layout with AI-powered suggestions, a chronological versions list, paused project folders, and a right-side Detail Drawer.
+Implement the Archive Management feature for the WordAI desktop editor — a full-screen view for managing archived documents, old versions, paused projects, and AI-powered review suggestions. The implementation extends the existing navigation model (`activeTab`), follows the same patterns as LibraryView (local state via React hooks, Tauri IPC for backend, inline styles with CSS variables), and introduces a new `archived_intents` SQLite table in the Rust backend.
 
 ## Tasks
 
-- [x] 1. Extend global state and types for archive tab
-  - [x] 1.1 Extend `activeTab` type in `stateManager.tsx` to include `'archive'`
-    - Change `activeTab` type from `'editor' | 'library'` to `'editor' | 'library' | 'archive'` in `AppState` interface
-    - Update `SET_ACTIVE_TAB` action payload type to `'editor' | 'library' | 'archive'`
-    - Update `setActiveTab` callback type in `AppContextValue`
-    - Update all type references in `TopNavBarProps` and `LibraryViewProps` to include `'archive'`
-    - _Requirements: 1.1, 1.2, 1.3, 1.4_
+- [x] 1. Define archive types and extend global state
+  - [x] 1.1 Create archive type definitions in `src/types/archive.ts`
+    - Define `ArchivedIntentSummary`, `ArchivedIntentDocument`, `ArchiveSuggestion`, `PausedProject`, `ArchivedVersion`, `ArchiveFilters`, `AISummaryState` interfaces
+    - Define `ArchiveCategory` type as `'drafts' | 'projects' | 'versions' | 'trash'`
+    - Export all types as named exports
+    - _Requirements: 2.1, 3.5, 4.1, 5.1, 6.1, 7.1_
 
-  - [x] 1.2 Create archive data types in `src/types/archiveTypes.ts`
-    - Define `ArchivedIntentSummary` interface (id, intent_name, archived_at, archive_reason, archive_type, related_current_id, memory_access_enabled, created_at, updated_at, version)
-    - Define `ArchivedIntentDocument` interface extending `ArchivedIntentSummary` with content and description
-    - Define `ArchiveSuggestion` interface (id, archive_item_id, category, title, description, archived_at, relevance_score)
-    - Define `PausedProject` interface (id, name, description, document_count, paused_at, document_ids)
-    - Define `ArchivedVersion` interface (id, intent_name, version, archived_at, archive_reason, related_current_id)
-    - Define `ArchiveFilters` interface (types array, dateRange)
-    - Define `ArchiveCategory` type ('drafts' | 'projects' | 'versions' | 'trash')
-    - Define `AISummaryState` interface (status, text, retryCount, maxRetries)
-    - _Requirements: 3.5, 3.6, 4.1, 4.2, 5.3, 6.3, 7.9, 10.3_
+  - [x] 1.2 Extend `activeTab` in `stateManager.tsx` to include `'archive'`
+    - Update `AppState.activeTab` type from `'editor' | 'library'` to `'editor' | 'library' | 'archive'`
+    - Update `SET_ACTIVE_TAB` action payload type to include `'archive'`
+    - Ensure `setActiveTab` callback accepts the new union type
+    - _Requirements: 1.1, 1.2, 1.7_
 
-- [ ] 2. Implement archive utility functions
-  - [ ] 2.1 Create `src/utils/archiveFilters.ts` with filtering and sorting logic
-    - Implement `applyArchiveFilters(items, query, filters)` — case-insensitive substring match on title/reason, type filter, date range filter
-    - Implement `sortVersionsByDate(versions)` — sort by `archived_at` descending
-    - Implement `truncateReason(reason, maxLength)` — truncate at 200 chars with ellipsis, return placeholder for empty/null
-    - Export all functions as named exports
-    - _Requirements: 3.3, 3.6, 3.7, 5.3, 8.3_
+  - [x] 1.3 Add i18n keys for archive feature in `en.json` and `vi.json`
+    - Add `archive.*` namespace with keys for all labels, placeholders, error messages, empty states, ARIA labels, and action button text
+    - _Requirements: 12.1, 14.4_
 
-  - [ ] 2.2 Write property test for archive filtering (Property 1) in `src/utils/archiveFilters.property.test.ts`
-    - **Property 1: Archive filtering returns only matching items**
+- [x] 2. Implement archive utility functions
+  - [x] 2.1 Create `src/utils/archiveFilters.ts` with pure filter/sort/truncate functions
+    - Implement `applyArchiveFilters(items, query, filters)` — case-insensitive substring match on `intent_name` and `archive_reason`, type filter mapping, date range cutoff, sorted by `archived_at` descending
+    - Implement `sortAndLimitVersions(versions, maxCount?)` — sort by `archived_at` descending, return at most `maxCount` (default 5)
+    - Implement `truncateReason(reason, placeholder?)` — return placeholder if null/undefined/empty, return unchanged if ≤200 chars, else first 200 chars + "…"
+    - Implement `isCompareDisabled(relatedCurrentId)` — return `true` if null or undefined
+    - _Requirements: 3.3, 3.6, 3.7, 5.3, 8.3, 11.6_
+
+  - [x] 2.2 Write property test for `applyArchiveFilters`
+    - **Property 2: Archive filter correctness**
     - **Validates: Requirements 3.3, 3.6, 3.7**
-    - For any set of archived items, any search query, and any filter combination, all items in the result contain the query as a case-insensitive substring of title or reason AND match all filter criteria
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
 
-  - [ ] 2.3 Write property test for version sorting (Property 2) in `src/utils/archiveFilters.property.test.ts`
-    - **Property 2: Version list items are sorted by archival date descending**
+  - [x] 2.3 Write property test for `sortAndLimitVersions`
+    - **Property 3: Version list sorting and limit invariant**
     - **Validates: Requirements 5.3**
-    - For any set of archived versions, each item's `archived_at` is >= the next item's `archived_at`
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
 
-  - [ ] 2.4 Write property test for reason truncation (Property 6) in `src/utils/archiveFilters.property.test.ts`
-    - **Property 6: Archive reason truncation**
+  - [x] 2.4 Write property test for `truncateReason`
+    - **Property 4: Archive reason truncation correctness**
     - **Validates: Requirements 8.3**
-    - For any string > 200 chars, result is first 200 chars + ellipsis; for <= 200 chars, result is the full string; for empty/null, result is placeholder text
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
 
-- [ ] 3. Checkpoint - Ensure all tests pass
+  - [x] 2.5 Write property test for `isCompareDisabled`
+    - **Property 5: Compare button disabled state derivation**
+    - **Validates: Requirements 11.6**
+
+- [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement ArchiveSidebar component
-  - [ ] 4.1 Create `src/components/ArchiveSidebar.tsx`
+- [x] 4. Implement ArchiveSidebar component
+  - [x] 4.1 Create `src/components/ArchiveSidebar.tsx`
     - Accept props: `activeCategory`, `onCategoryChange`, `onNewEntry`
-    - Render fixed-width 288px panel with `role="navigation"`
-    - Display category links (Drafts, Projects, Versions, Trash) with active/inactive styling
-    - Display "New Entry" button with primary background and add icon
-    - Highlight active category with white background, primary color, bold weight, box-shadow
-    - Use CSS variables for all colors, fonts, and spacing
-    - Support vertical scroll for overflow content
-    - _Requirements: 2.1, 2.2, 2.3, 2.9, 2.10_
+    - Render `role="navigation"` container with fixed 288px width
+    - Display category links (Drafts, Projects, Versions, Trash) with active/inactive styling per design tokens
+    - Display "New Entry" button with primary background, add icon, and centered text
+    - Support vertical scroll overflow
+    - Use inline styles with CSS variables (`--md-sys-color-*`, `--font-family-ui`, `--radius-*`, `--shadow-*`)
+    - _Requirements: 2.1, 2.2, 2.3, 2.9, 2.10, 12.1, 12.2, 12.5_
 
-  - [ ] 4.2 Write unit tests for `ArchiveSidebar` in `src/components/ArchiveSidebar.test.tsx`
-    - Test that active category has correct styling
-    - Test that clicking a category calls `onCategoryChange` with correct value
-    - Test that clicking "New Entry" calls `onNewEntry`
-    - Test that `role="navigation"` is present
-    - _Requirements: 2.1, 2.3, 14.4_
+  - [x] 4.2 Write unit tests for `ArchiveSidebar` in `src/components/ArchiveSidebar.test.tsx`
+    - Test active category highlighting
+    - Test "New Entry" button click calls `onNewEntry`
+    - Test category link click calls `onCategoryChange` with correct category
+    - Test ARIA navigation role
+    - _Requirements: 2.1, 2.2, 2.3, 14.4_
 
-- [ ] 5. Implement ArchiveSearchBar component
-  - [ ] 5.1 Create `src/components/ArchiveSearchBar.tsx`
+- [x] 5. Implement ArchiveSearchBar and ArchiveFilterPanel
+  - [x] 5.1 Create `src/components/ArchiveSearchBar.tsx`
     - Accept props: `value`, `onChange`, `onClear`, `onToggleFilters`, `isFilterPanelOpen`
-    - Render glass-panel styled input with search icon, max-width 768px
+    - Render `role="search"` container with glass-panel effect (white bg + backdrop blur), rounded-xl, outline-variant border, search icon
     - Show clear button when value is non-empty
-    - Show "Filters" button on right side with toggle state
-    - Use `role="search"` on container, `role="searchbox"` on input
-    - Minimum touch target height of 48px
-    - _Requirements: 3.1, 3.2, 3.4, 3.9, 13.6, 14.1_
+    - Show "Filters" button on right side
+    - Max width 768px, minimum touch target height 48px
+    - _Requirements: 3.1, 3.2, 3.4, 3.9, 13.6, 14.4_
 
-  - [ ] 5.2 Write unit tests for `ArchiveSearchBar` in `src/components/ArchiveSearchBar.test.tsx`
+  - [x] 5.2 Create `src/components/ArchiveFilterPanel.tsx`
+    - Accept props: `filters`, `onChange`, `onClear`
+    - Render filter options for item type (Suggestions, Versions, Paused Projects) as toggleable chips/checkboxes
+    - Render date range options (Last 7 days, Last 30 days, Last 90 days, All time) as radio-style selection
+    - _Requirements: 3.5, 3.6_
+
+  - [x] 5.3 Write unit tests for `ArchiveSearchBar` and `ArchiveFilterPanel`
     - Test clear button visibility based on value
-    - Test that typing calls `onChange`
-    - Test that clear button calls `onClear`
-    - Test that filters button calls `onToggleFilters`
-    - _Requirements: 3.1, 3.9_
+    - Test filter panel toggle
+    - Test filter selection callbacks
+    - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.9_
 
-- [ ] 6. Implement SuggestionCard component
-  - [ ] 6.1 Create `src/components/SuggestionCard.tsx`
-    - Accept props: `suggestion`, `isPrimary`, `onReview`, `onCompare`, `onRestore`
-    - Render category badge, title, description (max 3 lines truncated), relative time, action link
-    - Primary card: glass-panel + aura-shadow + primary/10 border
-    - Secondary cards: glass-panel + ambient-shadow + outline-variant/10 border
-    - "Referenced Work" category: show "Compare" and "Restore" buttons instead of "Review"
-    - _Requirements: 4.2, 4.3, 4.4, 4.5_
+- [x] 6. Implement SuggestionCard component
+  - [x] 6.1 Create `src/components/SuggestionCard.tsx`
+    - Accept props: `suggestion`, `isPrimary`, `onReview`, `onCompare?`, `onRestore?`
+    - Render category badge, title, description (max 3 lines with ellipsis), archived-date (relative time), and action link
+    - Primary variant: glass-panel, `--shadow-ambient-strong`, primary/10 border
+    - Secondary variant: glass-panel, `--shadow-ambient`, outline-variant/10 border
+    - "Referenced Work" category: show "Compare" and "Restore" buttons instead of "Review" link
+    - _Requirements: 4.2, 4.3, 4.4, 4.5, 12.6, 12.7_
 
-  - [ ] 6.2 Write property test for SuggestionCard (Property 3) in `src/components/SuggestionCard.property.test.tsx`
-    - **Property 3: Suggestion card renders all required fields**
-    - **Validates: Requirements 4.2**
-    - For any valid `ArchiveSuggestion`, rendered output contains category badge, title, description excerpt, relative time, and action element
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
+  - [x] 6.2 Write unit tests for `SuggestionCard`
+    - Test primary vs secondary styling
+    - Test "Referenced Work" variant renders Compare/Restore buttons
+    - Test default variant renders Review link
+    - Test click handlers
+    - _Requirements: 4.2, 4.4, 4.5_
 
-- [ ] 7. Implement VersionListItem component
-  - [ ] 7.1 Create `src/components/VersionListItem.tsx`
+- [x] 7. Implement VersionListItem component
+  - [x] 7.1 Create `src/components/VersionListItem.tsx`
     - Accept props: `version`, `onOpen`, `onCompare`, `onRestore`
-    - Render horizontal row with document icon, title, relative timestamp, reason
+    - Render document icon in rounded container, title (font-headline, semibold), relative timestamp, archival reason
     - Show "Compare" and "Restore" circular action buttons on hover/focus
-    - Clicking title/body area calls `onOpen`
-    - _Requirements: 5.3, 5.4, 5.5_
+    - Handle click on title/body to open detail drawer
+    - Display inline error if related document unavailable on compare
+    - _Requirements: 5.3, 5.4, 5.5, 5.6, 5.7, 12.2, 12.5_
 
-  - [ ] 7.2 Write unit tests for `VersionListItem` in `src/components/VersionListItem.test.tsx`
-    - Test that clicking title calls `onOpen`
-    - Test that Compare button calls `onCompare`
-    - Test that Restore button calls `onRestore`
-    - Test that all metadata fields are rendered
-    - _Requirements: 5.3, 5.4, 5.5_
+  - [x] 7.2 Write unit tests for `VersionListItem`
+    - Test action buttons visible on hover
+    - Test click on body calls `onOpen`
+    - Test Compare/Restore button click handlers
+    - _Requirements: 5.4, 5.5, 5.6_
 
-- [ ] 8. Implement PausedProjectCard component
-  - [ ] 8.1 Create `src/components/PausedProjectCard.tsx`
+- [x] 8. Implement PausedProjectCard component
+  - [x] 8.1 Create `src/components/PausedProjectCard.tsx`
     - Accept props: `project`, `onOpen`
-    - Render folder icon (48px), project name (truncated at 60 chars), document count, description (max 2 lines), relative timestamp, "Open Folder" link
+    - Render folder icon (48px rounded), project name (truncated at 60 chars), document count, description (max 2 lines), relative timestamp, "Open Folder" link
     - Apply surface-container-lowest background, rounded-xl, outline-variant/10 border, ambient-shadow
-    - Decorative circle element (64px) in top-right that scales 1.1x on hover
-    - _Requirements: 6.3, 6.5_
+    - Decorative 64px circle in top-right, scales to 1.1x on hover (300ms ease-in-out)
+    - _Requirements: 6.2, 6.3, 6.5, 12.1, 12.8_
 
-  - [ ] 8.2 Write property test for PausedProjectCard (Property 4) in `src/components/PausedProjectCard.property.test.tsx`
-    - **Property 4: Paused project card renders all required fields**
-    - **Validates: Requirements 6.3**
-    - For any valid `PausedProject`, rendered output contains folder icon, name (truncated at 60), document count, description (max 2 lines), timestamp, and "Open Folder" link
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
+  - [x] 8.2 Write unit tests for `PausedProjectCard`
+    - Test project name truncation at 60 characters
+    - Test "Open Folder" click calls `onOpen`
+    - Test document count display
+    - _Requirements: 6.3, 6.4_
 
-- [ ] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement DetailDrawer component
-  - [ ] 10.1 Create `src/components/DetailDrawer.tsx` with layout and focus management
-    - Accept props: `isOpen`, `item`, `isLoading`, `loadError`, `onClose`, `onRestore`, `onCompare`, `onOpenReadOnly`, `onSaveToLibrary`, `onDelete`, `onToggleMemoryAccess`, `onRetryLoad`, `triggerRef`
-    - Render right-side overlay panel with max-width 672px, 500ms ease-out slide-in transition
-    - Implement focus trap (Tab/Shift+Tab cycle within drawer)
-    - Close on Escape key, Scrim click, or close button
-    - Return focus to trigger element on close
-    - Render Scrim with inverse-surface/10 background and 2px backdrop blur
-    - Use `role="dialog"`, `aria-modal="true"`, `role="complementary"` on container
-    - Full-screen on viewports < 768px
-    - _Requirements: 7.1, 7.2, 7.4, 7.5, 7.6, 7.7, 7.8, 13.5, 14.2, 14.3, 14.5_
+- [x] 10. Implement DetailDrawer with metadata and AI summary
+  - [x] 10.1 Create `src/hooks/useFocusTrap.ts` custom hook
+    - Implement focus trapping: Tab/Shift+Tab cycle within container
+    - Move focus to first focusable element on activation
+    - Return focus to trigger element on deactivation
+    - Handle Escape key to close
+    - _Requirements: 7.1, 7.5, 7.6, 7.8, 14.2, 14.3_
 
-  - [ ] 10.2 Implement DetailDrawer content sections (metadata, AI summary, actions)
-    - Render header with archive type badge (inventory_2 icon) and document title
-    - Render metadata section: archived date, reason (truncated via `truncateReason`), related current file link
-    - Render AI Summary section with loading/success/error states and retry logic (max 3 attempts, 30s timeout)
-    - Render Memory Access Toggle section
-    - Render sticky footer action bar with frosted-glass background
-    - Primary actions: "Restore to Drafts", "Compare with Current", "Open Read-only"
-    - Secondary actions: "Save to Library", "Delete Permanently"
-    - Disable "Compare with Current" when no related current file
-    - Show error state with retry button when item data fails to load
-    - _Requirements: 7.3, 7.9, 7.10, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 10.1, 10.2, 11.1, 11.2, 11.3, 11.6, 11.7_
+  - [x] 10.2 Create `src/hooks/useAISummary.ts` custom hook
+    - Accept `itemId: string | null`
+    - Invoke `generate_archive_summary` with 30s timeout
+    - Track loading/success/error state and retry count (max 3)
+    - Return `{ state: AISummaryState, retry: () => void }`
+    - _Requirements: 9.4, 9.5, 9.6, 9.7_
 
-  - [ ] 10.3 Write property test for focus trap (Property 5) in `src/components/DetailDrawer.property.test.tsx`
-    - **Property 5: Detail Drawer focus trap contains focus**
-    - **Validates: Requirements 7.8, 14.2**
-    - For any sequence of Tab/Shift+Tab presses while drawer is open, focused element is always within the drawer container
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
+  - [x] 10.3 Create `src/components/DetailDrawer.tsx`
+    - Accept props per `DetailDrawerProps` interface from design
+    - Slide in from right with 500ms ease-out, max-width 672px
+    - Full-screen on mobile (< 768px)
+    - Render Scrim overlay (inverse-surface/10, 2px backdrop blur)
+    - Close on Escape, Scrim click, or close button (X icon at top-right)
+    - Apply `role="dialog"`, `aria-modal="true"`
+    - Use `useFocusTrap` hook for keyboard focus management
+    - Render header with archive type badge and document title
+    - Render metadata section (archived date, reason, related current file link)
+    - Render AI summary section using `useAISummary` hook
+    - Scrollable content area independent of main view
+    - Display error state with retry if item data fails to load
+    - _Requirements: 7.1–7.10, 8.1–8.6, 9.1–9.7, 13.5, 14.2, 14.3, 14.5_
 
-- [ ] 11. Implement MemoryAccessToggle component
-  - [ ] 11.1 Create `src/components/MemoryAccessToggle.tsx`
+  - [x] 10.4 Write unit tests for `DetailDrawer`
+    - Test drawer opens with slide animation
+    - Test Escape key closes drawer
+    - Test Scrim click closes drawer
+    - Test focus trap behavior
+    - Test focus restoration to trigger element
+    - Test error state rendering
+    - Test metadata section displays correctly
+    - Test AI summary loading/success/error states
+    - _Requirements: 7.1, 7.5, 7.6, 7.8, 9.4, 9.5, 14.2, 14.3_
+
+- [x] 11. Implement MemoryAccessToggle component
+  - [x] 11.1 Create `src/components/MemoryAccessToggle.tsx`
     - Accept props: `enabled`, `isUpdating`, `error`, `onChange`
-    - Render toggle switch with memory icon, title, description
-    - Optimistic UI update on toggle
-    - Announce state to screen readers via aria-live
-    - Operable via Space key
-    - Surface-container-lowest background, rounded-xl, border transitions to primary/30 on hover
-    - _Requirements: 10.1, 10.2, 10.3, 10.6, 10.8_
+    - Render section with surface-container-lowest background, rounded-xl, border transitioning to primary/30 on hover
+    - Display memory icon, title, description, and toggle switch aligned right
+    - Toggle operable via click and Space key
+    - Announce state via `aria-live="polite"`
+    - Display inline error message on persistence failure
+    - _Requirements: 10.1–10.8, 14.6_
 
-  - [ ] 11.2 Write property test for memory access toggle revert (Property 7) in `src/components/MemoryAccessToggle.property.test.tsx`
-    - **Property 7: Memory access toggle reverts on persistence failure**
+  - [x] 11.2 Write property test for MemoryAccessToggle state revert
+    - **Property 6: Toggle state revert on persistence failure**
     - **Validates: Requirements 10.7**
-    - For any initial state, when toggle changes and persistence fails, toggle reverts to prior value and error message is displayed
-    - Use `fc.assert(fc.property(...), { numRuns: 100 })`
 
-- [ ] 12. Checkpoint - Ensure all tests pass
+- [x] 12. Implement DrawerActionBar component
+  - [x] 12.1 Create `src/components/DrawerActionBar.tsx`
+    - Accept props: `itemId`, `hasRelatedFile`, `onRestore`, `onCompare`, `onOpenReadOnly`, `onSaveToLibrary`, `onDelete`
+    - Render sticky footer with frosted-glass background (surface-container-lowest/90, 12px backdrop blur, top border)
+    - Primary row: "Restore to Drafts" (primary bg, flex-1), "Compare with Current" (surface bg, flex-1, disabled if no related file), "Open Read-only" (bordered, fixed width)
+    - Secondary row: "Save to Library" (left, bookmark_add icon), "Delete Permanently" (right, error color, delete_forever icon)
+    - _Requirements: 11.1–11.3, 11.6_
+
+  - [x] 12.2 Write unit tests for `DrawerActionBar`
+    - Test "Compare with Current" disabled when `hasRelatedFile` is false
+    - Test all button click handlers
+    - Test button labels and icons
+    - _Requirements: 11.1–11.3, 11.6_
+
+- [x] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Implement ArchiveView root component
-  - [ ] 13.1 Create `src/components/ArchiveView.tsx` — data fetching and local state
+- [x] 14. Implement ArchiveView main container and wire components
+  - [x] 14.1 Create `src/components/ArchiveView.tsx`
     - Accept props: `onOpenDocument`, `onTabChange`, `currentDocumentId`
-    - On mount, invoke `list_archived_intents` IPC and store results
-    - Request AI suggestions via `invoke('get_archive_suggestions', { active_doc_id })` if active document exists
-    - Fetch paused projects via `invoke('list_paused_projects')`
-    - Manage local state: archivedItems, suggestions, pausedProjects, isLoading, loadError, searchInput, searchQuery (debounced 300ms), activeCategory, activeFilters, selectedItemId, isDrawerOpen
-    - Show loading state while fetching, error state with retry on failure
-    - _Requirements: 1.1, 2.4, 2.5, 3.3, 4.8, 6.7, 6.8_
-
-  - [ ] 13.2 Implement ArchiveView layout and bento grid
-    - Render ArchiveSidebar (hidden below md breakpoint, show mobile bottom nav instead)
+    - Manage local state: `archivedItems`, `suggestions`, `pausedProjects`, `isLoading`, `loadError`, `searchInput`, `searchQuery` (debounced 300ms), `activeCategory`, `activeFilters`, `selectedItemId`, `isDrawerOpen`
+    - Fetch data on mount via `Promise.all` (list_archived_intents, get_archive_suggestions, list_paused_projects)
     - Render header with "Archive" title (3rem, extrabold) and subtitle
-    - Render ArchiveSearchBar below header
-    - Render 12-column bento grid: 4-col left (suggestions), 8-col right (versions + paused projects)
-    - Collapse to single column below lg breakpoint (1024px)
-    - Render "Suggested to Review" section with SuggestionCards (max 5)
-    - Render "Old Versions" section with VersionListItems (max 5) and "View All" link
-    - Render "Paused Projects" section with PausedProjectCards (max 6, 2-col grid) and "View All" link
-    - Show empty states for each section when no data
-    - Show filter panel when toggled with type and date range options
-    - _Requirements: 2.1, 2.4, 2.5, 2.6, 2.7, 2.8, 3.5, 3.7, 3.8, 4.1, 4.5, 4.6, 4.7, 5.1, 5.2, 5.10, 6.1, 6.2, 6.6, 13.1, 13.2, 13.3, 13.4, 13.7_
+    - Render ArchiveSidebar (hidden below md breakpoint, show mobile bottom nav instead)
+    - Render ArchiveSearchBar and ArchiveFilterPanel
+    - Render BentoGrid layout: 4-column left (Suggested to Review section) + 8-column right (Old Versions + Paused Projects)
+    - Apply `applyArchiveFilters` via `useMemo` for filtered display
+    - Show empty state when no results match
+    - Show loading skeletons during data fetch
+    - Show error state with retry on load failure
+    - Coordinate DetailDrawer open/close with selected item
+    - Handle restore, delete, save-to-library, compare, and open-read-only actions via Tauri IPC
+    - Show ConfirmationDialog for restore and delete actions
+    - Display non-blocking success notifications for restore, save, and delete
+    - Responsive: 12-column grid at lg (1024px+), single-column below lg, sidebar hidden below md (768px)
+    - Apply `role="main"` on content area
+    - _Requirements: 1.1, 2.1–2.10, 3.1–3.9, 4.1–4.8, 5.1–5.10, 6.1–6.8, 11.4–11.12, 12.1–12.8, 13.1–13.7, 14.1, 14.4_
 
-  - [ ] 13.3 Implement ArchiveView actions (restore, delete, compare, drawer coordination)
-    - Wire Detail Drawer open/close with selected item
-    - Implement restore flow: confirmation dialog → `invoke('restore_intent')` → remove from list → success notification
-    - Implement delete flow: confirmation dialog → `invoke('delete_intent')` → remove from list → close drawer
-    - Implement compare flow: open side-by-side view, handle missing related document error
-    - Implement save-to-library flow: `invoke('sync_intent')` → success notification
-    - Implement memory access toggle: optimistic update → `invoke('update_memory_access')` → revert on failure
-    - Implement AI summary generation with 30s timeout and max 3 retries
-    - _Requirements: 4.3, 4.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.4, 11.4, 11.5, 11.8, 11.9, 11.10, 11.11, 11.12, 10.4, 10.5, 10.6, 10.7_
+  - [x] 14.2 Wire ArchiveView into `App.tsx`
+    - Conditionally render `<ArchiveView>` when `state.activeTab === 'archive'`
+    - Pass `onOpenDocument`, `onTabChange`, and `currentDocumentId` props
+    - Ensure TopNavBar shows "Archive" tab with active styling when archive is active
+    - Preserve unsaved document state when switching to archive tab
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [ ] 14. Modify TopNavBar to support archive tab
-  - [ ] 14.1 Update `TopNavBar` to wire the "Archive" button to `onTabChange('archive')`
-    - Change the Archive button's `onClick` from `onTabChange?.('editor')` to `onTabChange?.('archive')`
-    - Apply active styling when `activeTab === 'archive'` (primary color, bold, underline)
-    - Apply inactive styling to Archive button when other tabs are active
-    - Update `activeTab` prop type to `'editor' | 'library' | 'archive'`
-    - _Requirements: 1.1, 1.3, 1.4_
+  - [x] 14.3 Write property test for document state preservation across tab switches
+    - **Property 1: Document state preservation across tab switches**
+    - **Validates: Requirements 1.6**
 
-  - [ ] 14.2 Write unit tests for TopNavBar archive tab in `src/components/TopNavBar.test.tsx`
-    - Test that `activeTab='archive'` applies active style to "Archive" and inactive to others
-    - Test that clicking "Archive" calls `onTabChange('archive')`
-    - Test that clicking "Drafts" while on archive calls `onTabChange('editor')`
-    - _Requirements: 1.3, 1.4_
+  - [x] 14.4 Write integration tests for ArchiveView
+    - Test data fetching on mount
+    - Test search filtering with debounce
+    - Test filter panel interaction
+    - Test drawer open/close flow
+    - Test restore action flow (confirmation → IPC → UI update)
+    - Test delete action flow (confirmation → IPC → UI removal)
+    - Test empty states for each section
+    - _Requirements: 1.1, 3.3, 3.6, 4.3, 5.5, 11.4, 11.10_
 
-- [ ] 15. Modify App.tsx to wire ArchiveView
-  - [ ] 15.1 Add conditional rendering for ArchiveView in `App.tsx`
-    - Import `ArchiveView` component
-    - Add `activeTab === 'archive'` condition to render `ArchiveView` (same wrapper pattern as LibraryView)
-    - Pass `onOpenDocument={handleOpenDocumentFromLibrary}`, `onTabChange={setActiveTab}`, `currentDocumentId={document?.id ?? null}`
-    - Ensure unsaved document state is preserved in memory when navigating to archive
-    - Keep `<aside>` sidebar visible in archive view
-    - _Requirements: 1.1, 1.2, 1.5, 1.6, 1.7_
-
-- [ ] 16. Add i18n translation keys
-  - [ ] 16.1 Add all `archive.*` translation keys to `src/i18n/locales/en.json`
-    - Add keys for: archive title, subtitle, sidebar categories, search placeholder, filter labels, section titles, empty states, drawer labels, action buttons, error messages, loading states, confirmation dialogs, accessibility labels
-    - _Requirements: 12.1, 14.4_
-
-  - [ ] 16.2 Add all `archive.*` translation keys to `src/i18n/locales/vi.json`
-    - Add Vietnamese translations for all keys added in 16.1
-    - _Requirements: 12.1, 14.4_
-
-- [ ] 17. Checkpoint - Ensure all tests pass
-  - Ensure all tests pass, ask the user if questions arise.
-
-- [ ] 18. Add archive styles and responsive behavior
-  - [ ] 18.1 Implement responsive layout and visual polish
-    - Ensure bento grid collapses to single column below lg breakpoint
-    - Ensure sidebar hides and mobile bottom nav shows below md breakpoint
-    - Ensure Detail Drawer goes full-screen below md breakpoint
-    - Verify all CSS custom properties are used (no hardcoded colors/fonts)
-    - Verify glass-panel effects, shadows, and transitions match design tokens
-    - Verify Material Symbols icons use correct FILL values (0 default, 1 active)
-    - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
-
-  - [ ] 18.2 Write accessibility integration tests in `src/components/ArchiveView.test.tsx`
-    - Test ARIA landmark roles (main, navigation, search, complementary, dialog)
-    - Test keyboard navigation (Tab, Shift+Tab, Enter, Space, Escape)
-    - Test focus management (drawer focus trap, focus return on close)
-    - Test screen reader announcements for Memory Access Toggle
-    - Test visible focus indicators on all interactive elements
-    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
-
-- [ ] 19. Final checkpoint - Ensure all tests pass
+- [x] 15. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -281,30 +260,24 @@ Implement the Archive Management feature for the WordAI desktop editor — a ded
 - Checkpoints ensure incremental validation
 - Property tests validate universal correctness properties from the design document
 - Unit tests validate specific examples and edge cases
-- The `ArchiveView` follows the same mount/unmount pattern as `LibraryView` — never hidden with CSS
-- All components use inline styles with CSS variables — no new CSS files
-- The `<aside>` sidebar in `App.tsx` must remain outside the conditional render block
-- Pure filter/sort functions are extracted to `src/utils/archiveFilters.ts` for independent testing
-- AI summary generation uses a 30-second timeout with max 3 retry attempts
-- Memory access toggle uses optimistic UI with revert on failure
+- All styling uses existing CSS design tokens — no hardcoded values
+- The feature follows the same patterns as LibraryView (local state, Tauri IPC, inline styles)
+- `fast-check` and `vitest` are already in devDependencies
 
 ## Task Dependency Graph
 
 ```json
 {
   "waves": [
-    { "id": 0, "tasks": ["1.1", "1.2"] },
-    { "id": 1, "tasks": ["2.1"] },
-    { "id": 2, "tasks": ["2.2", "2.3", "2.4", "4.1", "5.1"] },
-    { "id": 3, "tasks": ["4.2", "5.2", "6.1", "7.1", "8.1"] },
-    { "id": 4, "tasks": ["6.2", "7.2", "8.2", "11.1"] },
-    { "id": 5, "tasks": ["10.1", "11.2"] },
-    { "id": 6, "tasks": ["10.2", "10.3"] },
-    { "id": 7, "tasks": ["13.1"] },
-    { "id": 8, "tasks": ["13.2", "13.3"] },
-    { "id": 9, "tasks": ["14.1", "15.1"] },
-    { "id": 10, "tasks": ["14.2", "16.1", "16.2"] },
-    { "id": 11, "tasks": ["18.1", "18.2"] }
+    { "id": 0, "tasks": ["1.1", "1.2", "1.3"] },
+    { "id": 1, "tasks": ["2.1", "4.1", "5.1", "5.2"] },
+    { "id": 2, "tasks": ["2.2", "2.3", "2.4", "2.5", "4.2", "5.3", "6.1", "7.1", "8.1"] },
+    { "id": 3, "tasks": ["6.2", "7.2", "8.2", "10.1", "10.2"] },
+    { "id": 4, "tasks": ["10.3", "11.1", "12.1"] },
+    { "id": 5, "tasks": ["10.4", "11.2", "12.2"] },
+    { "id": 6, "tasks": ["14.1"] },
+    { "id": 7, "tasks": ["14.2"] },
+    { "id": 8, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```

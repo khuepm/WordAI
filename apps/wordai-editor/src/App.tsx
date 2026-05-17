@@ -18,6 +18,7 @@ import { QuickSearchPopup } from './components/QuickSearchPopup';
 import { DevDashboardLoader } from './components/DevDashboardLoader';
 import { openPreferencesWindow } from './services/preferencesWindow';
 import { LibraryView } from './components/LibraryView';
+import { ArchiveView } from './components/ArchiveView';
 import { Tooltip } from './components/Tooltip';
 import { useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
@@ -376,6 +377,14 @@ function App() {
     setActiveTab('editor');
   }, [setDocument, setActiveTab]);
 
+  const handleOpenDocumentFromArchive = useCallback((doc: Document) => {
+    const normalized = { ...doc, content: ensureBlockValue(doc.content) };
+    setDocument(normalized, '', true);
+    void auraBrainManager.initializeSyncedBaseline(normalized);
+    localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+    setActiveTab('editor');
+  }, [setDocument, setActiveTab]);
+
   useAutoSync({
     document,
     autoSyncEnabled: preferences.general.autoSyncEnabled,
@@ -709,6 +718,22 @@ function App() {
         }}>
           <LibraryView
             onOpenDocument={handleOpenDocumentFromLibrary}
+            onTabChange={setActiveTab}
+            currentDocumentId={document?.id ?? null}
+          />
+        </div>
+      ) : activeTab === 'archive' ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden',
+          paddingTop: 'var(--topnav-height)',
+          paddingLeft: 'var(--left-sidebar-width)',
+          position: 'relative',
+        }}>
+          <ArchiveView
+            onOpenDocument={handleOpenDocumentFromArchive}
             onTabChange={setActiveTab}
             currentDocumentId={document?.id ?? null}
           />

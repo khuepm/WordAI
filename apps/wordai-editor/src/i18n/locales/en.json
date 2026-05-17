@@ -511,6 +511,137 @@
       "warningsMessage": "File was imported with {{count}} warnings."
     }
   },
+  "archive": {
+    "tabName": "Archive",
+    "title": "Archive",
+    "subtitle": "Manage archived documents, old versions, and paused projects.",
+    "categories": {
+      "unused_concept": "Unused Concept",
+      "referenced_work": "Referenced Work",
+      "outdated_draft": "Outdated Draft",
+      "related_research": "Related Research"
+    },
+    "sidebar": {
+      "drafts": "Drafts",
+      "projects": "Projects",
+      "versions": "Versions",
+      "trash": "Trash"
+    },
+    "search": {
+      "placeholder": "Search archived items...",
+      "clear": "Clear search",
+      "filters": "Filters"
+    },
+    "filters": {
+      "itemType": {
+        "label": "Item Type",
+        "suggestions": "Suggestions",
+        "versions": "Versions",
+        "pausedProjects": "Paused Projects"
+      },
+      "dateRange": {
+        "label": "Date Range",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last90Days": "Last 90 days",
+        "allTime": "All time"
+      },
+      "clearAll": "Clear all filters"
+    },
+    "sections": {
+      "suggestedToReview": "Suggested to Review",
+      "oldVersions": "Old Versions",
+      "pausedProjects": "Paused Projects"
+    },
+    "actions": {
+      "newEntry": "New Entry",
+      "review": "Review",
+      "compare": "Compare",
+      "restore": "Restore",
+      "openFolder": "Open Folder",
+      "viewAll": "View All",
+      "restoreToDrafts": "Restore to Drafts",
+      "compareWithCurrent": "Compare with Current",
+      "openReadOnly": "Open Read-only",
+      "saveToLibrary": "Save to Library",
+      "deletePermanently": "Delete Permanently"
+    },
+    "detail": {
+      "archivedDate": "Archived Date",
+      "reason": "Reason",
+      "reasonPlaceholder": "No reason provided",
+      "relatedCurrentFile": "Related Current File",
+      "aiSummary": {
+        "title": "AI Summary",
+        "generating": "Generating summary...",
+        "unavailable": "Summary unavailable. Please try again.",
+        "retry": "Retry"
+      },
+      "memoryAccess": {
+        "title": "Memory Access Toggle",
+        "description": "Allow AuraSphere AI to reference this item when generating content.",
+        "enabled": "Memory access enabled",
+        "disabled": "Memory access disabled"
+      }
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "No results found",
+        "message": "No archived items match your search criteria.",
+        "clearButton": "Clear filters"
+      },
+      "noVersions": {
+        "title": "No old versions",
+        "message": "No old versions are available."
+      },
+      "noProjects": {
+        "title": "No paused projects",
+        "message": "No projects are currently paused."
+      },
+      "noSuggestions": {
+        "title": "No suggestions yet",
+        "message": "Suggestions will appear as you work on active documents."
+      }
+    },
+    "errors": {
+      "loadFailed": "Failed to load archive: {{message}}",
+      "deleteFailed": "Failed to delete item: {{message}}",
+      "restoreFailed": "Failed to restore item: {{message}}",
+      "summaryUnavailable": "AI summary is currently unavailable.",
+      "relatedDocUnavailable": "Related document is unavailable.",
+      "memoryAccessFailed": "Failed to save memory access state."
+    },
+    "aria": {
+      "navigation": "Archive category navigation",
+      "searchBar": "Search archived items",
+      "drawer": "Archive item detail panel",
+      "closeDrawer": "Close detail panel",
+      "suggestionCard": "Suggested archive item: {{title}}",
+      "versionItem": "Archived version: {{title}}",
+      "projectCard": "Paused project: {{title}}"
+    },
+    "confirm": {
+      "restore": {
+        "title": "Restore Item",
+        "message": "Are you sure you want to restore \"{{name}}\" to your drafts?",
+        "confirm": "Restore",
+        "cancel": "Cancel"
+      },
+      "delete": {
+        "title": "Delete Permanently",
+        "message": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "notifications": {
+      "restored": "\"{{name}}\" has been restored to drafts.",
+      "saved": "\"{{name}}\" has been saved to library.",
+      "deleted": "\"{{name}}\" has been permanently deleted."
+    },
+    "loading": "Loading archive...",
+    "retry": "Retry"
+  },
   "confirmationDialog": {
     "ariaLabel": "Confirmation dialog"
   }

@@ -97,7 +97,7 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
             </button>
             <button
               data-testid="nav-archive"
-              onClick={() => onTabChange?.('editor')}
+              onClick={() => onTabChange?.('archive')}
               style={{
                 background: 'none',
                 border: 'none',
@@ -106,9 +106,9 @@ export function TopNavBar({ documentTitle, hasUnsavedChanges, onNew, onSave, onO
                 cursor: 'pointer',
                 fontFamily: 'var(--font-family-ui)',
                 fontSize: 'var(--font-size-sm)',
-                color: activeTab === 'editor' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
-                fontWeight: activeTab === 'editor' ? 600 : 400,
-                borderBottom: activeTab === 'editor' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent',
+                color: activeTab === 'archive' ? 'var(--md-sys-color-primary)' : '#5a5a5a',
+                fontWeight: activeTab === 'archive' ? 600 : 400,
+                borderBottom: activeTab === 'archive' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent',
               }}
             >
               {t('nav.archive')}
