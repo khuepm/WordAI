@@ -878,7 +878,7 @@ async function handleRestore(itemId: string) {
 
 *For any* document with any content and any unsaved-changes state, switching the active tab from `'editor'` to `'archive'` and back to `'editor'` SHALL produce a document state identical to the original (same id, title, content, version, and metadata).
 
-**Validates: Requirement 1.6**
+**Validates: Requirements 1.6**
 
 ### Property 2: Archive filter correctness
 
@@ -895,7 +895,7 @@ Furthermore, the result SHALL be sorted by `archived_at` in descending order.
 
 *For any* list of `ArchivedVersion` items of any length, the `sortAndLimitVersions` function SHALL return at most 5 items, and for any two adjacent items in the result, the first item's `archived_at` timestamp SHALL be greater than or equal to the second item's `archived_at` timestamp (descending order).
 
-**Validates: Requirement 5.3**
+**Validates: Requirements 5.3**
 
 ### Property 4: Archive reason truncation correctness
 
@@ -904,19 +904,19 @@ Furthermore, the result SHALL be sorted by `archived_at` in descending order.
 - If the input length is > 200 characters, the output SHALL be exactly the first 200 characters followed by "…"
 - If the input is empty, null, or undefined, the output SHALL be the placeholder text
 
-**Validates: Requirement 8.3**
+**Validates: Requirements 8.3**
 
 ### Property 5: Compare button disabled state derivation
 
 *For any* `related_current_id` value, the `isCompareDisabled` function SHALL return `true` if and only if the value is `null` or `undefined`.
 
-**Validates: Requirement 11.6**
+**Validates: Requirements 11.6**
 
 ### Property 6: Toggle state revert on persistence failure
 
 *For any* initial toggle state (enabled or disabled) and any toggle action that results in a persistence failure, the toggle's displayed state SHALL revert to the initial state prior to the failed toggle action.
 
-**Validates: Requirement 10.7**
+**Validates: Requirements 10.7**
 
 
 ## Error Handling

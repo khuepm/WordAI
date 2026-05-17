@@ -2,9 +2,9 @@
  * archiveFilters — Pure filter, sort, and display utilities for the Archive view.
  *
  * Extracted as standalone functions so they can be tested independently
- * of the React component (Property 2, Property 3, Property 4).
+ * of the React component (Property 2, Property 3, Property 4, Property 5).
  *
- * Requirements: 3.3, 3.6, 3.7, 5.3, 8.3
+ * Requirements: 3.3, 3.6, 3.7, 5.3, 8.3, 11.6
  */
 
 import type {
@@ -80,15 +80,27 @@ export function applyArchiveFilters(
 }
 
 /**
- * Sort archived versions by `archived_at` descending.
+ * Sort archived versions by `archived_at` descending and return at most `maxCount` items.
  *
  * For any adjacent pair (a, b) in the result: `a.archived_at >= b.archived_at`.
+ * Result length is at most `maxCount` (default 5).
  *
- * Property 3: Version list sorting invariant.
+ * Property 3: Version list sorting and limit invariant.
  * Validates: Requirement 5.3
  */
+export function sortAndLimitVersions(
+  versions: ArchivedVersion[],
+  maxCount: number = 5,
+): ArchivedVersion[] {
+  return [...versions].sort((a, b) => b.archived_at - a.archived_at).slice(0, maxCount);
+}
+
+/**
+ * @deprecated Use `sortAndLimitVersions` instead.
+ * Kept for backward compatibility with existing code.
+ */
 export function sortVersionsByDate(versions: ArchivedVersion[]): ArchivedVersion[] {
-  return [...versions].sort((a, b) => b.archived_at - a.archived_at);
+  return sortAndLimitVersions(versions, versions.length);
 }
 
 /**
@@ -113,4 +125,18 @@ export function truncateReason(
     return reason;
   }
   return reason.slice(0, maxLength) + '…';
+}
+
+
+/**
+ * Determine whether the "Compare with Current" button should be disabled.
+ *
+ * Returns `true` if `relatedCurrentId` is null or undefined (no related file exists).
+ * Returns `false` for any non-null, non-undefined string (including empty string).
+ *
+ * Property 5: Compare button disabled state derivation.
+ * Validates: Requirement 11.6
+ */
+export function isCompareDisabled(relatedCurrentId: string | null | undefined): boolean {
+  return relatedCurrentId == null;
 }

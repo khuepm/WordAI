@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyArchiveFilters, sortVersionsByDate, truncateReason } from './archiveFilters';
+import { applyArchiveFilters, sortAndLimitVersions, sortVersionsByDate, truncateReason, isCompareDisabled } from './archiveFilters';
 import type { ArchivedIntentSummary, ArchivedVersion, ArchiveFilters } from '../types/archiveTypes';
 
 function makeSummary(overrides: Partial<ArchivedIntentSummary> = {}): ArchivedIntentSummary {
@@ -203,5 +203,70 @@ describe('truncateReason', () => {
   it('uses custom maxLength', () => {
     const reason = 'Hello World';
     expect(truncateReason(reason, 5)).toBe('Hello…');
+  });
+});
+
+
+describe('sortAndLimitVersions', () => {
+  it('sorts versions by archived_at descending and limits to 5 by default', () => {
+    const versions = Array.from({ length: 8 }, (_, i) =>
+      makeVersion({ id: `v-${i}`, archived_at: (i + 1) * 100 }),
+    );
+    const result = sortAndLimitVersions(versions);
+    expect(result).toHaveLength(5);
+    expect(result.map((v) => v.id)).toEqual(['v-7', 'v-6', 'v-5', 'v-4', 'v-3']);
+  });
+
+  it('returns all items when fewer than maxCount', () => {
+    const versions = [
+      makeVersion({ id: 'a', archived_at: 300 }),
+      makeVersion({ id: 'b', archived_at: 100 }),
+    ];
+    const result = sortAndLimitVersions(versions);
+    expect(result).toHaveLength(2);
+    expect(result.map((v) => v.id)).toEqual(['a', 'b']);
+  });
+
+  it('respects custom maxCount', () => {
+    const versions = [
+      makeVersion({ id: 'a', archived_at: 100 }),
+      makeVersion({ id: 'b', archived_at: 300 }),
+      makeVersion({ id: 'c', archived_at: 200 }),
+    ];
+    const result = sortAndLimitVersions(versions, 2);
+    expect(result).toHaveLength(2);
+    expect(result.map((v) => v.id)).toEqual(['b', 'c']);
+  });
+
+  it('returns empty array for empty input', () => {
+    expect(sortAndLimitVersions([])).toEqual([]);
+  });
+
+  it('does not mutate the original array', () => {
+    const versions = [
+      makeVersion({ id: 'a', archived_at: 100 }),
+      makeVersion({ id: 'b', archived_at: 200 }),
+    ];
+    const original = [...versions];
+    sortAndLimitVersions(versions);
+    expect(versions).toEqual(original);
+  });
+});
+
+describe('isCompareDisabled', () => {
+  it('returns true for null', () => {
+    expect(isCompareDisabled(null)).toBe(true);
+  });
+
+  it('returns true for undefined', () => {
+    expect(isCompareDisabled(undefined)).toBe(true);
+  });
+
+  it('returns false for a non-empty string', () => {
+    expect(isCompareDisabled('doc-123')).toBe(false);
+  });
+
+  it('returns false for an empty string', () => {
+    expect(isCompareDisabled('')).toBe(false);
   });
 });
