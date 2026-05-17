@@ -26,7 +26,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
 ## Tasks
 
 - [ ] 1. Set up Firebase client SDK and auth service
-  - [-] 1.1 Create `src/services/firebaseApp.ts`
+  - [x] 1.1 Create `src/services/firebaseApp.ts`
     - Initialize Firebase app with config from environment variables (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID)
     - Export `app` and `auth` instances
     - _Requirements: 2.5, 4.6, 5.6_
