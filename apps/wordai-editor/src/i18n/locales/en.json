@@ -518,5 +518,65 @@
   },
   "confirmationDialog": {
     "ariaLabel": "Confirmation dialog"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign Up"
+    },
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Start your creative workspace.",
+      "displayNameLabel": "Display Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "backToLogin": "Back to login"
+    },
+    "forgotPassword": {
+      "title": "Reset Password",
+      "description": "Enter your email to receive password reset instructions.",
+      "emailLabel": "Linked Email",
+      "submit": "Send Reset Email",
+      "backToLogin": "Back to Sign In"
+    },
+    "resetSuccess": {
+      "title": "Email Sent Successfully!",
+      "subtitle": "Please check your inbox.",
+      "backToLogin": "Back to Sign In"
+    },
+    "errors": {
+      "invalidCredential": "Invalid login credentials. Please check your email and password.",
+      "userNotFound": "No account found with this email.",
+      "emailInUse": "This email is already registered.",
+      "weakPassword": "Password is not strong enough. Please choose a longer password.",
+      "tooManyRequests": "Too many attempts. Please wait a moment and try again.",
+      "accountSuspended": "Account has been suspended. Please contact support.",
+      "tokenInvalid": "Session is invalid. Please try again.",
+      "networkError": "Unable to connect. Please check your network and try again.",
+      "timeout": "Operation timed out. Please try again.",
+      "generic": "An error occurred. Please try again.",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "nameRequired": "Display name is required",
+      "nameTooLong": "Display name must be 100 characters or less",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Please enter your password"
+    }
+  },
+  "userMenu": {
+    "myLibrary": "My Library",
+    "signOut": "Sign Out",
+    "guestBanner": "Sign in to sync your theme, typography, and unlock powerful AI models across all devices.",
+    "signInSignUp": "Sign In / Sign Up",
+    "exploreFeatures": "Explore Features"
   }
 }

@@ -233,7 +233,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - On sign-in with existing local changes: server wins (overwrite)
     - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5, 19.6_
 
-- [ ] 10. Update Preferences Window UI
+- [x] 10. Update Preferences Window UI
   - [x] 10.1 Update Preferences sidebar navigation
     - Sidebar: `w-64 py-6 px-4 bg-zinc-50 border-r border-zinc-200/20 rounded-l-lg`
     - Header: "Preferences" `text-lg font-black tracking-tight`, subtitle "System Configuration" `text-sm text-zinc-500`
@@ -252,7 +252,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Guest info banner: `p-6 bg-primary/5 rounded-xl border border-outline-variant/10 mb-8` with `auto_awesome` icon and Sign In button
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7_
 
-  - [-] 10.3 Update AI Engine tab UI
+  - [x] 10.3 Update AI Engine tab UI
     - Header: `text-3xl font-bold tracking-tight`
     - Credits card (authenticated): `bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15`, plan badge, progress bar `h-2 bg-gradient-to-r from-primary to-primary-container`, "Get more credits" button
     - Capabilities: 2-column grid dropdowns `bg-surface-container-low border-0 rounded-md px-4 py-3`
@@ -262,7 +262,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
 
 - [ ] 11. Implement i18n translations
-  - [~] 11.1 Add auth translation keys to `src/i18n/locales/en.json`
+  - [x] 11.1 Add auth translation keys to `src/i18n/locales/en.json`
     - Add `auth.login.*`, `auth.signup.*`, `auth.forgotPassword.*`, `auth.resetSuccess.*`, `auth.errors.*` keys
     - Add `userMenu.*` keys
     - _Requirements: 13.1, 13.2_
