@@ -95,7 +95,7 @@ This plan implements the missing archive backend commands for the WordAI editor.
     - _Preservation: Existing AI methods (request_suggestion, send_chat_message, check_health) remain unchanged_
     - _Requirements: 2.7, 2.8, 3.5_
 
-  - [~] 3.5 Add 10 `#[tauri::command]` functions in `lib.rs`
+  - [x] 3.5 Add 10 `#[tauri::command]` functions in `lib.rs`
     - `list_archived_intents(category: Option<String>, state: tauri::State<'_, SqliteStore>) -> Result<Vec<ArchivedIntentSummary>, IPCError>`
     - `get_archived_intent(id: String, state: tauri::State<'_, SqliteStore>) -> Result<Option<ArchivedIntentDocument>, IPCError>`
     - `archive_intent(id: String, reason: String, state: tauri::State<'_, SqliteStore>) -> Result<ArchivedIntentSummary, IPCError>`

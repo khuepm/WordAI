@@ -9,7 +9,11 @@ pub mod pdf_export;
 pub mod preferences_store;
 pub mod sqlite_store;
 
-use models::{AISuggestion, AuraDocument, CancellationToken, Document, DocumentSnapshot, IntentSummary, IPCError};
+use models::{
+    AISuggestion, ArchiveSuggestion, ArchivedIntentDocument, ArchivedIntentSummary,
+    AuraDocument, CancellationToken, Document, DocumentBlock, DocumentSnapshot,
+    IntentSummary, IPCError, PausedProject,
+};
 use pdf_export::PDFExportOptions;
 use sqlite_store::SqliteStore;
 use tauri::Manager;
@@ -434,6 +438,158 @@ async fn get_aurabrain_storage_path(app: tauri::AppHandle) -> Result<String, IPC
         .join("AuraBrain")
         .to_string_lossy()
         .to_string())
+}
+
+// ── Archive IPC Commands ──────────────────────────────────────────────────────
+
+/// List all archived intents, optionally filtered by category (archive_type).
+/// Requirements: 2.1
+#[tauri::command]
+async fn list_archived_intents(
+    category: Option<String>,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Vec<ArchivedIntentSummary>, IPCError> {
+    state.list_archived_intents(category.as_deref())
+}
+
+/// Retrieve a single archived intent by id (includes full content).
+/// Requirements: 2.2
+#[tauri::command]
+async fn get_archived_intent(
+    id: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Option<ArchivedIntentDocument>, IPCError> {
+    state.get_archived_intent(&id)
+}
+
+/// Archive an active intent by moving it from intents to archived_intents.
+/// Requirements: 2.3
+#[tauri::command]
+async fn archive_intent(
+    id: String,
+    reason: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<ArchivedIntentSummary, IPCError> {
+    state.archive_intent(&id, &reason)
+}
+
+/// Restore an archived intent back to the active intents table.
+/// Requirements: 2.4
+#[tauri::command]
+async fn restore_intent(
+    id: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<AuraDocument, IPCError> {
+    state.restore_intent(&id)
+}
+
+/// Permanently delete an archived intent.
+/// Requirements: 2.5
+#[tauri::command]
+async fn delete_archived_intent(
+    id: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<(), IPCError> {
+    state.delete_archived_intent(&id)
+}
+
+/// Toggle memory access for an archived intent.
+/// Requirements: 2.6
+#[tauri::command]
+async fn update_memory_access(
+    id: String,
+    enabled: bool,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<(), IPCError> {
+    state.update_memory_access(&id, enabled)
+}
+
+/// Get AI-powered archive suggestions for an active document.
+/// Retrieves the document content from the store, then calls the AI service.
+/// Requirements: 2.7
+#[tauri::command]
+async fn get_archive_suggestions(
+    active_doc_id: String,
+    api_key: String,
+    endpoint: Option<String>,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Vec<ArchiveSuggestion>, IPCError> {
+    // Get the document content to use as context for the AI
+    let doc = state.get_intent(&active_doc_id)?;
+    let doc = doc.ok_or_else(|| IPCError {
+        code: "NOT_FOUND".to_string(),
+        message: format!("Document '{}' not found", active_doc_id),
+    })?;
+
+    // Build context string from document blocks
+    let context: String = doc
+        .content
+        .iter()
+        .map(|block| extract_block_text(block))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let connector = ai_service::AIServiceConnector::new(api_key, endpoint);
+    connector.get_archive_suggestions(&context).await
+}
+
+/// Generate an AI-powered summary for an archived document.
+/// Retrieves the archived content from the store, then calls the AI service.
+/// Requirements: 2.8
+#[tauri::command]
+async fn generate_archive_summary(
+    id: String,
+    api_key: String,
+    endpoint: Option<String>,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<String, IPCError> {
+    // Get the archived document content
+    let doc = state.get_archived_intent(&id)?;
+    let doc = doc.ok_or_else(|| IPCError {
+        code: "NOT_FOUND".to_string(),
+        message: format!("Archived document '{}' not found", id),
+    })?;
+
+    // Build content string from document blocks
+    let content: String = doc
+        .content
+        .iter()
+        .map(|block| extract_block_text(block))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let connector = ai_service::AIServiceConnector::new(api_key, endpoint);
+    connector.generate_archive_summary(&content).await
+}
+
+/// List all paused projects with their document counts.
+/// Requirements: 2.9
+#[tauri::command]
+async fn list_paused_projects(
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Vec<PausedProject>, IPCError> {
+    state.list_paused_projects()
+}
+
+/// Get all archived documents belonging to a specific project.
+/// Requirements: 2.10
+#[tauri::command]
+async fn get_project_documents(
+    project_id: String,
+    state: tauri::State<'_, SqliteStore>,
+) -> Result<Vec<ArchivedIntentSummary>, IPCError> {
+    state.get_project_documents(&project_id)
+}
+
+/// Extract text content from a DocumentBlock for building AI context strings.
+fn extract_block_text(block: &DocumentBlock) -> String {
+    match block {
+        DocumentBlock::Paragraph { text, .. } => text.clone(),
+        DocumentBlock::Heading { text, .. } => text.clone(),
+        DocumentBlock::ListItem { text, .. } => text.clone(),
+        DocumentBlock::CodeBlock { code, .. } => code.clone(),
+        DocumentBlock::Placeholder(p) => p.display_hint.clone(),
+    }
 }
 
 // ── App Entry Point ───────────────────────────────────────────────────────────
