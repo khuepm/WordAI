@@ -54,7 +54,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Escape key close (suppressed during loading)
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 1.8_
 
-  - [~] 2.2 Create `src/components/auth/useFocusTrap.ts` hook
+  - [x] 2.2 Create `src/components/auth/useFocusTrap.ts` hook
     - Trap Tab/Shift+Tab within modal content
     - Return focus to previously focused element on close
     - _Requirements: 1.5_
