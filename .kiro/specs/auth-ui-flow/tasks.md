@@ -67,7 +67,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Clear errors on view switch, clear non-email fields, auto-focus first input
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-- [ ] 3. Implement LoginForm component
+- [x] 3. Implement LoginForm component
   - [x] 3.1 Create `src/components/auth/LoginForm.tsx`
     - Heading: `font-headline text-[2rem] font-bold tracking-tight mb-8`
     - Email input: label `font-headline text-xs font-bold uppercase tracking-wider text-on-surface-variant`, input `input-glow-focus bg-surface-container-low rounded-lg h-12 px-4`, focus state `bg-surface-container-lowest shadow-[inset_0_-2px_0_0_#4343d5]`
@@ -91,7 +91,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - 30-second timeout → cancel and show timeout error
     - _Requirements: 2.8, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [~] 3.4 Implement login error banner
+  - [x] 3.4 Implement login error banner
     - Error banner: `bg-error-container text-on-error-container rounded-lg p-4 mb-8 flex items-start gap-3`
     - Filled `error` Material Symbol icon
     - Error text: `font-headline text-sm font-medium leading-snug`

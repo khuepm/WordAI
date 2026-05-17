@@ -1,8 +1,8 @@
 /**
  * LoginForm - Login form component rendered inside AuthModal.
- * Displays email/password inputs, submit button, and navigation links.
+ * Displays email/password inputs, submit button, error banner, and navigation links.
  *
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 10.1, 10.2, 10.3, 10.4, 10.5
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.1, 10.2, 10.3, 10.4, 10.5
  */
 
 import { useState, useRef, type FormEvent } from 'react';
@@ -24,6 +24,10 @@ export interface LoginFormProps {
   onError: (error: string) => void;
   isSubmitting: boolean;
   setIsSubmitting: (v: boolean) => void;
+  /** Current error message to display in the error banner (Req 3.1) */
+  error?: string | null;
+  /** Callback to clear the error banner (Req 3.8) */
+  clearError?: () => void;
 }
 
 export function LoginForm({
@@ -34,11 +38,23 @@ export function LoginForm({
   onError,
   isSubmitting,
   setIsSubmitting,
+  error = null,
+  clearError,
 }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const { t } = useTranslation();
   const { setAccessContext } = useAuthState();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleEmailChange = (value: string) => {
+    onEmailChange(value);
+    if (clearError) clearError();
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (clearError) clearError();
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -135,6 +151,18 @@ export function LoginForm({
         Đăng nhập
       </h2>
 
+      {/* Error Banner — Req 3.1, 3.2, 3.8 */}
+      {error && (
+        <div
+          className="bg-error-container text-on-error-container rounded-lg p-4 mb-8 flex items-start gap-3"
+          role="alert"
+          data-testid="login-error-banner"
+        >
+          <span className="material-symbols-rounded filled text-on-error-container">error</span>
+          <span className="font-headline text-sm font-medium leading-snug">{error}</span>
+        </div>
+      )}
+
       {/* Form — Req 2.2, 2.3, 2.4, 10.1, 10.2 */}
       <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Form container with disabled state (Req 10.2) */}
@@ -148,7 +176,7 @@ export function LoginForm({
               <input
                 type="email"
                 value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
                 className="w-full bg-transparent border-none outline-none ring-0 text-on-surface font-headline p-0"
                 autoComplete="email"
                 disabled={isSubmitting}
@@ -174,7 +202,7 @@ export function LoginForm({
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(e.target.value)}
                 className="w-full bg-transparent border-none outline-none ring-0 text-on-surface font-headline p-0"
                 autoComplete="current-password"
                 disabled={isSubmitting}
@@ -188,8 +216,8 @@ export function LoginForm({
           <button
             type="submit"
             className={`w-full bg-primary text-on-primary rounded-xl h-12 flex items-center justify-center gap-3 transition-all duration-200 font-headline font-semibold tracking-wide ${isSubmitting
-                ? 'cursor-not-allowed'
-                : 'hover:bg-primary-container hover:shadow-[0_0_12px_-2px_rgba(67,67,213,0.4)] active:bg-surface-tint'
+              ? 'cursor-not-allowed'
+              : 'hover:bg-primary-container hover:shadow-[0_0_12px_-2px_rgba(67,67,213,0.4)] active:bg-surface-tint'
               }`}
             disabled={isSubmitting}
           >
