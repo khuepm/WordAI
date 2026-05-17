@@ -16,6 +16,7 @@ import { VersionHistory } from './components/VersionHistory';
 import { TopNavBar } from './components/TopNavBar';
 import { QuickSearchPopup } from './components/QuickSearchPopup';
 import { DevDashboardLoader } from './components/DevDashboardLoader';
+import { AuthModal } from './components/auth/AuthModal';
 import { openPreferencesWindow } from './services/preferencesWindow';
 import { LibraryView } from './components/LibraryView';
 import { Tooltip } from './components/Tooltip';
@@ -125,6 +126,7 @@ function App() {
   });
 
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
   const [storagePath, setStoragePath] = useState('');
@@ -485,6 +487,7 @@ function App() {
         onRename={handleRename}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onSignIn={() => setIsAuthModalOpen(true)}
       />
       {/* AI service unavailable toast (Req 25.5) - compact bottom-left corner */}
       {aiServiceAvailable === false && !bannerDismissed && (
@@ -784,6 +787,10 @@ function App() {
         onSelect={handleQuickSearchSelect}
       />
       <DevDashboardLoader />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div >
   );
 }
