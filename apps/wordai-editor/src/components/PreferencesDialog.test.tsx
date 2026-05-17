@@ -14,6 +14,10 @@ vi.mock('../hooks/useViewportSize', () => ({
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
+vi.mock('../services/authStore', () => ({
+  useAccessContext: () => null,
+}));
+
 // ---------------------------------------------------------------------------
 // Test 1: Overlay has aria-hidden="true"
 // Validates: Requirement 6.5

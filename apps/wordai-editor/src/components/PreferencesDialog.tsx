@@ -12,6 +12,7 @@ import { getAuraBrainStoragePath, getFileManagerLabel } from '../services/platfo
 import { AVAILABLE_LANGUAGES, saveLanguagePreference, type LanguageCode } from '../i18n';
 import { SETTING_REGISTRY } from '../data/settingRegistry';
 import { filterSettings, SETTING_I18N_MAP } from './QuickSearchPopup';
+import { useAccessContext } from '../services/authStore';
 
 interface PreferencesDialogProps {
   isOpen: boolean;
@@ -341,19 +342,61 @@ interface GeneralTabProps {
   onLanguageChange: (lang: LanguageCode) => void;
 }
 
+/** Cloud sync icon shown next to section titles when user is authenticated (Req 16.6) */
+function CloudSyncIndicator({ isAuthenticated }: { isAuthenticated: boolean }) {
+  if (!isAuthenticated) return null;
+  return (
+    <span
+      className="material-symbols-outlined text-primary text-[18px]"
+      style={{ fontVariationSettings: "'FILL' 1" }}
+    >
+      cloud_sync
+    </span>
+  );
+}
+
+/** Refined toggle switch per Req 16.3 */
+function RefinedToggle({ checked, onChange }: { checked: boolean; onChange?: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange?.(!checked)}
+      className={`h-6 w-11 rounded-full relative transition-colors duration-200 ${checked ? 'bg-primary shadow-[0_0_8px_-1px_rgba(67,67,213,0.5)]' : 'bg-outline-variant'
+        }`}
+      style={{ border: 'none', cursor: 'pointer', padding: 0 }}
+    >
+      <span
+        className="h-5 w-5 rounded-full bg-surface-container-lowest shadow block absolute top-0.5 transition-[left] duration-150"
+        style={{ left: checked ? 'calc(100% - 22px)' : '2px' }}
+      />
+    </button>
+  );
+}
+
 function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
   const { t } = useTranslation();
+  const accessContext = useAccessContext();
+  const isAuthenticated = accessContext !== null;
+
+  const [activeTheme, setActiveTheme] = useState(0);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [focusModeEnabled, setFocusModeEnabled] = useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [syncInterval, setSyncInterval] = useState(30);
+  const [exportFormat, setExportFormat] = useState('markdown');
+  const [exportPath, setExportPath] = useState('~/Documents/WordAI');
+
   const themes = [
     { key: 'system', label: t('settings.general.interfaceMode.themes.system') },
     { key: 'light', label: t('settings.general.interfaceMode.themes.light') },
     { key: 'dark', label: t('settings.general.interfaceMode.themes.dark') },
-    { key: 'glass', label: t('settings.general.interfaceMode.themes.glass') },
   ];
   const themePreviews = [
     { from: '#f4f4f5', to: '#d4d4d8' },
-    { from: '#ffffff', to: '#ffffff' },
-    { from: '#18181b', to: '#18181b' },
-    { from: '#6366f1', to: '#a855f7' },
+    { from: '#ffffff', to: '#f8f9fa' },
+    { from: '#18181b', to: '#27272a' },
   ];
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -361,99 +404,240 @@ function GeneralTab({ pendingLang, onLanguageChange }: GeneralTabProps) {
     onLanguageChange(newLang);
   };
 
+  const handleBrowse = async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({ directory: true, multiple: false });
+      if (selected && typeof selected === 'string') {
+        setExportPath(selected);
+      }
+    } catch {
+      // Ignore if dialog plugin is unavailable (browser dev mode)
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+    <div className="flex flex-col gap-10">
+      {/* Guest Info Banner (Req 16.7) */}
+      {!isAuthenticated && (
+        <div className="p-6 bg-primary/5 rounded-xl border border-outline-variant/10 mb-8 flex items-start gap-4">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span
+              className="material-symbols-outlined text-primary text-[1.125rem]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              auto_awesome
+            </span>
+          </div>
+          <div className="flex-1">
+            <p className="text-[0.9rem] font-medium leading-[1.6] text-on-surface-variant m-0 mb-3">
+              {t('settings.general.guestBanner.description', 'Sign in to sync your theme, language, and preferences across all your devices.')}
+            </p>
+            <button
+              className="bg-primary text-on-primary py-2 px-4 rounded-lg font-headline font-semibold text-sm border-0 cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => {
+                // Trigger sign-in modal via custom event
+                window.dispatchEvent(new CustomEvent('open-auth-modal'));
+              }}
+            >
+              {t('settings.general.guestBanner.signIn', 'Sign In')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header (Req 16.1) */}
       <div>
-        <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#4343d5', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>{t('settings.tabs.general')}</span>
-        <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#18181b', margin: 0, letterSpacing: '-0.02em' }}>{t('settings.title')}</h3>
-        <p style={{ fontFamily: 'Newsreader, serif', fontSize: '1.125rem', fontStyle: 'italic', color: '#71717a', marginTop: '1rem', opacity: 0.8 }}>
-          {t('app.tagline')}
+        <h3 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface m-0">
+          {t('settings.general.sectionTitle')}
+        </h3>
+        <p className="font-label text-sm text-on-surface-variant mt-1">
+          {t('settings.general.sectionDescription')}
         </p>
       </div>
 
-      {/* Interface Mode */}
+      {/* Appearance — Theme Selection (Req 16.2) */}
       <div data-setting-id="general.theme">
-        <SectionHeader label={t('settings.general.interfaceMode.label')} description={t('settings.general.interfaceMode.description')} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
-          {themes.map((theme, i) => (
-            <label key={theme.key} style={{ cursor: 'pointer' }}>
-              <input type="radio" name="pref-theme" defaultChecked={i === 0} style={{ display: 'none' }} />
-              <div style={{
-                padding: '1rem', borderRadius: '0.75rem', background: '#f3f4f5',
-                border: i === 0 ? '2px solid #4343d5' : '2px solid transparent',
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-              }}>
-                <div style={{
-                  height: '80px', width: '100%', borderRadius: '4px', marginBottom: '0.75rem',
-                  background: `linear-gradient(135deg, ${themePreviews[i].from}, ${themePreviews[i].to})`,
-                  opacity: theme.key === 'glass' ? 0.6 : 1,
-                }} />
-                <p style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center', margin: 0 }}>{theme.label}</p>
-              </div>
-            </label>
-          ))}
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.interfaceMode.label')}</h4>
+          <CloudSyncIndicator isAuthenticated={isAuthenticated} />
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4 mt-0">{t('settings.general.interfaceMode.description')}</p>
+        <div className="grid grid-cols-3 gap-4">
+          {themes.map((theme, i) => {
+            const isActive = activeTheme === i;
+            return (
+              <button
+                key={theme.key}
+                type="button"
+                onClick={() => setActiveTheme(i)}
+                className={`p-3 rounded-xl border-0 cursor-pointer flex flex-col items-center bg-surface-container-low transition-all duration-200 ${isActive
+                  ? 'ring-1 ring-outline-variant/30 shadow-[0_8px_30px_-5px_rgba(67,67,213,0.12)]'
+                  : 'hover:bg-surface-container-high'
+                  }`}
+              >
+                <div
+                  className="w-20 h-14 rounded-lg mb-2"
+                  style={{
+                    background: `linear-gradient(135deg, ${themePreviews[i].from}, ${themePreviews[i].to})`,
+                  }}
+                />
+                <span className={`font-label text-xs font-semibold uppercase tracking-wider ${isActive ? 'text-primary' : 'text-on-surface-variant'
+                  }`}>
+                  {theme.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Auto-Save */}
+      {/* Auto-Save Toggle (Req 16.3) */}
       <div data-setting-id="general.autoSave">
-        <SectionHeader label={t('settings.general.autoSave.label')} description={t('settings.general.autoSave.description')} />
-        <SettingRow icon="cloud_sync" label="">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.every')}</span>
-            <input type="number" defaultValue={5} min={1} max={60} step={1} style={{
-              width: '64px', height: '32px', borderRadius: '0.75rem',
-              border: 'none', padding: '0 0.75rem',
-              fontSize: '0.75rem', background: '#f4f4f5',
-            }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{t('settings.general.autoSave.minutes')}</span>
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.autoSave.label')}</h4>
+          <CloudSyncIndicator isAuthenticated={isAuthenticated} />
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.autoSave.description')}</p>
+        <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_sync</span>
+            <span className="text-sm font-medium text-on-surface">{t('settings.general.autoSave.label')}</span>
           </div>
-          <Toggle checked={true} />
-        </SettingRow>
+          <RefinedToggle checked={autoSaveEnabled} onChange={setAutoSaveEnabled} />
+        </div>
       </div>
 
-      {/* Focus Mode */}
+      {/* Focus Mode Toggle (Req 16.3) */}
       <div data-setting-id="general.focusMode">
-        <SectionHeader label={t('settings.general.focusMode.label')} description={t('settings.general.focusMode.description')} />
-        <SettingRow icon="visibility_off" label={t('settings.general.focusMode.enable')}>
-          <Toggle checked={false} />
-        </SettingRow>
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.focusMode.label')}</h4>
+          <CloudSyncIndicator isAuthenticated={isAuthenticated} />
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.focusMode.description')}</p>
+        <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-on-surface-variant text-[20px]">visibility_off</span>
+            <span className="text-sm font-medium text-on-surface">{t('settings.general.focusMode.enable')}</span>
+          </div>
+          <RefinedToggle checked={focusModeEnabled} onChange={setFocusModeEnabled} />
+        </div>
       </div>
 
       {/* Interface Language */}
       <div data-setting-id="general.language">
-        <SectionHeader label={t('settings.general.language.label')} description={t('settings.general.language.description')} />
-        <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.language.label')}</h4>
+          <CloudSyncIndicator isAuthenticated={isAuthenticated} />
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.language.description')}</p>
+        <div className="relative">
           <select
             value={pendingLang}
             onChange={handleLanguageChange}
-            style={{
-              width: '100%',
-              background: 'rgba(243,244,245,0.5)',
-              border: 'none',
-              borderRadius: '1rem',
-              padding: '1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              appearance: 'none',
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-            }}
+            className="w-full bg-surface-container-low rounded-xl py-3.5 px-4 text-sm font-medium appearance-none font-headline cursor-pointer ring-1 ring-outline-variant/10 border-0 outline-none"
           >
             {AVAILABLE_LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>{lang.label}</option>
             ))}
           </select>
-          <span className="material-symbols-outlined" style={{
-            position: 'absolute',
-            right: '1.25rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#4343d5',
-            pointerEvents: 'none',
-            fontSize: '20px'
-          }}>unfold_more</span>
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none text-[20px]">unfold_more</span>
+        </div>
+      </div>
+
+      {/* Synchronization — AuraBrain Card (Req 16.4) */}
+      <div data-setting-id="general.autoSyncEnabled">
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.autoSync.label')}</h4>
+          <CloudSyncIndicator isAuthenticated={isAuthenticated} />
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.autoSync.description')}</p>
+        <div className="bg-surface-container rounded-2xl p-6 relative overflow-hidden">
+          {/* Aura gradient blob */}
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/10 rounded-full blur-[50px] pointer-events-none" />
+
+          <div className="flex items-center justify-between mb-6 relative z-10">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>sync</span>
+              <div>
+                <span className="text-sm font-bold text-on-surface block">{t('settings.general.autoSync.label')} (AuraBrain)</span>
+                <span className="text-xs text-on-surface-variant">{t('settings.general.autoSync.description')}</span>
+              </div>
+            </div>
+            <RefinedToggle checked={autoSyncEnabled} onChange={setAutoSyncEnabled} />
+          </div>
+
+          {/* Sync Interval Slider (Req 16.4) */}
+          {autoSyncEnabled && (
+            <div className="relative z-10" data-setting-id="general.autoSyncInterval">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-on-surface-variant">{t('settings.general.autoSyncInterval.label')}</span>
+                <span className="text-xs font-bold text-primary">{syncInterval}s</span>
+              </div>
+              <div className="relative h-2 bg-surface-container-high rounded-full">
+                {/* Gradient fill track */}
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-container rounded-full shadow-[0_0_8px_rgba(67,67,213,0.4)]"
+                  style={{ width: `${((syncInterval - 5) / 55) * 100}%` }}
+                />
+              </div>
+              <input
+                type="range"
+                min={5}
+                max={60}
+                step={5}
+                value={syncInterval}
+                onChange={(e) => setSyncInterval(Number(e.target.value))}
+                className="w-full mt-1 cursor-pointer"
+                style={{ accentColor: '#4343d5' }}
+              />
+              <div className="flex justify-between text-[10px] text-on-surface-variant mt-1">
+                <span>5s</span>
+                <span>60s</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Local Environment (Req 16.5) */}
+      <div data-setting-id="general.defaultExportFormat">
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.defaultExportFormat.label')}</h4>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.defaultExportFormat.description')}</p>
+        <div className="relative">
+          <select
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value)}
+            className="w-full bg-surface-container-low rounded-xl py-3.5 px-4 text-sm font-medium appearance-none font-headline cursor-pointer ring-1 ring-outline-variant/10 border-0 outline-none"
+          >
+            <option value="markdown">Markdown (.md)</option>
+            <option value="docx">Word Document (.docx)</option>
+          </select>
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none text-[20px]">unfold_more</span>
+        </div>
+      </div>
+
+      <div data-setting-id="general.defaultExportPath">
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-bold text-on-surface m-0">{t('settings.general.defaultExportPath.label')}</h4>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-3 mt-0">{t('settings.general.defaultExportPath.description')}</p>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            readOnly
+            value={exportPath}
+            className="flex-1 bg-surface-container-low rounded-xl py-3.5 px-4 text-sm font-medium font-headline ring-1 ring-outline-variant/10 border-0 outline-none text-on-surface-variant cursor-default"
+          />
+          <button
+            type="button"
+            onClick={handleBrowse}
+            className="bg-surface hover:bg-surface-container-high rounded-xl ring-1 ring-outline-variant/20 py-3.5 px-5 text-sm font-semibold font-headline text-on-surface border-0 cursor-pointer transition-colors duration-150"
+          >
+            {t('settings.general.defaultExportPath.browse', 'Browse')}
+          </button>
         </div>
       </div>
     </div>

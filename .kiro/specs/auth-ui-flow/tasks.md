@@ -242,7 +242,7 @@ Implement the Authentication UI Flow and User Personalization for the WordAI des
     - Items: `font-['Manrope'] text-sm font-medium tracking-wide uppercase`, icons `text-[20px]`
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
 
-  - [~] 10.2 Update General tab UI
+  - [x] 10.2 Update General tab UI
     - Header: `font-headline text-3xl font-extrabold tracking-tight`
     - Theme selection: 3-column grid buttons with preview thumbnails, active `ring-1 ring-outline-variant/30 shadow-[0_8px_30px_-5px_rgba(67,67,213,0.12)]`
     - Toggle switches: `h-6 w-11 rounded-full`, active `bg-primary shadow-[0_0_8px_-1px_rgba(67,67,213,0.5)]`

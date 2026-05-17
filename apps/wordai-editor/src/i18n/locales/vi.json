@@ -71,7 +71,8 @@
       },
       "defaultExportPath": {
         "label": "Thư mục xuất mặc định",
-        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX."
+        "description": "Thư mục mặc định khi xuất file ra Markdown hoặc DOCX.",
+        "browse": "Duyệt"
       },
       "defaultExportFormat": {
         "label": "Định dạng xuất mặc định",
@@ -84,6 +85,10 @@
       "autoSyncInterval": {
         "label": "Khoảng thời gian đồng bộ",
         "description": "Khoảng thời gian giữa các lần auto-sync (5–60 giây)."
+      },
+      "guestBanner": {
+        "description": "Đăng nhập để đồng bộ giao diện, ngôn ngữ và cài đặt trên tất cả thiết bị của bạn.",
+        "signIn": "Đăng nhập"
       }
     },
     "aiEngine": {

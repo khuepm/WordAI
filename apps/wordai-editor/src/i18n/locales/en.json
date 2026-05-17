@@ -71,7 +71,8 @@
       },
       "defaultExportPath": {
         "label": "Default Export Path",
-        "description": "Default folder when exporting files to Markdown or DOCX."
+        "description": "Default folder when exporting files to Markdown or DOCX.",
+        "browse": "Browse"
       },
       "defaultExportFormat": {
         "label": "Default Export Format",
@@ -84,6 +85,10 @@
       "autoSyncInterval": {
         "label": "Auto Sync Interval",
         "description": "Time interval between auto-syncs (5–60 seconds)."
+      },
+      "guestBanner": {
+        "description": "Sign in to sync your theme, language, and preferences across all your devices.",
+        "signIn": "Sign In"
       }
     },
     "aiEngine": {
