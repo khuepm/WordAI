@@ -26,7 +26,7 @@ import { loadDocument } from './services/documentService';
 import { useAppState } from './services/stateManager';
 import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
 import { useAuth } from './hooks/useAuth';
-import { resetCloudSettingsToDefaults } from './services/cloudSettingsService';
+import { resetCloudSettingsToDefaults, syncCloudSettingsOnLogin } from './services/cloudSettingsService';
 import { getPersistedSessionId, fetchAccessContext, clearLocalAuthCache } from './services/authService';
 import * as auraBrainManager from './services/auraBrainManager';
 import { auraIntentToDocument } from './services/auraDocumentAdapter';
@@ -144,6 +144,12 @@ function App() {
   const [startupError, setStartupError] = useState<string | null>(null);
   const [startupRetryKey, setStartupRetryKey] = useState(0);
   const [syncErrorDismissed, setSyncErrorDismissed] = useState(false);
+  const [settingsSyncError, setSettingsSyncError] = useState<string | null>(null);
+  const [settingsSyncErrorDismissed, setSettingsSyncErrorDismissed] = useState(false);
+
+  // Track previous accessContext to detect login transitions (null → non-null)
+  const prevAccessContextRef = useRef<typeof accessContext>(null);
+  const isRestoringSessionRef = useRef(false);
 
   const handleFontSizeChange = useCallback((size: number) => {
     setFontSize(size);
@@ -197,6 +203,7 @@ function App() {
 
     let cancelled = false;
     setIsRestoringSession(true);
+    isRestoringSessionRef.current = true;
 
     const SESSION_RESTORE_TIMEOUT = 10_000; // 10s timeout (Req 12.1)
     const validSessionId: string = sessionId;
@@ -220,7 +227,15 @@ function App() {
         if (!cancelled) {
           // Req 12.2 — Restore context and trigger cloud settings sync
           setAccessCtx(context);
-          // TODO (Task 9.3): Trigger cloud settings sync — syncCloudSettings(context)
+          // Req 15.1, 15.2, 15.3 — Sync cloud settings after session restore
+          syncCloudSettingsOnLogin(validSessionId, {
+            applyPreferences: (prefs) => {
+              setPreferences(normalizePreferences(prefs));
+            },
+            onError: () => {
+              setSettingsSyncError('Settings sync failed. Using local preferences.');
+            },
+          });
         }
       } catch {
         if (!cancelled) {
@@ -231,6 +246,7 @@ function App() {
       } finally {
         if (!cancelled) {
           setIsRestoringSession(false);
+          isRestoringSessionRef.current = false;
         }
       }
     }
@@ -239,6 +255,26 @@ function App() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Req 15.1, 15.2, 15.3 — Sync cloud settings after login (not session restore, which is handled above)
+  useEffect(() => {
+    const prev = prevAccessContextRef.current;
+    prevAccessContextRef.current = accessContext;
+
+    // Trigger sync when accessContext transitions from null to non-null (login)
+    // Skip if this is during session restoration (handled inline above)
+    if (prev === null && accessContext !== null && !isRestoringSessionRef.current) {
+      const sessionId = accessContext.session.id;
+      syncCloudSettingsOnLogin(sessionId, {
+        applyPreferences: (prefs) => {
+          setPreferences(normalizePreferences(prefs));
+        },
+        onError: () => {
+          setSettingsSyncError('Settings sync failed. Using local preferences.');
+        },
+      });
+    }
+  }, [accessContext]);
 
   const refreshPreferences = useCallback(async () => {
     try {
@@ -716,6 +752,52 @@ function App() {
           </div >
         )
       }
+
+      {/* Settings sync error toast (Req 15.3) — non-blocking notification */}
+      {settingsSyncError && !settingsSyncErrorDismissed && (
+        <div
+          data-testid="settings-sync-error-toast"
+          role="alert"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '24px',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            background: '#1f2937',
+            color: '#f9fafb',
+            fontFamily: 'var(--font-family-ui)',
+            fontSize: '12px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            maxWidth: '320px',
+          }}
+        >
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{settingsSyncError}</span>
+          <button
+            data-testid="settings-sync-error-close-button"
+            onClick={() => setSettingsSyncErrorDismissed(true)}
+            aria-label="Dismiss"
+            style={{
+              background: 'transparent',
+              color: '#9ca3af',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '2px 4px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-ui)',
+              fontSize: '14px',
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <aside style={{
         position: 'fixed',
         left: 0,

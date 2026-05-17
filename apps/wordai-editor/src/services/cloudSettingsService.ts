@@ -278,6 +278,105 @@ async function processRetryQueue(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Sync on Login (Req 15.1, 15.2, 15.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sync cloud settings after a successful login or session restoration.
+ *
+ * 1. Fetches cloud settings from the Bridge API.
+ * 2. Merges server values over local preferences (server wins for all CLOUD_SETTINGS keys).
+ * 3. Applies merged preferences via the provided callback so the UI re-renders immediately.
+ * 4. On failure: calls the onError callback with a user-facing message.
+ *
+ * Requirements: 15.1, 15.2, 15.3
+ */
+export async function syncCloudSettingsOnLogin(
+  sessionId: string,
+  options: {
+    /** Callback to apply merged preferences to the store/state (triggers UI re-render). */
+    applyPreferences: (prefs: Record<string, unknown>) => void;
+    /** Called on failure with a user-facing error message. */
+    onError?: (message: string) => void;
+  },
+): Promise<void> {
+  try {
+    const cloudSettings = await fetchCloudSettings(sessionId);
+
+    if (Object.keys(cloudSettings).length === 0) {
+      // No cloud settings stored yet — nothing to merge
+      return;
+    }
+
+    // Load current local preferences
+    let localPrefs: Record<string, unknown>;
+    try {
+      const loaded = await loadPreferences('default');
+      localPrefs = (typeof loaded === 'object' && loaded !== null)
+        ? loaded as Record<string, unknown>
+        : {};
+    } catch {
+      localPrefs = {};
+    }
+
+    // Merge: server wins for all CLOUD_SETTINGS keys
+    const merged = mergeCloudOverLocal(localPrefs, cloudSettings);
+
+    // Persist merged preferences locally
+    await savePreferences('default', merged as Parameters<typeof savePreferences>[1]);
+
+    // Apply to store so UI re-renders immediately (theme, font, AI model, etc.)
+    options.applyPreferences(merged);
+  } catch {
+    // Req 15.3 — On failure: retain local values, show non-blocking toast
+    if (options.onError) {
+      options.onError('Settings sync failed. Using local preferences.');
+    }
+  }
+}
+
+/**
+ * Merge cloud settings over local preferences.
+ * Server wins for all keys that map to CLOUD_SETTINGS.
+ *
+ * Cloud settings keys use dot notation (e.g., 'general.theme', 'ai-engine.model').
+ * The local preferences object uses nested structure (e.g., { general: { theme: '...' } }).
+ * The cloud settings response is a flat key-value map.
+ */
+function mergeCloudOverLocal(
+  local: Record<string, unknown>,
+  cloud: Record<string, unknown>,
+): Record<string, unknown> {
+  // Deep clone local to avoid mutation
+  const merged = JSON.parse(JSON.stringify(local)) as Record<string, unknown>;
+
+  for (const [dotKey, value] of Object.entries(cloud)) {
+    // Map dot-notation key to nested path
+    // e.g., 'general.theme' → ['general', 'theme']
+    // e.g., 'ai-engine.model' → ['aiEngine', 'model']
+    const parts = dotKey.split('.');
+    if (parts.length !== 2) continue;
+
+    let [section, key] = parts;
+
+    // Map 'ai-engine' to 'aiEngine' to match the Preferences interface
+    if (section === 'ai-engine') {
+      section = 'aiEngine';
+    }
+
+    // Ensure the section exists
+    if (!merged[section] || typeof merged[section] !== 'object') {
+      merged[section] = {};
+    }
+
+    // Server wins: overwrite local value with cloud value
+    (merged[section] as Record<string, unknown>)[key] = value;
+  }
+
+  return merged;
+}
+
+// ---------------------------------------------------------------------------
 // Test helpers (exported for testing only)
 // ---------------------------------------------------------------------------
 
