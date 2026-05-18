@@ -394,7 +394,6 @@ fn map_reqwest_error(e: reqwest::Error) -> IPCError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     // ── 7.5: Request payload formatting ──────────────────────────────────────
 
