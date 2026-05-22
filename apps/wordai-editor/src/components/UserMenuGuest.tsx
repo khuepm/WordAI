@@ -18,48 +18,139 @@ export function UserMenuGuest({ onSignIn, onExploreFeatures }: UserMenuGuestProp
 
   return (
     <div
-      className="w-[340px] bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[1.25rem] border border-outline-variant/15 shadow-[0_24px_60px_-10px_rgba(25,28,29,0.06)]"
       data-testid="user-menu-guest"
+      style={{
+        width: '340px',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '1.25rem',
+        border: '1px solid rgba(199, 196, 215, 0.15)',
+        boxShadow: '0 24px 60px -10px rgba(25, 28, 29, 0.06)',
+        overflow: 'hidden',
+      }}
     >
-      {/* Info banner — Req 8.3 */}
-      <div className="p-6 bg-primary/5 border-b border-outline-variant/10">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-rounded fill text-primary text-[1.125rem]">
+      {/* Info Banner Section — tonal shift using primary color family */}
+      <div
+        style={{
+          padding: '1.5rem',
+          backgroundColor: 'rgba(67, 67, 213, 0.05)',
+          borderBottom: '1px solid rgba(199, 196, 215, 0.1)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+          <div
+            style={{
+              marginTop: '2px',
+              flexShrink: 0,
+              width: '2rem',
+              height: '2rem',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(67, 67, 213, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{
+                color: 'var(--md-sys-color-primary, #4343d5)',
+                fontSize: '1.125rem',
+                fontVariationSettings: "'FILL' 1",
+              }}
+            >
               auto_awesome
             </span>
           </div>
-          <p className="text-[0.9rem] font-medium leading-[1.6] text-on-surface-variant">
+          <p
+            style={{
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              lineHeight: 1.6,
+              color: 'var(--md-sys-color-on-surface-variant, #464555)',
+              margin: 0,
+              fontFamily: 'var(--font-family-ui)',
+            }}
+          >
             {t('userMenu.guestBanner')}
           </p>
         </div>
       </div>
 
-      {/* Actions section */}
-      <div className="p-6 flex flex-col items-center gap-4">
-        {/* Sign In / Sign Up button — Req 8.4, 8.6 */}
+      {/* Action Section — Fluid Button */}
+      <div style={{ padding: '1.25rem' }}>
         <button
           type="button"
           onClick={onSignIn}
-          className="group w-full bg-primary text-on-primary py-[0.875rem] px-5 rounded-[0.75rem] font-semibold text-[0.95rem] tracking-wide flex items-center justify-center gap-2 transition-shadow hover:shadow-[0_0_16px_rgba(67,67,213,0.4)]"
           data-testid="user-menu-signin-button"
+          style={{
+            width: '100%',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'var(--md-sys-color-primary, #4343d5)',
+            color: 'var(--md-sys-color-on-primary, #ffffff)',
+            padding: '0.875rem 1.25rem',
+            borderRadius: '0.75rem',
+            border: 'none',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            letterSpacing: '0.025em',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-family-ui)',
+            transition: 'all 0.3s',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--md-sys-color-primary-container, #5d5fef)';
+            e.currentTarget.style.boxShadow = '0 0 16px rgba(67, 67, 213, 0.4)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--md-sys-color-primary, #4343d5)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
         >
-          {t('userMenu.signInSignUp')}
-          <span className="material-symbols-rounded text-[1.25rem] transition-transform group-hover:translate-x-1">
+          <span>{t('userMenu.signInSignUp')}</span>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '1.125rem' }}
+          >
             arrow_right_alt
           </span>
         </button>
 
-        {/* Explore Features link — Req 8.5 */}
+        {/* Secondary subtle link */}
         {onExploreFeatures && (
-          <button
-            type="button"
-            onClick={onExploreFeatures}
-            className="text-[0.8rem] font-medium text-outline hover:text-primary uppercase tracking-[0.05em] transition-colors bg-transparent border-none cursor-pointer"
-            data-testid="user-menu-explore-button"
-          >
-            {t('userMenu.exploreFeatures')}
-          </button>
+          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={onExploreFeatures}
+              data-testid="user-menu-explore-button"
+              style={{
+                display: 'inline-flex',
+                fontSize: '0.8rem',
+                fontWeight: 500,
+                color: 'var(--md-sys-color-outline, #767586)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-family-ui)',
+                transition: 'color 0.2s',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = 'var(--md-sys-color-primary, #4343d5)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = 'var(--md-sys-color-outline, #767586)';
+              }}
+            >
+              {t('userMenu.exploreFeatures')}
+            </button>
+          </div>
         )}
       </div>
     </div>

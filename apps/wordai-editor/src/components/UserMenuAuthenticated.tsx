@@ -29,97 +29,227 @@ export function UserMenuAuthenticated({
 }: UserMenuAuthenticatedProps) {
   const { t } = useTranslation();
 
+  const menuItemStyle: React.CSSProperties = {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.625rem 0.75rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    border: 'none',
+    cursor: 'pointer',
+    background: 'none',
+    fontFamily: 'var(--font-family-ui)',
+    transition: 'background-color 0.2s',
+    textAlign: 'left' as const,
+  };
+
   return (
     <div
-      className="bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-xl outline outline-1 outline-outline-variant/15 shadow-[0_-5px_40px_rgba(25,28,29,0.04)]"
       data-testid="user-menu-authenticated"
+      style={{
+        width: '320px',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '0.75rem',
+        outline: '1px solid rgba(199, 196, 215, 0.15)',
+        boxShadow: '0 -5px 40px rgba(25, 28, 29, 0.04)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
       {/* Header Block — Req 7.2 */}
       <button
         type="button"
         onClick={onOpenProfile}
-        className={`w-full text-left p-5 flex items-center gap-4 hover:bg-surface-container-low rounded-t-xl transition-colors ${isSigningOut ? 'pointer-events-none opacity-50' : ''
-          }`}
         data-testid="user-menu-profile-button"
+        style={{
+          width: '100%',
+          textAlign: 'left',
+          padding: '1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          border: 'none',
+          background: 'none',
+          cursor: 'pointer',
+          transition: 'background-color 0.2s',
+          opacity: isSigningOut ? 0.5 : 1,
+          pointerEvents: isSigningOut ? 'none' : 'auto',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--md-sys-color-surface-container-low, #f3f4f5)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+        }}
       >
         {/* Avatar with online indicator */}
-        <div className="relative flex-shrink-0">
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           {user.avatarUrl ? (
             <img
               src={user.avatarUrl}
               alt={user.displayName}
-              className="w-12 h-12 rounded-full object-cover"
+              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center">
-              <span className="material-symbols-rounded text-on-surface-variant text-2xl">
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--md-sys-color-surface-container-low, #f3f4f5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ color: 'var(--md-sys-color-on-surface-variant, #464555)', fontSize: '1.5rem' }}
+              >
                 person
               </span>
             </div>
           )}
-          {/* Online indicator */}
-          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#10b981] border-2 border-surface-container-lowest rounded-full" />
+          {/* Online Status Indicator */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: '14px',
+              height: '14px',
+              backgroundColor: '#10b981',
+              border: '2px solid #ffffff',
+              borderRadius: '50%',
+            }}
+          />
         </div>
 
         {/* Name, plan badge, email */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-on-surface truncate tracking-tight">
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2px' }}>
+            <span
+              style={{
+                fontWeight: 700,
+                color: 'var(--md-sys-color-on-surface, #191c1d)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.01em',
+                fontFamily: 'var(--font-family-ui)',
+              }}
+            >
               {user.displayName}
             </span>
             {user.plan && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-gradient-to-br from-primary to-primary-container text-on-primary flex-shrink-0">
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  background: 'linear-gradient(to bottom right, var(--md-sys-color-primary, #4343d5), var(--md-sys-color-primary-container, #5d5fef))',
+                  color: 'var(--md-sys-color-on-primary, #ffffff)',
+                  flexShrink: 0,
+                }}
+              >
                 {user.plan}
               </span>
             )}
           </div>
-          <span className="text-sm text-on-surface-variant truncate block">
+          <span
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--md-sys-color-on-surface-variant, #464555)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontFamily: 'var(--font-family-ui)',
+            }}
+          >
             {user.email}
           </span>
         </div>
       </button>
 
-      {/* Tonal divider — Req 7.3 */}
-      <div className="h-2 bg-surface-container-low" />
+      {/* Separation via Tonal Shift — Req 7.3 */}
+      <div style={{ height: '8px', backgroundColor: 'var(--md-sys-color-surface-container-low, #f3f4f5)' }} />
 
-      {/* Menu items section */}
-      <div className="p-2">
-        {/* My Library — Req 7.4 */}
+      {/* Section 1: Workspace Navigation — Req 7.4 */}
+      <div style={{ padding: '0.5rem' }}>
         <button
           type="button"
           onClick={onOpenLibrary}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface hover:bg-surface-container-low text-sm font-medium transition-colors ${isSigningOut ? 'pointer-events-none opacity-50' : ''
-            }`}
           data-testid="user-menu-library-button"
+          style={{
+            ...menuItemStyle,
+            color: 'var(--md-sys-color-on-surface, #191c1d)',
+            opacity: isSigningOut ? 0.5 : 1,
+            pointerEvents: isSigningOut ? 'none' : 'auto',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--md-sys-color-surface-container-low, #f3f4f5)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
         >
-          <span className="material-symbols-rounded text-outline text-xl">
+          <span
+            className="material-symbols-outlined"
+            style={{ color: 'var(--md-sys-color-outline, #767586)' }}
+          >
             folder
           </span>
           {t('userMenu.myLibrary')}
         </button>
       </div>
 
-      {/* Tonal divider — Req 7.3 */}
-      <div className="h-2 bg-surface-container-low" />
+      {/* Separation via Tonal Shift — Req 7.3 */}
+      <div style={{ height: '8px', backgroundColor: 'var(--md-sys-color-surface-container-low, #f3f4f5)' }} />
 
-      {/* Sign Out section — Req 7.5 */}
-      <div className="p-2">
+      {/* Section 2: Sign Out — Req 7.5 */}
+      <div style={{ padding: '0.5rem' }}>
         <button
           type="button"
           onClick={onSignOut}
           disabled={isSigningOut}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isSigningOut
-            ? 'text-error opacity-70 pointer-events-none'
-            : 'text-error hover:bg-error-container hover:text-on-error-container'
-            }`}
           data-testid="user-menu-signout-button"
+          style={{
+            ...menuItemStyle,
+            color: 'var(--md-sys-color-error, #ba1a1a)',
+            opacity: isSigningOut ? 0.7 : 1,
+            pointerEvents: isSigningOut ? 'none' : 'auto',
+          }}
+          onMouseOver={(e) => {
+            if (!isSigningOut) {
+              e.currentTarget.style.backgroundColor = 'var(--md-sys-color-error-container, #ffdad6)';
+              e.currentTarget.style.color = 'var(--md-sys-color-on-error-container, #93000a)';
+            }
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'var(--md-sys-color-error, #ba1a1a)';
+          }}
         >
           {isSigningOut ? (
-            <span className="material-symbols-rounded animate-spin text-error text-[18px]">
+            <span
+              className="material-symbols-outlined"
+              style={{ animation: 'spin 1s linear infinite', color: 'var(--md-sys-color-error, #ba1a1a)' }}
+            >
               progress_activity
             </span>
           ) : (
-            <span className="material-symbols-rounded text-xl">logout</span>
+            <span className="material-symbols-outlined">logout</span>
           )}
           {t('userMenu.signOut')}
         </button>
