@@ -59,7 +59,7 @@ export function useAISummary(itemId: string | null): {
     setState({ status: 'loading', text: null, retryCount: currentRetryCount });
 
     withTimeout(
-      invoke<string>('generate_archive_summary', { id }),
+      invoke<string>('generate_archive_summary', { id, api_key: '', endpoint: null }),
       TIMEOUT_MS,
     )
       .then((summary) => {
