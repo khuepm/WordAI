@@ -212,7 +212,7 @@ export function SignUpForm({
           role="alert"
           data-testid="signup-error-banner"
         >
-          <span className="material-symbols-rounded filled text-on-error-container">error</span>
+          <span className="material-symbols-outlined filled text-on-error-container">error</span>
           <span className="font-headline text-sm font-medium leading-snug">{error}</span>
         </div>
       )}
@@ -220,7 +220,7 @@ export function SignUpForm({
       {/* Header — Req 4.1 */}
       <div className="flex flex-col items-center text-center mb-8">
         <div className="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center mb-4">
-          <span className="material-symbols-rounded filled text-primary text-2xl">
+          <span className="material-symbols-outlined filled text-primary text-2xl">
             edit_note
           </span>
         </div>
@@ -240,72 +240,80 @@ export function SignUpForm({
         <div className={isSubmitting ? 'opacity-60 pointer-events-none' : ''}>
           {/* Display Name Field */}
           <div className="space-y-2">
-            <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
+            <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
               {t('auth.signup.displayNameLabel')}
             </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => handleDisplayNameChange(e.target.value)}
-              onBlur={() => handleBlur('displayName')}
-              className="w-full bg-surface-container-low border-0 rounded-lg px-4 py-3.5 text-on-surface font-headline outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_theme('colors.primary')]"
-              autoComplete="name"
-              disabled={isSubmitting}
-            />
+            <div className="input-glow-focus bg-surface-container-low rounded-lg transition-all duration-200 flex items-center h-12 px-4">
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => handleDisplayNameChange(e.target.value)}
+                onBlur={() => handleBlur('displayName')}
+                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface font-headline p-0"
+                autoComplete="name"
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
 
           {/* Email Field */}
           <div className="space-y-2 mt-5">
-            <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
+            <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
               {t('auth.signup.emailLabel')}
             </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              onBlur={() => handleBlur('email')}
-              className="w-full bg-surface-container-low border-0 rounded-lg px-4 py-3.5 text-on-surface font-headline outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_theme('colors.primary')]"
-              autoComplete="email"
-              disabled={isSubmitting}
-            />
+            <div className="input-glow-focus bg-surface-container-low rounded-lg transition-all duration-200 flex items-center h-12 px-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={() => handleBlur('email')}
+                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface font-headline p-0"
+                autoComplete="email"
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
 
           {/* Password Field */}
           <div className="space-y-2 mt-5">
-            <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
+            <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
               {t('auth.signup.passwordLabel')}
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              onBlur={() => handleBlur('password')}
-              className="w-full bg-surface-container-low border-0 rounded-lg px-4 py-3.5 text-on-surface font-headline outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_theme('colors.primary')]"
-              autoComplete="new-password"
-              disabled={isSubmitting}
-            />
+            <div className="input-glow-focus bg-surface-container-low rounded-lg transition-all duration-200 flex items-center h-12 px-4">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                onBlur={() => handleBlur('password')}
+                className="w-full bg-transparent border-none outline-none ring-0 text-on-surface font-headline p-0"
+                autoComplete="new-password"
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
 
           {/* Confirm Password Field — Req 4.3 */}
           <div className="space-y-2 mt-5">
-            <label className="block font-headline text-label-md tracking-wider uppercase text-on-surface-variant">
+            <label className="block font-headline text-xs font-bold text-on-surface-variant uppercase tracking-wider">
               {t('auth.signup.confirmPasswordLabel')}
             </label>
             <div className="relative">
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-                onBlur={() => handleBlur('confirmPassword')}
-                className={`w-full border-0 rounded-lg px-4 py-3.5 font-headline outline-none transition-all duration-200 ${showConfirmError
-                  ? 'bg-error-container text-on-error-container'
-                  : 'bg-surface-container-low text-on-surface focus:bg-surface-container-lowest focus:shadow-[0_2px_0_0_theme(\'colors.primary\')]'
-                  }`}
-                autoComplete="new-password"
-                disabled={isSubmitting}
-              />
+              <div className={`rounded-lg transition-all duration-200 flex items-center h-12 px-4 ${showConfirmError
+                ? 'bg-error-container'
+                : 'input-glow-focus bg-surface-container-low'
+                }`}>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                  onBlur={() => handleBlur('confirmPassword')}
+                  className={`w-full bg-transparent border-none outline-none ring-0 font-headline p-0 ${showConfirmError ? 'text-on-error-container' : 'text-on-surface'}`}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                />
+              </div>
               {showConfirmError && (
-                <span className="material-symbols-rounded filled text-on-error-container absolute right-4 top-1/2 -translate-y-1/2">
+                <span className="material-symbols-outlined filled text-on-error-container absolute right-4 top-1/2 -translate-y-1/2">
                   error
                 </span>
               )}
@@ -329,7 +337,7 @@ export function SignUpForm({
               }`}
           >
             {isSubmitting && (
-              <span className="material-symbols-rounded animate-spin text-on-primary mr-2 inline-block align-middle">
+              <span className="material-symbols-outlined animate-spin text-on-primary mr-2 inline-block align-middle">
                 progress_activity
               </span>
             )}

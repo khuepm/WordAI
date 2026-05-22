@@ -8,8 +8,11 @@
 
 import { useEffect, useRef, useCallback, useState, createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
 import { useFocusTrap } from './useFocusTrap';
+import { LoginForm } from './LoginForm';
+import { SignUpForm } from './SignUpForm';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { ResetSuccessView } from './ResetSuccessView';
 
 export type AuthView = 'login' | 'signup' | 'forgot-password' | 'reset-success';
 
@@ -54,7 +57,7 @@ export function AuthModal({
   isOpen,
   onClose,
   initialView = 'login',
-  isSubmitting = false,
+  isSubmitting: isSubmittingProp = false,
   onSignUpSuccess,
   children,
 }: AuthModalProps) {
@@ -66,19 +69,15 @@ export function AuthModal({
   const [currentView, setCurrentView] = useState<AuthView>(initialView);
   const [sharedEmail, setSharedEmail] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Transition state
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayedView, setDisplayedView] = useState<AuthView>(initialView);
   const [viewVisible, setViewVisible] = useState(true);
 
-  // Container height animation
-  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
-
   // Integrate focus trap
   useFocusTrap(modalRef, isOpen);
-
-  const { t } = useTranslation();
 
   // Store the previously focused element when modal opens
   useEffect(() => {
@@ -97,16 +96,9 @@ export function AuthModal({
       setDisplayedView(initialView);
       setViewVisible(true);
       setFormError(null);
+      setIsSubmitting(false);
     }
   }, [isOpen, initialView]);
-
-  // Measure content height for smooth container animation
-  useEffect(() => {
-    if (contentRef.current && isOpen) {
-      const height = contentRef.current.scrollHeight;
-      setContainerHeight(height);
-    }
-  }, [displayedView, isOpen]);
 
   // Handle view navigation with transition animation
   const handleNavigate = useCallback(
@@ -117,19 +109,17 @@ export function AuthModal({
       setFormError(null);
 
       setIsTransitioning(true);
-      setViewVisible(false); // Start exit animation (opacity-0 scale-95)
+      setViewVisible(false);
 
-      // After exit animation (150ms), switch view and start enter animation
       setTimeout(() => {
         setCurrentView(newView);
         setDisplayedView(newView);
 
-        // Small delay to allow DOM update before enter animation
         requestAnimationFrame(() => {
-          setViewVisible(true); // Start enter animation (opacity-100 scale-100)
+          setViewVisible(true);
           setIsTransitioning(false);
 
-          // Auto-focus first input after transition completes (Req 9.5)
+          // Auto-focus first input after transition
           setTimeout(() => {
             if (contentRef.current) {
               const firstInput = contentRef.current.querySelector<HTMLElement>(
@@ -139,9 +129,9 @@ export function AuthModal({
                 firstInput.focus();
               }
             }
-          }, 200); // Wait for enter animation to complete
+          }, 200);
         });
-      }, 150); // Exit animation duration
+      }, 150);
     },
     [currentView, isTransitioning],
   );
@@ -149,11 +139,11 @@ export function AuthModal({
   // Handle Escape key close (suppressed during loading)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isSubmitting) {
+      if (e.key === 'Escape' && !isSubmitting && !isSubmittingProp) {
         onClose();
       }
     },
-    [onClose, isSubmitting],
+    [onClose, isSubmitting, isSubmittingProp],
   );
 
   useEffect(() => {
@@ -166,19 +156,14 @@ export function AuthModal({
   // Handle backdrop click (suppressed during loading)
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget && !isSubmitting) {
+      if (e.target === e.currentTarget && !isSubmitting && !isSubmittingProp) {
         onClose();
       }
     },
-    [onClose, isSubmitting],
+    [onClose, isSubmitting, isSubmittingProp],
   );
 
   if (!isOpen) return null;
-
-  // Transition classes for view content
-  const viewTransitionClasses = viewVisible
-    ? 'opacity-100 scale-100 transition-all duration-200 ease-out'
-    : 'opacity-0 scale-95 transition-all duration-150 ease-in';
 
   // Context value for child forms
   const contextValue: AuthModalContextValue = {
@@ -199,86 +184,51 @@ export function AuthModal({
     switch (displayedView) {
       case 'login':
         return (
-          <div data-testid="login-view">
-            <h2
-              id={HEADING_ID}
-              className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
-            >
-              {t('auth.login.title')}
-            </h2>
-            <div>Login placeholder</div>
-            <button
-              type="button"
-              data-testid="nav-to-signup"
-              onClick={() => handleNavigate('signup')}
-            >
-              {t('auth.login.signUp')}
-            </button>
-            <button
-              type="button"
-              data-testid="nav-to-forgot-password"
-              onClick={() => handleNavigate('forgot-password')}
-            >
-              {t('auth.login.forgotPassword')}
-            </button>
-          </div>
+          <LoginForm
+            email={sharedEmail}
+            onEmailChange={setSharedEmail}
+            onNavigate={(view) => handleNavigate(view)}
+            onSuccess={onClose}
+            onError={setFormError}
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            error={formError}
+            clearError={() => setFormError(null)}
+          />
         );
       case 'signup':
         return (
-          <div data-testid="signup-view">
-            <h2
-              id={HEADING_ID}
-              className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
-            >
-              {t('auth.signup.title')}
-            </h2>
-            <div>Signup placeholder</div>
-            <button
-              type="button"
-              data-testid="nav-to-login"
-              onClick={() => handleNavigate('login')}
-            >
-              {t('auth.signup.backToLogin')}
-            </button>
-          </div>
+          <SignUpForm
+            email={sharedEmail}
+            onEmailChange={setSharedEmail}
+            onNavigate={(view) => handleNavigate(view)}
+            onSuccess={onClose}
+            onError={setFormError}
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            error={formError}
+            clearError={() => setFormError(null)}
+            onBeforeSuccess={onSignUpSuccess}
+          />
         );
       case 'forgot-password':
         return (
-          <div data-testid="forgot-password-view">
-            <h2
-              id={HEADING_ID}
-              className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
-            >
-              {t('auth.forgotPassword.title')}
-            </h2>
-            <div>Forgot password placeholder</div>
-            <button
-              type="button"
-              data-testid="nav-to-login-from-forgot"
-              onClick={() => handleNavigate('login')}
-            >
-              {t('auth.forgotPassword.backToLogin')}
-            </button>
-          </div>
+          <ForgotPasswordForm
+            email={sharedEmail}
+            onEmailChange={setSharedEmail}
+            onNavigate={(view) => handleNavigate(view)}
+            onError={setFormError}
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            error={formError}
+            clearError={() => setFormError(null)}
+          />
         );
       case 'reset-success':
         return (
-          <div data-testid="reset-success-view">
-            <h2
-              id={HEADING_ID}
-              className="font-headline text-[2rem] font-bold text-on-surface tracking-tight mb-8"
-            >
-              {t('auth.resetSuccess.title')}
-            </h2>
-            <div>Reset success placeholder</div>
-            <button
-              type="button"
-              data-testid="nav-to-login-from-success"
-              onClick={() => handleNavigate('login')}
-            >
-              {t('auth.resetSuccess.backToLogin')}
-            </button>
-          </div>
+          <ResetSuccessView
+            onNavigate={(view) => handleNavigate(view)}
+          />
         );
       default:
         return null;
@@ -287,38 +237,69 @@ export function AuthModal({
 
   return createPortal(
     <AuthModalContext.Provider value={contextValue}>
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/40 backdrop-blur-sm p-4"
         onClick={handleBackdropClick}
         data-testid="auth-modal-backdrop"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(46, 49, 50, 0.4)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          padding: '1rem',
+        }}
       >
+        {/* Modal Container — Glassmorphism */}
         <div
           ref={modalRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby={HEADING_ID}
-          className="bg-surface-container-lowest/80 backdrop-blur-[20px] shadow-ambient-glow rounded-xl w-full max-w-md relative overflow-hidden transform transition-all scale-100"
-          style={{
-            height: containerHeight ? `${containerHeight}px` : 'auto',
-            transition: 'height 200ms ease-out',
-          }}
           data-testid="auth-modal-container"
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 60px -5px rgba(67, 67, 213, 0.08)',
+            borderRadius: '0.75rem',
+            width: '100%',
+            maxWidth: '28rem',
+            position: 'relative',
+            overflow: 'hidden',
+            transform: 'scale(1)',
+            transition: 'transform 0.2s',
+          }}
         >
           {/* Top gradient bar */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container opacity-80" />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '4px',
+              background: 'linear-gradient(to right, var(--md-sys-color-primary, #4343d5), var(--md-sys-color-primary-container, #5d5fef))',
+              opacity: 0.8,
+            }}
+          />
 
-          {/* Content area with transition */}
-          <div ref={contentRef} className="p-10">
-            {formError && (
-              <div
-                className="bg-error-container text-on-error-container rounded-lg p-4 mb-8 flex items-start gap-3"
-                data-testid="auth-modal-error"
-              >
-                <span className="material-symbols-rounded text-on-error-container">error</span>
-                <span className="font-headline text-sm font-medium leading-snug">{formError}</span>
-              </div>
-            )}
-            <div className={viewTransitionClasses} data-testid="auth-modal-view-content">
+          {/* Content area */}
+          <div ref={contentRef} style={{ padding: '2.5rem' }}>
+            <div
+              data-testid="auth-modal-view-content"
+              style={{
+                opacity: viewVisible ? 1 : 0,
+                transform: viewVisible ? 'scale(1)' : 'scale(0.95)',
+                transition: viewVisible
+                  ? 'opacity 0.2s ease-out, transform 0.2s ease-out'
+                  : 'opacity 0.15s ease-in, transform 0.15s ease-in',
+              }}
+            >
               {renderViewContent()}
             </div>
           </div>

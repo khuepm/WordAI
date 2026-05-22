@@ -16,17 +16,52 @@ export function ResetSuccessView({ onNavigate }: ResetSuccessViewProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-surface-container-lowest/80 backdrop-blur-[20px] rounded-[24px] p-12 ring-1 ring-outline-variant/15 flex flex-col items-center text-center gap-6">
+    <div
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '1.5rem',
+        padding: '3rem',
+        boxShadow: '0 0 0 1px rgba(199, 196, 215, 0.15)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: '1.5rem',
+        position: 'relative',
+      }}
+    >
       {/* Top glow gradient bar — Req 6.1 */}
-      <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent h-1 rounded-t-[24px]" />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '4px',
+          background: 'linear-gradient(to right, transparent, rgba(67, 67, 213, 0.3), transparent)',
+          borderRadius: '1.5rem 1.5rem 0 0',
+        }}
+      />
 
       {/* Success icon with background glow — Req 6.2 */}
-      <div className="relative flex items-center justify-center">
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {/* Glow effect behind icon */}
-        <div className="absolute bg-primary/10 rounded-full blur-[20px] scale-150 w-[80px] h-[80px]" />
+        <div
+          style={{
+            position: 'absolute',
+            backgroundColor: 'rgba(67, 67, 213, 0.1)',
+            borderRadius: '50%',
+            filter: 'blur(20px)',
+            transform: 'scale(1.5)',
+            width: '80px',
+            height: '80px',
+          }}
+        />
         <span
-          className="material-symbols-rounded text-[80px] text-primary relative"
-          style={{ fontVariationSettings: "'FILL' 1" }}
+          className="material-symbols-outlined"
+          style={{ fontSize: '80px', color: 'var(--md-sys-color-primary, #4343d5)', position: 'relative', fontVariationSettings: "'FILL' 1" }}
         >
           check_circle
         </span>

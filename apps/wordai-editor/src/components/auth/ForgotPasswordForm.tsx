@@ -84,7 +84,20 @@ export function ForgotPasswordForm({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-[20px] border border-outline-variant/15 rounded-xl p-10 flex flex-col gap-8 relative">
+    <div
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(199, 196, 215, 0.15)',
+        borderRadius: '0.75rem',
+        padding: '2.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2rem',
+        position: 'relative',
+      }}
+    >
       {/* Error Banner */}
       {error && (
         <div
@@ -92,7 +105,7 @@ export function ForgotPasswordForm({
           role="alert"
           data-testid="forgot-password-error-banner"
         >
-          <span className="material-symbols-rounded filled text-on-error-container">error</span>
+          <span className="material-symbols-outlined filled text-on-error-container">error</span>
           <span className="font-headline text-sm font-medium leading-snug">{error}</span>
         </div>
       )}
@@ -101,7 +114,7 @@ export function ForgotPasswordForm({
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-2 mb-2">
           <span
-            className="material-symbols-rounded text-primary text-2xl"
+            className="material-symbols-outlined text-primary text-2xl"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             lock_reset
@@ -131,7 +144,7 @@ export function ForgotPasswordForm({
             </label>
             <div className="relative">
               <span
-                className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
                 style={{ fontVariationSettings: "'FILL' 0" }}
               >
                 mail
@@ -160,12 +173,12 @@ export function ForgotPasswordForm({
               }`}
           >
             {isSubmitting && (
-              <span className="material-symbols-rounded animate-spin text-on-primary">
+              <span className="material-symbols-outlined animate-spin text-on-primary">
                 progress_activity
               </span>
             )}
             {t('auth.forgotPassword.submit')}
-            <span className="material-symbols-rounded text-lg">arrow_forward</span>
+            <span className="material-symbols-outlined text-lg">arrow_forward</span>
           </button>
 
           {/* Back Link — Req 5.5 */}
@@ -174,7 +187,7 @@ export function ForgotPasswordForm({
             onClick={() => onNavigate('login')}
             className="text-center font-headline text-sm text-primary hover:text-primary-container transition-colors py-2 flex items-center justify-center gap-1 group"
           >
-            <span className="material-symbols-rounded text-sm group-hover:-translate-x-1 transition-transform">
+            <span className="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">
               arrow_back
             </span>
             {t('auth.forgotPassword.backToLogin')}
