@@ -81,6 +81,7 @@ type Action =
   | { type: 'MARK_SAVED'; payload: Document }
   | { type: 'SET_SAVE_ERROR'; payload: IPCError | null }
   | { type: 'SET_AI_SERVICE_STATUS'; payload: boolean | null }
+  | { type: 'SET_FILE_PATH'; payload: { filePath: string; isFilePersisted: boolean } }
   | { type: 'MARK_FILE_PERSISTED' };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -170,6 +171,13 @@ function appReducer(state: AppState, action: Action): AppState {
     case 'MARK_FILE_PERSISTED':
       return { ...state, isFilePersisted: true };
 
+    case 'SET_FILE_PATH':
+      return {
+        ...state,
+        filePath: action.payload.filePath,
+        isFilePersisted: action.payload.isFilePersisted,
+      };
+
     case 'MARK_UNSAVED':
       return { ...state, hasUnsavedChanges: true };
 
@@ -208,6 +216,8 @@ interface AppContextValue {
   // AI service connectivity (Req 25.4, 25.5)
   setAiServiceStatus: (available: boolean | null) => void;
   markFilePersisted: () => void;
+  /** Update the file path / persisted flag for the current document. */
+  setFilePath: (filePath: string, isFilePersisted: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -281,6 +291,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'MARK_FILE_PERSISTED' });
   }, []);
 
+  const setFilePath = useCallback(
+    (filePath: string, isFilePersisted: boolean) => {
+      dispatch({ type: 'SET_FILE_PATH', payload: { filePath, isFilePersisted } });
+    },
+    [],
+  );
+
   return (
     <AppContext.Provider
       value={{
@@ -301,6 +318,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         closeVersionHistory,
         setAiServiceStatus,
         markFilePersisted,
+        setFilePath,
       }}
     >
       {children}

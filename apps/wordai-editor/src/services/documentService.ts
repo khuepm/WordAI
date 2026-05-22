@@ -64,3 +64,11 @@ export async function loadDocument(path: string): Promise<Document> {
   const raw = await invoke('load_document', { path });
   return deserializeDocument(raw);
 }
+
+/**
+ * Save a document to a file path via Tauri IPC.
+ * The Rust side increments the version and snapshots history.
+ */
+export async function saveDocument(path: string, document: Document): Promise<void> {
+  await invoke('save_document', { path, document });
+}

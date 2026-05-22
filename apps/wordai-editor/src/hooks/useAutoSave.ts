@@ -1,5 +1,13 @@
 /**
- * useAutoSave - Auto-save hook with debounce logic and manual save support
+ * useAutoSave - Auto-save hook with debounce logic, interval-based countdown,
+ * and manual save support.
+ *
+ * Two timers run in parallel:
+ *  1. Debounce timer (2s after content change) — fast saves while typing.
+ *  2. Interval timer (autoSave.intervalMinutes) — periodic saves with a visible
+ *     countdown notification on the status bar so users know when the next
+ *     auto-save happens.
+ *
  * Requirements: 2.1, 2.2, 2.4, 2.5, 17.2, 17.3, 21.2
  */
 
@@ -7,6 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { Document } from '../types/document';
 import type { IPCError } from '../types/ipc';
+import { notificationDispatcher } from '../services/notificationDispatcher';
 
 const DEBOUNCE_DELAY_MS = 2000;
 const RETRY_DELAY_MS = 5000;
@@ -27,6 +36,9 @@ export interface AutoSaveState {
  * @param filePath    - File path to save the document to
  * @param onSaveSuccess - Called with the updated document (new lastModified) on success
  * @param onSaveError   - Called with the IPCError on failure
+ * @param enabled       - Whether auto-save is active (default true)
+ * @param intervalMinutes - Periodic save interval in minutes; emits countdown
+ *                          notifications on the status bar (default 5).
  * @returns `{ isSaving, lastSaved, saveError, hasUnsavedChanges }` state
  */
 export function useAutoSave(
@@ -34,7 +46,8 @@ export function useAutoSave(
   filePath: string,
   onSaveSuccess: (doc: Document) => void,
   onSaveError: (err: IPCError) => void,
-  enabled = true
+  enabled = true,
+  intervalMinutes = 5
 ): AutoSaveState {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -101,6 +114,48 @@ export function useAutoSave(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveError, filePath, performSave, enabled]);
 
+  // Interval-based auto-save with countdown notifications.
+  // Runs every `intervalMinutes` minutes and dispatches `autoSave.countdown`
+  // events each second so the status bar can show "Auto-save in Xs".
+  useEffect(() => {
+    if (!enabled || !filePath) return;
+
+    // Clamp to a sane range. Min 1 minute, max 60 minutes.
+    const minutes = Math.max(1, Math.min(60, intervalMinutes));
+    const intervalSeconds = minutes * 60;
+
+    let remaining = intervalSeconds;
+
+    const tickId = setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        notificationDispatcher.dispatch({
+          sourceKey: 'autoSave.countdown',
+          trigger: 'onEvent',
+          data: { remainingSeconds: remaining },
+          timestamp: Date.now(),
+        });
+      }
+    }, 1000);
+
+    const saveId = setInterval(() => {
+      remaining = intervalSeconds;
+      void performSave(documentRef.current, filePathRef.current).then(() => {
+        notificationDispatcher.dispatch({
+          sourceKey: 'autoSave.success',
+          trigger: 'onEvent',
+          data: { timestamp: Date.now() },
+          timestamp: Date.now(),
+        });
+      });
+    }, intervalSeconds * 1000);
+
+    return () => {
+      clearInterval(tickId);
+      clearInterval(saveId);
+    };
+  }, [enabled, filePath, intervalMinutes, performSave]);
+
   return { isSaving, lastSaved, saveError, hasUnsavedChanges, triggerSave };
 }
 
@@ -110,7 +165,6 @@ export function useAutoSave(
 // ---------------------------------------------------------------------------
 
 import { getState, isDocumentDirty, syncDocument } from '../services/auraBrainManager';
-import { notificationDispatcher } from '../services/notificationDispatcher';
 
 const BLUR_DEBOUNCE_MS = 2000;
 
