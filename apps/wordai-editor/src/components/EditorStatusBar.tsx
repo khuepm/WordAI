@@ -90,6 +90,28 @@ export function EditorStatusBar({
     void openPreferencesWindow({ tab, settingId });
   }, [topNotification?.settingId]);
 
+  // Icon selection based on policy bundle. Lets users instantly tell apart
+  // file save events ("save") from AuraBrain knowledge sync ("sync"), even
+  // when the text content is similar.
+  const iconName: string | null = (() => {
+    if (!topNotification) return isSyncing ? 'sync' : null;
+    const bundle = topNotification.bundle;
+    if (bundle === 'sync') {
+      // AuraBrain knowledge index
+      if (topNotification.format === 'indicator' && topNotification.resolvedContent.includes('error')) return 'cloud_off';
+      if (topNotification.format === 'message' && topNotification.resolvedContent.includes('✓')) return 'cloud_done';
+      return 'cloud_sync';
+    }
+    if (bundle === 'save') {
+      if (topNotification.resolvedContent.includes('✓')) return 'check';
+      return 'save';
+    }
+    if (bundle === 'dirty') return 'edit';
+    if (bundle === 'export') return 'file_download';
+    if (bundle === 'ai') return 'psychology';
+    return null;
+  })();
+
   return (
     <div
       data-testid="editor-status-bar"
@@ -97,6 +119,15 @@ export function EditorStatusBar({
       aria-label={`Sync status: ${statusText}`}
       style={styles.bar}
     >
+      {iconName && (
+        <span
+          className="material-symbols-outlined"
+          aria-hidden="true"
+          style={styles.icon}
+        >
+          {iconName}
+        </span>
+      )}
       <span data-testid="status-text" style={styles.text}>
         {statusText}
       </span>
@@ -133,6 +164,12 @@ const styles: Record<string, React.CSSProperties> = {
   text: {
     opacity: 0.75,
     letterSpacing: '0.02em',
+  },
+  icon: {
+    fontSize: '14px',
+    color: 'var(--md-sys-color-primary, #4343d5)',
+    opacity: 0.8,
+    lineHeight: 1,
   },
   settingsBtn: {
     background: 'none',

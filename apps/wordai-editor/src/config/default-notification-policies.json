@@ -11,9 +11,9 @@
       "duration": null,
       "silent": false,
       "trigger": "onEvent",
-      "template": "Synced · {seconds}s ago",
-      "settingId": "general.autoSave",
-      "description": "Show elapsed time since last sync on status bar (shows minutes after 60s)"
+      "template": "AuraBrain synced · {seconds}s ago",
+      "settingId": "general.autoSyncEnabled",
+      "description": "Show elapsed time since last AuraBrain sync on status bar"
     },
     {
       "id": "sync-success-brief",
@@ -25,9 +25,9 @@
       "duration": 2000,
       "silent": false,
       "trigger": "onEvent",
-      "template": "✓ Synced",
-      "settingId": "general.autoSave",
-      "description": "Brief success indicator on status bar (2s, then elapsed takes over)"
+      "template": "✓ AuraBrain synced",
+      "settingId": "general.autoSyncEnabled",
+      "description": "Brief AuraBrain success indicator on status bar"
     },
     {
       "id": "sync-status-syncing",
@@ -39,9 +39,9 @@
       "duration": null,
       "silent": false,
       "trigger": "onEvent",
-      "template": "Syncing...",
-      "settingId": "general.autoSave",
-      "description": "Show syncing indicator on status bar"
+      "template": "Syncing AuraBrain…",
+      "settingId": "general.autoSyncEnabled",
+      "description": "Show AuraBrain syncing indicator on status bar"
     },
     {
       "id": "sync-error-toast",
@@ -53,9 +53,9 @@
       "duration": 5000,
       "silent": false,
       "trigger": "onEvent",
-      "template": "Sync failed: {error}",
-      "settingId": "general.autoSave",
-      "description": "Toast notification when sync fails"
+      "template": "AuraBrain sync failed: {error}",
+      "settingId": "general.autoSyncEnabled",
+      "description": "Toast notification when AuraBrain sync fails"
     },
     {
       "id": "sync-error-statusbar",
@@ -67,23 +67,37 @@
       "duration": null,
       "silent": false,
       "trigger": "onEvent",
-      "template": "⚠ Sync error",
-      "settingId": "general.autoSave",
-      "description": "Persistent error indicator on status bar"
+      "template": "⚠ AuraBrain sync error",
+      "settingId": "general.autoSyncEnabled",
+      "description": "Persistent AuraBrain error indicator on status bar"
     },
     {
-      "id": "autosync-interval-countdown",
-      "bundle": "sync",
-      "sourceKey": "autoSync.countdown",
+      "id": "autosave-interval-countdown",
+      "bundle": "save",
+      "sourceKey": "autoSave.countdown",
       "channel": "statusBar",
       "format": "countdown",
       "priority": "medium",
       "duration": null,
       "silent": false,
       "trigger": "onEvent",
-      "template": "Next sync in {remainingSeconds}s",
+      "template": "Auto-save in {remainingSeconds}s",
       "settingId": "general.autoSave",
-      "description": "Countdown to next auto-sync (shows 60s before sync)"
+      "description": "Countdown to next file auto-save"
+    },
+    {
+      "id": "autosave-success-brief",
+      "bundle": "save",
+      "sourceKey": "autoSave.success",
+      "channel": "statusBar",
+      "format": "message",
+      "priority": "medium",
+      "duration": 2000,
+      "silent": false,
+      "trigger": "onEvent",
+      "template": "✓ File saved",
+      "settingId": "general.autoSave",
+      "description": "Brief indicator when file is auto-saved"
     },
     {
       "id": "dirty-titlebar-indicator",
