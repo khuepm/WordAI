@@ -21,10 +21,11 @@ import { openPreferencesWindow } from './services/preferencesWindow';
 import { LibraryView } from './components/LibraryView';
 import { ArchiveView } from './components/ArchiveView';
 import { Tooltip } from './components/Tooltip';
-import { useAutoSync } from './hooks/useAutoSave';
+import { useAutoSave, useAutoSync } from './hooks/useAutoSave';
 import { useAuraBrainSyncState } from './hooks/useAuraBrainSyncState';
 import { usePreferenceSync } from './hooks/usePreferenceSync';
-import { loadDocument } from './services/documentService';
+import { loadDocument, saveDocument } from './services/documentService';
+import { recordRecentFile } from './services/recentFilesService';
 import { useAppState } from './services/stateManager';
 import { useAIAccessState, useAccessContext, useAuthState } from './services/authStore';
 import { useAuth } from './hooks/useAuth';
@@ -119,6 +120,8 @@ function App() {
     closeVersionHistory,
     setAiServiceStatus,
     setActiveTab,
+    setFilePath,
+    markSaved,
   } = useAppState();
 
   // Req 13.8–13.11 — derive AI access state to gate AI features
@@ -172,15 +175,27 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Cmd+S / Ctrl+S → sync to AuraBrain (Req 1.1, 1.2, 1.4)
+  // Cmd+S / Ctrl+S → save file if persisted, else AuraBrain sync (Req 1.1, 1.2, 1.4)
   const documentRef = useRef<Document | null>(null);
+  const handleSaveAsRef = useRef<() => Promise<void>>(async () => { });
+  const handleSaveFileRef = useRef<() => Promise<void>>(async () => { });
 
   useEffect(() => {
     const handleSaveKeyDown = async (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+        // Cmd+Shift+S → Save As
+        e.preventDefault();
+        await handleSaveAsRef.current();
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         const doc = documentRef.current;
         if (!doc) return;
+        // If the document has a file path, save to disk; otherwise sync to AuraBrain
+        if (state.filePath && state.isFilePersisted) {
+          await handleSaveFileRef.current();
+        }
         setSyncErrorDismissed(false);
         const result = await auraBrainManager.syncDocument(doc, 'manual');
         if (result.success && !result.queued) {
@@ -190,7 +205,7 @@ function App() {
     };
     window.addEventListener('keydown', handleSaveKeyDown);
     return () => window.removeEventListener('keydown', handleSaveKeyDown);
-  }, []);
+  }, [state.filePath, state.isFilePersisted]);
 
   const handleQuickSearchSelect = useCallback((entry: SettingEntry) => {
     setIsQuickSearchOpen(false);
@@ -466,6 +481,106 @@ function App() {
     localStorage.removeItem(LAST_INTENT_KEY);
   }, [setDocument]);
 
+  /**
+   * Save the current document to a user-chosen file path.
+   * If `state.filePath` is already set, save to that path (replace).
+   * Otherwise open a save dialog and pick a new path.
+   */
+  const handleSaveAs = useCallback(async () => {
+    if (!document) return;
+    try {
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const chosen = await save({
+        title: 'Save Document',
+        defaultPath: document.title || 'Untitled',
+        filters: [
+          { name: 'WordAI Document', extensions: ['json'] },
+        ],
+      });
+      if (!chosen) return;
+      await saveDocument(chosen, document);
+      setFilePath(chosen, true);
+      markSaved(document);
+      recordRecentFile({
+        id: document.id,
+        title: document.title,
+        filePath: chosen,
+        source: 'file',
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Save As failed:', err);
+    }
+  }, [document, markSaved, setFilePath]);
+
+  /** Save to existing file path; falls back to Save As if no path. */
+  const handleSaveFile = useCallback(async () => {
+    if (!document) return;
+    if (!state.filePath || !state.isFilePersisted) {
+      await handleSaveAs();
+      return;
+    }
+    try {
+      await saveDocument(state.filePath, document);
+      markSaved(document);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Save failed:', err);
+    }
+  }, [document, state.filePath, state.isFilePersisted, handleSaveAs, markSaved]);
+
+  /**
+   * Open a file picker, load the JSON document, and set it as active.
+   * Exposed on `window.__wordaiOpenFile` so menu commands and tests can call
+   * it without threading the callback through every component layer. The
+   * Library view has its own import flow for `.md`/`.docx`; this handler
+   * targets the native JSON document format produced by `handleSaveAs`.
+   */
+  const handleOpenFileFromDisk = useCallback(async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const chosen = await open({
+        title: 'Open Document',
+        multiple: false,
+        directory: false,
+        filters: [
+          { name: 'WordAI Document', extensions: ['json'] },
+        ],
+      });
+      if (!chosen || typeof chosen !== 'string') return;
+      const loaded = await loadDocument(chosen);
+      const normalized = { ...loaded, content: ensureBlockValue(loaded.content) };
+      setDocument(normalized, chosen, true);
+      void auraBrainManager.initializeSyncedBaseline(normalized);
+      localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+      recordRecentFile({
+        id: normalized.id,
+        title: normalized.title,
+        filePath: chosen,
+        source: 'file',
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Open failed:', err);
+    }
+  }, [setDocument]);
+
+  // Keep refs in sync so the keydown handler always calls the latest version
+  useEffect(() => {
+    handleSaveAsRef.current = handleSaveAs;
+    handleSaveFileRef.current = handleSaveFile;
+  }, [handleSaveAs, handleSaveFile]);
+
+  // Expose Open-from-disk on window for global commands / future menu wiring
+  useEffect(() => {
+    (window as unknown as { __wordaiOpenFile?: () => Promise<void> }).__wordaiOpenFile =
+      handleOpenFileFromDisk;
+    return () => {
+      delete (window as unknown as { __wordaiOpenFile?: () => Promise<void> })
+        .__wordaiOpenFile;
+    };
+  }, [handleOpenFileFromDisk]);
+
   const handleManualSync = useCallback(async () => {
     if (!document) return;
     setSyncErrorDismissed(false);
@@ -516,6 +631,12 @@ function App() {
     setDocument(normalized, '', true);
     void auraBrainManager.initializeSyncedBaseline(normalized);
     localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+    recordRecentFile({
+      id: normalized.id,
+      title: normalized.title,
+      filePath: null,
+      source: 'library',
+    });
     setActiveTab('editor');
   }, [setDocument, setActiveTab]);
 
@@ -524,6 +645,12 @@ function App() {
     setDocument(normalized, '', true);
     void auraBrainManager.initializeSyncedBaseline(normalized);
     localStorage.setItem(LAST_INTENT_KEY, normalized.id);
+    recordRecentFile({
+      id: normalized.id,
+      title: normalized.title,
+      filePath: null,
+      source: 'archive',
+    });
     setActiveTab('editor');
   }, [setDocument, setActiveTab]);
 
@@ -532,6 +659,23 @@ function App() {
     autoSyncEnabled: preferences.general.autoSyncEnabled,
     autoSyncInterval: preferences.general.autoSyncInterval,
   });
+
+  // File auto-save (separate from AuraBrain sync) — only active when the
+  // current document has been persisted to disk at least once.
+  // Interval comes from preferences.general.autoSave.intervalMinutes (minutes).
+  useAutoSave(
+    document ?? ({} as Document),
+    state.filePath,
+    (savedDoc) => {
+      markSaved(savedDoc);
+    },
+    () => {
+      // Errors are shown via the autoSave failure path; the hook itself
+      // dispatches notifications. No additional UI work needed here.
+    },
+    Boolean(document) && state.isFilePersisted && state.filePath !== '',
+    preferences.general.autoSave?.intervalMinutes ?? 5,
+  );
 
   // Req 19.1–19.4 — Sync preference changes to cloud when authenticated
   usePreferenceSync({ preferences, accessContext });
