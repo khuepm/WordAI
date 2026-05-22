@@ -645,7 +645,7 @@ function PolicyTable() {
 
   // Group policies by bundle
   const bundleGroups = useMemo(() => {
-    const groups: Record<string, typeof policies> = {};
+    const groups: Record<string, NotificationPolicy[]> = {};
     for (const policy of policies) {
       const bundle = policy.bundle || 'ungrouped';
       if (!groups[bundle]) groups[bundle] = [];

@@ -78,7 +78,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
   const [suggestions, setSuggestions] = useState<ArchiveSuggestion[]>([]);
   const [pausedProjects, setPausedProjects] = useState<PausedProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [_isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const hasFetchedOnce = useRef(false);
 

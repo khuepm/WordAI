@@ -44,7 +44,7 @@ const TOAST_DURATION_MS = 5000;
 export function PrismCanvas({
   document,
   onDocumentChange,
-  onAITrigger,
+  onAITrigger: _onAITrigger,
   isAIPanelOpen: _isAIPanelOpen,
   saveError: _saveError,
   hasUnsavedChanges: _hasUnsavedChanges,
