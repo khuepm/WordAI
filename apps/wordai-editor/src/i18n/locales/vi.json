@@ -60,6 +60,12 @@
         "every": "Mỗi",
         "minutes": "phút"
       },
+      "auraBrainSync": {
+        "label": "Đồng bộ AuraBrain",
+        "description": "Tự động ghi nội dung vào AuraBrain để AI có thể tìm kiếm và truy xuất sau này. Dữ liệu lưu cục bộ trong AuraBrain SQLite store.",
+        "every": "Mỗi",
+        "seconds": "giây"
+      },
       "focusMode": {
         "label": "Chế độ tập trung",
         "description": "Tự động ẩn thanh công cụ và panel phụ khi bạn bắt đầu gõ.",

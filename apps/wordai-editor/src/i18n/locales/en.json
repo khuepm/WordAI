@@ -60,6 +60,12 @@
         "every": "Every",
         "minutes": "minutes"
       },
+      "auraBrainSync": {
+        "label": "AuraBrain Sync",
+        "description": "Automatically index your work into AuraBrain so the AI can search and recall it. Saved locally to the AuraBrain SQLite store.",
+        "every": "Every",
+        "seconds": "seconds"
+      },
       "focusMode": {
         "label": "Focus Mode",
         "description": "Automatically hide toolbars and secondary panels when you begin typing.",
