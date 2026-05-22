@@ -22,6 +22,7 @@ import { LibraryEmptyState } from './LibraryEmptyState';
 import { LibraryCard } from './LibraryCard';
 import { ReplaceConfirmationDialog } from './ReplaceConfirmationDialog';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { listRecentFiles, type RecentFileEntry } from '../services/recentFilesService';
 
 // ─── ConflictState ────────────────────────────────────────────────────────────
 
@@ -83,6 +84,21 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
   // Conflict state (wired in sub-task 9.4)
   const [conflictState, setConflictState] = useState<ConflictState | null>(null);
 
+  // Recent files (mixed: AuraBrain intents + on-disk files)
+  const [recentFiles, setRecentFiles] = useState<RecentFileEntry[]>([]);
+
+  useEffect(() => {
+    setRecentFiles(listRecentFiles());
+    // Refresh when localStorage changes (e.g. another window/tab updates it)
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === 'wordai_recent_files') {
+        setRecentFiles(listRecentFiles());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   // ── Data fetching ────────────────────────────────────────────────────────
 
   const fetchIntents = useCallback(async () => {
@@ -115,7 +131,21 @@ export function LibraryView({ onOpenDocument, onTabChange, currentDocumentId }: 
 
   // ── Derived filtered + sorted list ──────────────────────────────────────
 
-  const displayedIntents = applyFilters(intents, searchQuery, activeFilter);
+  const filteredIntents = applyFilters(intents, searchQuery, activeFilter);
+  // When no search/filter, sort by recent open history first, then by intent
+  // ordering (which is updated_at DESC). This way the most recently opened
+  // documents appear at the top of "Recently Used".
+  const recentOrderMap = new Map<string, number>();
+  recentFiles.forEach((entry, idx) => recentOrderMap.set(entry.id, idx));
+
+  const displayedIntents =
+    !searchQuery && activeFilter === 'all' && recentOrderMap.size > 0
+      ? [...filteredIntents].sort((a, b) => {
+        const ai = recentOrderMap.has(a.id) ? recentOrderMap.get(a.id)! : 1e6;
+        const bi = recentOrderMap.has(b.id) ? recentOrderMap.get(b.id)! : 1e6;
+        return ai - bi;
+      })
+      : filteredIntents;
 
   // ── Stub handlers (wired in later sub-tasks) ─────────────────────────────
 

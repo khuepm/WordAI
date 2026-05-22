@@ -85,7 +85,7 @@ describe('useAISummary — loading and success', () => {
     expect(result.current.state.status).toBe('success');
     expect(result.current.state.text).toBe('This is an AI summary.');
     expect(result.current.state.retryCount).toBe(0);
-    expect(mockInvoke).toHaveBeenCalledWith('generate_archive_summary', { id: 'item-1' });
+    expect(mockInvoke).toHaveBeenCalledWith('generate_archive_summary', { id: 'item-1', api_key: '', endpoint: null });
   });
 });
 
@@ -259,6 +259,6 @@ describe('useAISummary — itemId changes', () => {
     expect(result.current.state.status).toBe('success');
     expect(result.current.state.text).toBe('Summary for item-2');
     expect(result.current.state.retryCount).toBe(0);
-    expect(mockInvoke).toHaveBeenCalledWith('generate_archive_summary', { id: 'item-2' });
+    expect(mockInvoke).toHaveBeenCalledWith('generate_archive_summary', { id: 'item-2', api_key: '', endpoint: null });
   });
 });

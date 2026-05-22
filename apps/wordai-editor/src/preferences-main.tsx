@@ -8,11 +8,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./utils/reactInternals";
 import { PreferencesWindow } from "./components/PreferencesWindow";
+import { AuthStateProvider } from "./services/authStore";
 import "./styles/variables.css";
 import "./styles/base.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <PreferencesWindow />
+    <AuthStateProvider>
+      <PreferencesWindow />
+    </AuthStateProvider>
   </React.StrictMode>,
 );

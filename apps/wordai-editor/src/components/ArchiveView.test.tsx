@@ -178,7 +178,7 @@ describe('Data fetching on mount (Req 1.1)', () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledWith('list_archived_intents', { category: 'drafts' });
-    expect(mockInvoke).toHaveBeenCalledWith('get_archive_suggestions', { active_doc_id: 'current-doc-1' });
+    expect(mockInvoke).toHaveBeenCalledWith('get_archive_suggestions', { active_doc_id: 'current-doc-1', api_key: '', endpoint: null });
     expect(mockInvoke).toHaveBeenCalledWith('list_paused_projects');
   });
 

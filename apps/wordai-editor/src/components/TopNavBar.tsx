@@ -320,64 +320,38 @@ export function TopNavBar({
             style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
             onKeyDown={handleMenuKeyDown}
           >
-            {/* Avatar trigger */}
-            {accessContext ? (
-              /* Authenticated avatar trigger */
-              <span
-                style={{
-                  borderRadius: '50%',
-                  display: 'inline-flex',
-                  boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
-                  transition: 'box-shadow 0.15s',
-                }}
-              >
-                <UserAvatar
-                  name={userName}
-                  size={32}
-                  onClick={toggleMenu}
-                />
-              </span>
-            ) : (
-              /* Guest avatar trigger — Req 8.1 */
-              <button
-                type="button"
+            {/* Avatar trigger — always UserAvatar for both guest and authenticated */}
+            <span
+              style={{
+                borderRadius: '50%',
+                display: 'inline-flex',
+                boxShadow: isUserMenuOpen ? '0 0 0 2px var(--md-sys-color-primary)' : 'none',
+                transition: 'box-shadow 0.15s',
+                opacity: isRestoringSession ? 0.6 : 1,
+              }}
+              className={isRestoringSession ? 'animate-pulse' : ''}
+            >
+              <UserAvatar
+                name={userName}
+                size={32}
                 onClick={toggleMenu}
-                data-testid="guest-avatar-trigger"
-                aria-label="User menu"
-                className={isRestoringSession ? 'animate-pulse' : ''}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--md-sys-color-on-surface-variant)',
-                  opacity: isRestoringSession ? 0.6 : 1,
-                }}
-              >
-                <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>
-                  account_circle
-                </span>
-              </button>
-            )}
+              />
+            </span>
 
             {/* Popover menu */}
             {isUserMenuOpen && (
               <div
                 data-testid="user-menu-popover"
-                className={`transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+                role="menu"
+                aria-label="User menu"
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 0.5rem)',
                   right: 0,
                   zIndex: 200,
+                  opacity: isClosing ? 0 : 1,
+                  transition: 'opacity 0.15s',
                 }}
-                role="menu"
-                aria-label="User menu"
               >
                 {accessContext ? (
                   <UserMenuAuthenticated

@@ -57,6 +57,19 @@ interface ConfirmAction {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+/** Extract a human-readable message from Tauri IPC errors (which are objects, not Error instances). */
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && err !== null) {
+    if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+      return (err as { message: string }).message;
+    }
+    return JSON.stringify(err);
+  }
+  return String(err);
+}
+
 export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: ArchiveViewProps) {
   const { t } = useTranslation();
 
@@ -65,7 +78,9 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
   const [suggestions, setSuggestions] = useState<ArchiveSuggestion[]>([]);
   const [pausedProjects, setPausedProjects] = useState<PausedProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const hasFetchedOnce = useRef(false);
 
   // Search: raw input (immediate) and debounced query (300ms)
   const [searchInput, setSearchInput] = useState('');
@@ -93,24 +108,34 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
   // ── Data fetching ────────────────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
+    // Only show full-page loading on initial mount
+    if (!hasFetchedOnce.current) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     setLoadError(null);
     try {
       const [items, sug, projects] = await Promise.all([
         invoke<ArchivedIntentSummary[]>('list_archived_intents', { category: activeCategory }),
+        // AI suggestions are optional — skip if no document is open
+        // and gracefully handle failures (missing API key, etc.)
         currentDocumentId
-          ? invoke<ArchiveSuggestion[]>('get_archive_suggestions', { active_doc_id: currentDocumentId })
+          ? invoke<ArchiveSuggestion[]>('get_archive_suggestions', { active_doc_id: currentDocumentId, api_key: '', endpoint: null })
+            .catch(() => [] as ArchiveSuggestion[])
           : Promise.resolve([] as ArchiveSuggestion[]),
         invoke<PausedProject[]>('list_paused_projects'),
       ]);
       setArchivedItems(Array.isArray(items) ? items : []);
       setSuggestions(Array.isArray(sug) ? sug : []);
       setPausedProjects(Array.isArray(projects) ? projects : []);
+      hasFetchedOnce.current = true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = extractErrorMessage(err);
       setLoadError(message);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, [activeCategory, currentDocumentId]);
 
@@ -172,7 +197,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
       const item = await invoke<ArchivedIntentDocument>('get_archived_intent', { id: itemId });
       setDrawerItem(item);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = extractErrorMessage(err);
       setDrawerError(message);
     } finally {
       setDrawerLoading(false);
@@ -227,7 +252,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
         onOpenDocument(doc);
         onTabChange('editor');
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = extractErrorMessage(err);
         showNotification(t('archive.notifications.restoreFailed', { message }), 'error');
       }
     } else if (type === 'delete') {
@@ -237,7 +262,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
         closeDrawer();
         showNotification(t('archive.notifications.deleted'), 'success');
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = extractErrorMessage(err);
         showNotification(t('archive.notifications.deleteFailed', { message }), 'error');
       }
     }
@@ -252,7 +277,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
       await invoke('sync_intent', { id: itemId });
       showNotification(t('archive.notifications.savedToLibrary'), 'success');
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = extractErrorMessage(err);
       showNotification(t('archive.notifications.saveFailed', { message }), 'error');
     }
   }, [showNotification, t]);
@@ -261,7 +286,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
     try {
       await invoke('compare_with_current', { id: itemId });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = extractErrorMessage(err);
       showNotification(t('archive.notifications.compareFailed', { message }), 'error');
     }
   }, [showNotification, t]);
@@ -270,7 +295,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
     try {
       await invoke('open_read_only', { id: itemId });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = extractErrorMessage(err);
       showNotification(t('archive.notifications.openFailed', { message }), 'error');
     }
   }, [showNotification, t]);
@@ -510,7 +535,7 @@ export function ArchiveView({ onOpenDocument, onTabChange, currentDocumentId }: 
                 fontSize: 'var(--font-size-base, 1rem)',
                 color: 'var(--md-sys-color-on-surface-variant)',
               }}>
-                {t('archive.noResults')}
+                {t('archive.emptyState.noResults.title')}
               </p>
               <button
                 type="button"

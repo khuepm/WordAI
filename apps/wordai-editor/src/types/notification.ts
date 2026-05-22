@@ -97,4 +97,6 @@ export interface ActiveNotification {
   dismissAt: number | null;
   /** Setting ID for deep-linking to Preferences */
   settingId?: string;
+  /** Policy bundle (e.g. "sync", "save", "dirty") for icon/group selection */
+  bundle?: string;
 }

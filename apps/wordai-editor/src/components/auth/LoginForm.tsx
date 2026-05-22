@@ -158,7 +158,7 @@ export function LoginForm({
           role="alert"
           data-testid="login-error-banner"
         >
-          <span className="material-symbols-rounded filled text-on-error-container">error</span>
+          <span className="material-symbols-outlined filled text-on-error-container">error</span>
           <span className="font-headline text-sm font-medium leading-snug">{error}</span>
         </div>
       )}
@@ -222,7 +222,7 @@ export function LoginForm({
             disabled={isSubmitting}
           >
             {isSubmitting && (
-              <span className="material-symbols-rounded animate-spin text-on-primary">
+              <span className="material-symbols-outlined animate-spin text-on-primary">
                 progress_activity
               </span>
             )}

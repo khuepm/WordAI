@@ -8,11 +8,9 @@
  * Requirements: 1.7, 1.8, 1.9, 4.10, 4.11, 4.12, 8.1, 8.2, 8.3, 8.4
  */
 
-import { AccessContext, PlanCode, UserStatus } from '../types/index';
-import {
+import type { AccessContext } from '../types/index';
+import type {
   DatabaseState,
-  UserRecord,
-  EntitlementRecord,
 } from './userService';
 
 // ---------------------------------------------------------------------------

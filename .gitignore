@@ -30,3 +30,13 @@ dist-ssr
 
 # Tauri
 apps/*/src-tauri/target/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Firebase service account keys (NEVER commit these)
+*service-account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
