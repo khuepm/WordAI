@@ -115,25 +115,25 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Define abstract methods: buildSystemPrompt, evaluateCompletion, extractConfidence
     - _Requirements: 2.1, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11_
 
-  - [~] 6.2 Create `src/agent/agents/ResearchAgent.ts`
+  - [x] 6.2 Create `src/agent/agents/ResearchAgent.ts`
     - Extend BaseAgent with role "research"
     - Configure allowed_tools: document_retrieval, web_search
     - Implement research-focused system prompt and completion evaluation
     - _Requirements: 2.2_
 
-  - [~] 6.3 Create `src/agent/agents/WriterAgent.ts`
+  - [x] 6.3 Create `src/agent/agents/WriterAgent.ts`
     - Extend BaseAgent with role "writer"
     - Configure allowed_tools: document_retrieval
     - Implement writing-focused system prompt and completion evaluation
     - _Requirements: 2.3_
 
-  - [~] 6.4 Create `src/agent/agents/EditorAgent.ts`
+  - [x] 6.4 Create `src/agent/agents/EditorAgent.ts`
     - Extend BaseAgent with role "editor"
     - Configure allowed_tools: none
     - Implement editing-focused system prompt and completion evaluation
     - _Requirements: 2.4_
 
-  - [~] 6.5 Create `src/agent/agents/FormatterAgent.ts`
+  - [x] 6.5 Create `src/agent/agents/FormatterAgent.ts`
     - Extend BaseAgent with role "formatter"
     - Configure allowed_tools: none
     - Implement formatting-focused system prompt and completion evaluation
