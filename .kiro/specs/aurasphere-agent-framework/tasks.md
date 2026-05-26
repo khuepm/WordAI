@@ -29,7 +29,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Define LLMProvider interface with generateCompletion, generateStream, getModelCapabilities
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [~] 2.2 Create `src/agent/providers/LLMProviderRegistry.ts`
+  - [x] 2.2 Create `src/agent/providers/LLMProviderRegistry.ts`
     - Implement register(), get(), has(), list() methods
     - Enforce MAX_PROVIDERS limit of 10
     - Return PROVIDER_NOT_FOUND error for unknown provider IDs
@@ -37,7 +37,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Validate provider ID format (1-64 chars, alphanumeric and hyphens)
     - _Requirements: 1.5, 1.6, 1.13, 1.14_
 
-  - [~] 2.3 Create `src/agent/providers/MockProvider.ts`
+  - [x] 2.3 Create `src/agent/providers/MockProvider.ts`
     - Implement LLMProvider interface with deterministic responses (hash first message)
     - Support configurable latency (0-30000ms, default 0)
     - Implement generateStream yielding deterministic token chunks
@@ -63,7 +63,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - In development mode, force MockProvider for all tiers
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.12, 9.13_
 
-  - [~] 3.2 Create `src/agent/errors/CircuitBreaker.ts`
+  - [x] 3.2 Create `src/agent/errors/CircuitBreaker.ts`
     - Track failures per provider with timestamps
     - Mark provider unhealthy after 5 consecutive failures within 60s window
     - Cooldown period of 30s before probe request
@@ -82,7 +82,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Define Tool interface with execute, getSchema, validateInput methods
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [~] 5.2 Create `src/agent/tools/ToolRegistry.ts`
+  - [x] 5.2 Create `src/agent/tools/ToolRegistry.ts`
     - Implement register(), get(), has(), list() methods
     - Implement invoke() with access control check (TOOL_NOT_ALLOWED)
     - Validate input against JSON Schema (TOOL_INVALID_INPUT)
