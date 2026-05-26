@@ -45,15 +45,15 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Validate input parameters and return INVALID_REQUEST for out-of-bounds values
     - _Requirements: 1.7, 1.8, 1.9, 1.15_
 
-  - [~] 2.4 Write property test for MockProvider determinism
+  - [x] 2.4 Write property test for MockProvider determinism
     - **Property 2: Tier Determinism (adapted for Mock)** — identical inputs always produce identical outputs
     - **Validates: Requirements 1.8**
 
-  - [~] 2.5 Write property test for LLMProviderRegistry round-trip
+  - [x] 2.5 Write property test for LLMProviderRegistry round-trip
     - **Property: Registry Round-trip** — register provider with ID X, retrieve by ID X returns same instance
     - **Validates: Requirements 1.5, 1.6, 1.13, 1.14**
 
-- [ ] 3. Implement Configuration and Error Infrastructure
+- [x] 3. Implement Configuration and Error Infrastructure
   - [x] 3.1 Create `src/agent/config.ts` with configuration loader
     - Load from AURASPHERE_* environment variables
     - Load from JSON config file (AURASPHERE_CONFIG_PATH or default)
@@ -70,7 +70,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Implement isHealthy(), recordFailure(), recordSuccess(), reset()
     - _Requirements: 8.10, 8.11, 8.12_
 
-  - [~] 3.3 Write property test for CircuitBreaker activation
+  - [x] 3.3 Write property test for CircuitBreaker activation
     - **Property 10: Circuit Breaker Activation** — exactly 5 consecutive failures within 60s triggers unhealthy state
     - **Validates: Requirements 8.10**
 
@@ -90,13 +90,13 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Return TOOL_NOT_FOUND for unregistered tool IDs
     - _Requirements: 7.4, 7.5, 7.6, 7.7, 7.10, 7.11, 7.12, 7.13_
 
-  - [~] 5.3 Create `src/agent/tools/DocumentRetrievalTool.ts`
+  - [x] 5.3 Create `src/agent/tools/DocumentRetrievalTool.ts`
     - Implement Tool interface for document_retrieval
     - Accept document_id parameter, return stub content
     - Define JSON Schema for input validation
     - _Requirements: 7.8_
 
-  - [~] 5.4 Create `src/agent/tools/WebSearchTool.ts`
+  - [x] 5.4 Create `src/agent/tools/WebSearchTool.ts`
     - Implement Tool interface for web_search placeholder
     - Accept query string parameter, return empty results array
     - Define JSON Schema for input validation
