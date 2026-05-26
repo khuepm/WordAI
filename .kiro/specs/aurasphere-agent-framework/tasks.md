@@ -245,7 +245,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
 - [~] 11. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Implement Bridge API Routes
+- [x] 12. Implement Bridge API Routes
   - [x] 12.1 Create `src/routes/agent.ts` with Express router
     - Implement POST /ai/agent/execute (validate request, auth, quota, execute task, return result)
     - Implement POST /ai/agent/stream (SSE with event ordering: task_accepted → agent_started → token_chunk → agent_completed → task_completed)
@@ -269,13 +269,13 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Wire configuration loading and validation
     - _Requirements: 1.7, 9.1, 9.2_
 
-  - [~] 12.3 Integrate agent routes into existing Express app in `src/index.ts`
+  - [x] 12.3 Integrate agent routes into existing Express app in `src/index.ts`
     - Import and mount createAgentRouter at /ai/agent path
     - Initialize AgentEngine and pass to router
     - Ensure existing auth/quota middleware is reused
     - _Requirements: 6.7, 6.9_
 
-  - [~] 12.4 Write property test for SSE event ordering
+  - [x] 12.4 Write property test for SSE event ordering
     - **Property: SSE Event Ordering** — events arrive in order: task_accepted → (agent_started → token_chunk* → agent_completed)+ → task_completed
     - **Validates: Requirements 6.13**
 

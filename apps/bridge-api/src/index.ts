@@ -11,6 +11,8 @@ import {
 } from './routes/auth';
 import { createLogoutHandler } from './routes/logout';
 import { createGetContextHandler } from './routes/context';
+import { AgentEngine } from './agent';
+import { createAgentRouter } from './routes/agent';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -279,6 +281,86 @@ app.patch('/user/preferences', (req, res) => {
   userPreferences.set(userId, { ...existing, ...patch });
   res.json({ updated_at: new Date().toISOString() });
 });
+
+// ---------------------------------------------------------------------------
+// AuraSphere Agent Engine — mount at /ai/agent
+// Requirements: 6.7, 6.9
+// ---------------------------------------------------------------------------
+
+const agentEngine = new AgentEngine();
+
+const agentRouter = createAgentRouter(
+  {
+    execute: async (task) => {
+      return agentEngine.execute(
+        { intent: task.intent, content: task.content, tier_preference: task.tier_preference, template_id: task.template_id },
+        task.user_id,
+        task.trace_id,
+      );
+    },
+    executeStream: async (task, onEvent) => {
+      const stream = agentEngine.executeStream(
+        { intent: task.intent, content: task.content, tier_preference: task.tier_preference, template_id: task.template_id },
+        task.user_id,
+        task.trace_id,
+      );
+      for await (const event of stream) {
+        onEvent(event);
+      }
+    },
+    getTaskStatus: (taskId) => {
+      const status = agentEngine.getStatus(taskId);
+      // If the task was not found, the engine returns a status with error code TASK_NOT_FOUND
+      if (status.error?.code === 'TASK_NOT_FOUND') {
+        return null;
+      }
+      return status;
+    },
+    getTemplates: () => {
+      const response = agentEngine.getTemplates();
+      // The router expects WorkflowTemplate[] but the engine returns AgentTemplatesResponse
+      // Map back to WorkflowTemplate-like objects for the router
+      return response.templates.map((t) => ({
+        template_id: t.template_id,
+        name: t.name,
+        description: t.description,
+        steps: t.agents_involved.map((role, i) => ({
+          step_id: `step-${i + 1}`,
+          agent_role: role as any,
+          step_type: 'sequential' as const,
+          depends_on: i > 0 ? [`step-${i}`] : [],
+          failure_policy: 'abort' as const,
+        })),
+      }));
+    },
+    getHealth: () => {
+      return agentEngine.getHealth();
+    },
+  },
+  {
+    getUserIdFromSession: (sessionId: string) => {
+      const session = getState().sessions.find((s) => s.id === sessionId);
+      return session?.user_id ?? null;
+    },
+    checkQuota: (userId: string) => {
+      const entitlement = getState().entitlements.find((e) => e.user_id === userId);
+      if (!entitlement) {
+        return { allowed: false, remaining: 0 };
+      }
+      const remaining = entitlement.monthly_quota - entitlement.used_quota;
+      return { allowed: remaining > 0, remaining };
+    },
+    consumeQuota: (userId: string) => {
+      const { consumeQuota } = require('./services/quotaService');
+      const result = consumeQuota(getState(), userId);
+      if (result.consumed) {
+        setState(result.state);
+      }
+    },
+  },
+);
+
+app.use('/ai/agent', agentRouter);
 
 // ---------------------------------------------------------------------------
 // Error handling — must be registered after all routes
