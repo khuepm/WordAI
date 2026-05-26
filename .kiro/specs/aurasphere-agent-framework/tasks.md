@@ -77,7 +77,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
 - [~] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement Tool System
+- [x] 5. Implement Tool System
   - [x] 5.1 Create `src/agent/tools/Tool.ts` with Tool interface
     - Define Tool interface with execute, getSchema, validateInput methods
     - _Requirements: 7.1, 7.2, 7.3_
@@ -102,12 +102,12 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Define JSON Schema for input validation
     - _Requirements: 7.9_
 
-  - [~] 5.5 Write property test for Tool isolation
+  - [x] 5.5 Write property test for Tool isolation
     - **Property 9: Tool Isolation** — agents can only invoke tools in their allowed_tools; others are blocked
     - **Validates: Requirements 7.5, 7.6**
 
 - [ ] 6. Implement Agent System
-  - [~] 6.1 Create `src/agent/agents/BaseAgent.ts` with abstract base class
+  - [x] 6.1 Create `src/agent/agents/BaseAgent.ts` with abstract base class
     - Implement AgentConfig validation (agent_id max 64 chars, system_prompt max 8000 chars, max_iterations 1-100)
     - Implement execute() with task-role validation, iteration counting, LLM call loop
     - Return TASK_ROLE_MISMATCH for mismatched task types
