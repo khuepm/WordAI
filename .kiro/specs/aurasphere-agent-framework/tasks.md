@@ -216,14 +216,14 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Integrate with ContextManager for intermediate result passing
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.6, 3.7, 3.8, 3.11, 3.12, 3.13_
 
-  - [~] 10.2 Create workflow templates in `src/agent/orchestrator/templates/`
+  - [x] 10.2 Create workflow templates in `src/agent/orchestrator/templates/`
     - Create `index.ts` with template registry
     - Create `researchThenWrite.ts`: Research → Writer (sequential)
     - Create `writeThenEdit.ts`: Writer → Editor (sequential)
     - Create `researchWriteEditFormat.ts`: Research → Writer → Editor → Formatter (sequential)
     - _Requirements: 3.9, 3.10_
 
-  - [~] 10.3 Implement retry logic with exponential backoff
+  - [x] 10.3 Implement retry logic with exponential backoff
     - Create withRetry() utility (max 3 retries, 1s base, 8s cap)
     - Handle rate-limit retry-after duration (up to 60s max wait)
     - Handle context-too-long with summarization retry (up to 2 times)
