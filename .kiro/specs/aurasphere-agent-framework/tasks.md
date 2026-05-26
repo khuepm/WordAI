@@ -246,7 +246,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 12. Implement Bridge API Routes
-  - [~] 12.1 Create `src/routes/agent.ts` with Express router
+  - [x] 12.1 Create `src/routes/agent.ts` with Express router
     - Implement POST /ai/agent/execute (validate request, auth, quota, execute task, return result)
     - Implement POST /ai/agent/stream (SSE with event ordering: task_accepted → agent_started → token_chunk → agent_completed → task_completed)
     - Implement GET /ai/agent/status/:taskId (return status, progress, result)
@@ -260,7 +260,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Count each task execution as one quota unit
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13, 6.14, 6.15_
 
-  - [~] 12.2 Create `src/agent/index.ts` as the AgentEngine entry point
+  - [x] 12.2 Create `src/agent/index.ts` as the AgentEngine entry point
     - Initialize LLMProviderRegistry with MockProvider
     - Initialize ToolRegistry with built-in tools
     - Initialize all 4 specialized agents
@@ -279,8 +279,8 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - **Property: SSE Event Ordering** — events arrive in order: task_accepted → (agent_started → token_chunk* → agent_completed)+ → task_completed
     - **Validates: Requirements 6.13**
 
-- [ ] 13. Implement Observability
-  - [~] 13.1 Create `src/agent/observability/Logger.ts`
+- [x] 13. Implement Observability
+  - [x] 13.1 Create `src/agent/observability/Logger.ts`
     - Leverage existing winston logger from bridge-api
     - Implement logAgentInvocation() with structured metadata
     - Implement logPlanSummary() with aggregated metrics
@@ -289,13 +289,13 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Ensure logging is async and non-blocking
     - _Requirements: 10.1, 10.7, 10.8, 10.9, 10.10, 10.11, 10.12_
 
-  - [~] 13.2 Create `src/agent/observability/Metrics.ts`
+  - [x] 13.2 Create `src/agent/observability/Metrics.ts`
     - Implement in-memory MetricsCollector with counters and histograms
     - Track: agent_execution_duration_ms, agent_token_usage, orchestration_plan_duration_ms, provider_request_count, tier_routing_decisions
     - Implement getSnapshot() for health endpoint consumption
     - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [~] 13.3 Create `src/agent/observability/Tracer.ts`
+  - [x] 13.3 Create `src/agent/observability/Tracer.ts`
     - Implement trace_id propagation from Bridge_API request through all agent invocations
     - Attach trace_id to all log entries and metrics
     - _Requirements: 10.8_
