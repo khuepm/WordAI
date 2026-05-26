@@ -106,7 +106,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - **Property 9: Tool Isolation** — agents can only invoke tools in their allowed_tools; others are blocked
     - **Validates: Requirements 7.5, 7.6**
 
-- [ ] 6. Implement Agent System
+- [x] 6. Implement Agent System
   - [x] 6.1 Create `src/agent/agents/BaseAgent.ts` with abstract base class
     - Implement AgentConfig validation (agent_id max 64 chars, system_prompt max 8000 chars, max_iterations 1-100)
     - Implement execute() with task-role validation, iteration counting, LLM call loop
@@ -139,23 +139,23 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Implement formatting-focused system prompt and completion evaluation
     - _Requirements: 2.5_
 
-  - [~] 6.6 Write property test for Agent role validation
+  - [x] 6.6 Write property test for Agent role validation
     - **Property: Role Validation** — matching task type accepted, non-matching rejected with TASK_ROLE_MISMATCH
     - **Validates: Requirements 2.7, 2.8**
 
-  - [~] 6.7 Write property test for Agent iteration bound
+  - [x] 6.7 Write property test for Agent iteration bound
     - **Property: Iteration Bound** — LLM_Provider calls never exceed max_iterations
     - **Validates: Requirements 2.10, 2.11**
 
 - [ ] 7. Implement Context Management
-  - [~] 7.1 Create `src/agent/context/AgentContext.ts` with ContextManager
+  - [x] 7.1 Create `src/agent/context/AgentContext.ts` with ContextManager
     - Implement create(), get(), addIntermediateResult(), addSharedKnowledge(), dispose()
     - Implement serialize()/deserialize() for JSON persistence
     - Implement retention timer with configurable duration (1min-24hr, default 30min)
     - Implement cleanup interval to dispose expired contexts
     - _Requirements: 5.1, 5.2, 5.5, 5.6, 5.7, 5.8, 5.11_
 
-  - [~] 7.2 Create `src/agent/context/ContextWindow.ts`
+  - [x] 7.2 Create `src/agent/context/ContextWindow.ts`
     - Implement fitToWindow() with token estimation (~4 chars/token)
     - Preserve system_prompt + most recent 3 messages when truncating
     - Implement summarization placeholder (falls back to truncation in Phase 1)
