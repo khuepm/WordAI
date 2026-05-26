@@ -203,7 +203,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - **Property 2: Tier Determinism** — same complexity indicators always produce same tier
     - **Validates: Requirements 4.3, 4.4, 4.5**
 
-- [ ] 10. Implement Orchestrator and Workflow Templates
+- [x] 10. Implement Orchestrator and Workflow Templates
   - [x] 10.1 Create `src/agent/orchestrator/Orchestrator.ts`
     - Implement execute() with topological sort step execution
     - Support sequential execution (output feeds next agent's input)
@@ -230,15 +230,15 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Treat CONTEXT_REDUCTION_FAILED as non-recoverable after exhaustion
     - _Requirements: 1.10, 1.11, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9_
 
-  - [~] 10.4 Write property test for Retry bound
+  - [x] 10.4 Write property test for Retry bound
     - **Property 3: Retry Bound** — no operation retried more than 3 times (4 total attempts)
     - **Validates: Requirements 8.3**
 
-  - [~] 10.5 Write property test for Data flow integrity
+  - [x] 10.5 Write property test for Data flow integrity
     - **Property 5: Data Flow Integrity** — sequential agents receive complete upstream output_content
     - **Validates: Requirements 3.2**
 
-  - [~] 10.6 Write property test for Parallel barrier
+  - [x] 10.6 Write property test for Parallel barrier
     - **Property 6: Parallel Barrier** — all parallel agents complete before dependent step begins
     - **Validates: Requirements 3.6**
 
