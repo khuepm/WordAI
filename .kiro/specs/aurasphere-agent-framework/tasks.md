@@ -147,7 +147,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - **Property: Iteration Bound** — LLM_Provider calls never exceed max_iterations
     - **Validates: Requirements 2.10, 2.11**
 
-- [ ] 7. Implement Context Management
+- [x] 7. Implement Context Management
   - [x] 7.1 Create `src/agent/context/AgentContext.ts` with ContextManager
     - Implement create(), get(), addIntermediateResult(), addSharedKnowledge(), dispose()
     - Implement serialize()/deserialize() for JSON persistence
@@ -163,11 +163,11 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Track current_tokens and max_tokens as observable metrics
     - _Requirements: 5.3, 5.4, 5.9, 5.10, 5.12_
 
-  - [~] 7.3 Write property test for Context serialization round-trip
+  - [x] 7.3 Write property test for Context serialization round-trip
     - **Property 8: Context Round-trip** — deserialize(serialize(C)) produces structurally equal output
     - **Validates: Requirements 5.11**
 
-  - [~] 7.4 Write property test for Token bound enforcement
+  - [x] 7.4 Write property test for Token bound enforcement
     - **Property 4: Token Bound** — context passed to LLM never exceeds max_context_length
     - **Validates: Requirements 5.3**
 
@@ -175,7 +175,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Implement Tier Router and Execution Plan
-  - [~] 9.1 Create `src/agent/orchestrator/TierRouter.ts`
+  - [x] 9.1 Create `src/agent/orchestrator/TierRouter.ts`
     - Implement classify() with complexity indicator rules
     - Honor user_explicit_tier_selection override
     - Turbo: output < 500 tokens, no research, no multi-step
@@ -187,7 +187,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Log tier decisions with task_id, assigned_tier, reasoning
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.12, 4.13, 4.14_
 
-  - [~] 9.2 Create `src/agent/orchestrator/ExecutionPlan.ts`
+  - [x] 9.2 Create `src/agent/orchestrator/ExecutionPlan.ts`
     - Define ExecutionPlan structure with DAG of ExecutionSteps
     - Implement validateDAG() using topological sort (cycle detection)
     - Support step types: sequential, parallel, conditional
