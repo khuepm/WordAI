@@ -174,7 +174,7 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
 - [~] 8. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement Tier Router and Execution Plan
+- [x] 9. Implement Tier Router and Execution Plan
   - [x] 9.1 Create `src/agent/orchestrator/TierRouter.ts`
     - Implement classify() with complexity indicator rules
     - Honor user_explicit_tier_selection override
@@ -195,16 +195,16 @@ This plan implements the AuraSphere Agent Framework as a new module within `apps
     - Set max_execution_time_ms based on tier (120000 turbo, 300000 pro)
     - _Requirements: 3.1, 3.5_
 
-  - [~] 9.3 Write property test for DAG acyclicity
+  - [x] 9.3 Write property test for DAG acyclicity
     - **Property 1: DAG Acyclicity** — every generated ExecutionPlan passes topological sort
     - **Validates: Requirements 3.5**
 
-  - [~] 9.4 Write property test for Tier determinism
+  - [x] 9.4 Write property test for Tier determinism
     - **Property 2: Tier Determinism** — same complexity indicators always produce same tier
     - **Validates: Requirements 4.3, 4.4, 4.5**
 
 - [ ] 10. Implement Orchestrator and Workflow Templates
-  - [~] 10.1 Create `src/agent/orchestrator/Orchestrator.ts`
+  - [x] 10.1 Create `src/agent/orchestrator/Orchestrator.ts`
     - Implement execute() with topological sort step execution
     - Support sequential execution (output feeds next agent's input)
     - Support parallel execution (Promise.all for independent steps, max 5 concurrent)
